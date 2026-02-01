@@ -1,0 +1,32 @@
+{
+  "name": "proyectoatrium",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/franmbv/ProyectoAtrium.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/franmbv/ProyectoAtrium/issues"
+  },
+  "homepage": "https://github.com/franmbv/ProyectoAtrium#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "multer": "^2.0.2",
+    "mysql2": "^3.16.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
