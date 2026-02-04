@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const obraModel = require('./obra'); // <-- usar módulo obra para separar lógica
+const obraModel = require('./obra');
 
 module.exports = function(app) {
 	// helper: ejecutar query con timeout para detectar queries colgadas ***NECESARIA***
