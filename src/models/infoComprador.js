@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const obraModel = require('./obra'); // <-- usar módulo obra para separar lógica
 
 module.exports = function(app) {
 	// helper: ejecutar query con timeout para detectar queries colgadas ***NECESARIA***
@@ -44,6 +45,7 @@ module.exports = function(app) {
 	app.post('/confirmar-reserva', async (req, res) => {
 		console.log('POST /confirmar-reserva recibido, body:', req.body);
 		const codigoRaw = (req.body && req.body.codigoSeguridad) ? String(req.body.codigoSeguridad).trim() : '';
+		const obraNombreRaw = (req.body && req.body.obraNombre) ? String(req.body.obraNombre).trim() : '';
 		if (!/^\d+$/.test(codigoRaw)) {
 			return res.render('confirmar-reserva', {
 				message: 'Su código de seguridad es incorrecto por favor reintente',
@@ -76,14 +78,41 @@ module.exports = function(app) {
 
 			const estadoRaw = rows[0].estado ? String(rows[0].estado).trim() : '';
 			if (estadoRaw.toLowerCase() === 'activo') {
-				return res.render('confirmar-reserva', {
-					message: 'Su código de seguridad ha sido validado',
-					success: true,
-					info: rows
-				}, (err, html) => {
-					if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
-					res.send(html);
-				});
+				// Usuario activo: buscar la obra y reservarla si está disponible
+				const obraRow = await obraModel.findByNombre(obraNombreRaw);
+				if (!obraRow) {
+					return res.render('confirmar-reserva', {
+						message: `Obra "${obraNombreRaw}" no encontrada`,
+						success: false
+					}, (err, html) => {
+						if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
+						res.send(html);
+					});
+				}
+
+				if (!obraRow.estatus || String(obraRow.estatus).toLowerCase() !== 'disponible') {
+					return res.render('confirmar-reserva', {
+						message: `Obra "${obraNombreRaw}" ya a sido vendida o reservada`,
+						success: false,
+						info: rows
+					}, (err, html) => {
+						if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
+						res.send(html);
+					});
+				}
+
+				// Intentar reservar (operación atómica)
+				const reservado = await obraModel.reservarById(obraRow.id);
+				if (reservado) {
+					return res.render('confirmar-reserva', {
+						message: `Su código ha sido validado y la obra "${obraNombreRaw}" ha sido reservada`,
+						success: true,
+						info: rows
+					}, (err, html) => {
+						if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
+						res.send(html);
+					});
+				}
 			}
 
 			// Estado no activo

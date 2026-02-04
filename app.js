@@ -21,11 +21,6 @@ app.get('/', (req, res) => {
     res.render('index.ejs'); 
 });
 
-app.get('/confirmar-reserva', (req, res) => {
-    // Renderiza views/confirmar-reserva.ejs
-    res.render('confirmar-reserva');
-});
-
 // --- LEVANTAR SERVIDOR ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

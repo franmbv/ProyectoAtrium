@@ -21,13 +21,15 @@
 </head>
 <body>
 	<h1>Confirmar reserva</h1>
-	<p>Ingrese su código de seguridad para validar la reserva.</p>
+	<p>Ingrese su código de seguridad y el nombre de la obra para validar la reserva.</p>
 
-	<!-- Formulario para ingresar código (numérico) -->
+	<!-- Formulario para ingresar código (numérico) y nombre de obra (letras y espacios) -->
 	<form method="POST" action="/confirmar-reserva" novalidate>
 		<label for="codigoSeguridad">Código:</label>
 		<input id="codigoSeguridad" name="codigoSeguridad" type="text" inputmode="numeric" pattern="\d*" required maxlength="20" />
-		<button type="submit">Validar</button>
+		<label for="obraNombre">Nombre de la obra:</label>
+		<input id="obraNombre" name="obraNombre" type="text" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñüÜ ]+" title="Solo letras y espacios" required maxlength="150" />
+		<button type="submit">Validar y reservar</button>
 	</form>
 
 	<!-- Mostrar mensaje si el servidor envía alguno -->
@@ -36,12 +38,6 @@
 			<%= message %>
 		</div>
 	<% } %>
-
-    <form method="" action="/confirmar-reserva" novalidate>
-		<label for="codigoSeguridad">Código:</label>
-		<input id="codigoSeguridad" name="codigoSeguridad" type="text" inputmode="numeric" pattern="\d*" required maxlength="20" />
-		<button type="submit">Validar</button>
-	</form>
 
     <!-- Botón para volver al inicio -->
 	<a href="/"><button type="button">Volver</button></a>
