@@ -431,14 +431,38 @@ INSERT INTO `usuario` (`id`, `rol_id`, `nombre`, `apellido`, `cedula`, `gmail`, 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `venta`
+-- Estructura de tabla para la tabla `direccion` (NUEVA TABLA)
 --
+CREATE TABLE `direccion` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `pais` varchar(50) DEFAULT NULL,
+  `estado` varchar(50) DEFAULT NULL,
+  `ciudad` varchar(50) DEFAULT NULL,
+  `calle` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+INSERT INTO `direccion` (`id`, `pais`, `estado`, `ciudad`, `calle`) VALUES
+(1, 'Venezuela', 'Bolívar', 'Puerto Ordaz', 'Av. Las Américas'),
+(2, 'Venezuela', 'Distrito Capital', 'Caracas', 'La Castellana'),
+(3, 'Venezuela', 'Anzoátegui', 'Lechería', 'Av. Principal'),
+(4, 'USA', 'Florida', 'Miami', 'Brickell Ave'),
+(5, 'España', 'Madrid', 'Madrid', 'Calle Mayor'),
+(6, 'Colombia', 'Antioquia', 'Medellín', 'El Poblado'),
+(7, 'México', 'CDMX', 'Coyoacán', 'Calle Londres'),
+(8, 'Venezuela', 'Zulia', 'Maracaibo', 'Calle 72'),
+(9, 'Venezuela', 'Bolívar', 'San Félix', 'Av. Guayana'),
+(10, 'Francia', 'Isla de Francia', 'París', 'Rue de Rivoli');
+
+--
+-- Estructura de tabla para la tabla `venta` (MODIFICADA)
+--
 CREATE TABLE `venta` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `comprador_id` int(11) DEFAULT NULL,
   `administrador_id` int(11) DEFAULT NULL,
   `obra_id` int(11) DEFAULT NULL,
+  `direccion_id` int(11) DEFAULT NULL,
   `codigoDeFactura` varchar(50) DEFAULT NULL,
   `iva` float DEFAULT NULL,
   `gananciaMuseoDolares` float DEFAULT NULL,
@@ -446,27 +470,25 @@ CREATE TABLE `venta` (
   `precioFinalVenta` float DEFAULT NULL,
   `fechaDeVenta` date DEFAULT NULL,
   `empresaEnvio` varchar(100) DEFAULT NULL,
-  `pais` varchar(50) DEFAULT NULL,
-  `estado` varchar(50) DEFAULT NULL,
-  `ciudad` varchar(50) DEFAULT NULL,
-  `calle` varchar(100) DEFAULT NULL
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `obra_id` (`obra_id`),
+  UNIQUE KEY `codigoDeFactura` (`codigoDeFactura`),
+  KEY `comprador_id` (`comprador_id`),
+  KEY `administrador_id` (`administrador_id`),
+  KEY `direccion_id` (`direccion_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `venta`
---
-
-INSERT INTO `venta` (`id`, `comprador_id`, `administrador_id`, `obra_id`, `codigoDeFactura`, `iva`, `gananciaMuseoDolares`, `gananciaMuseoPorcentaje`, `precioFinalVenta`, `fechaDeVenta`, `empresaEnvio`, `pais`, `estado`, `ciudad`, `calle`) VALUES
-(1, 3, 1, 1, 'FAC-001', 800, 500, 10, 6300, '2026-01-15', 'DHL', 'Venezuela', 'Bolívar', 'Puerto Ordaz', 'Av. Las Américas'),
-(2, 4, 1, 2, 'FAC-002', 1920, 960, 8, 14880, '2026-01-16', 'FedEx', 'Venezuela', 'Distrito Capital', 'Caracas', 'La Castellana'),
-(3, 5, 2, 3, 'FAC-003', 1360, 595, 7, 10455, '2026-01-17', 'Zoom', 'Venezuela', 'Anzoátegui', 'Lechería', 'Av. Principal'),
-(4, 6, 1, 4, 'FAC-004', 480, 150, 5, 3630, '2026-01-18', 'DHL', 'USA', 'Florida', 'Miami', 'Brickell Ave'),
-(5, 7, 2, 5, 'FAC-005', 720, 270, 6, 5490, '2026-01-19', 'FedEx', 'España', 'Madrid', 'Madrid', 'Calle Mayor'),
-(6, 8, 1, 6, 'FAC-006', 320, 100, 5, 2420, '2026-01-20', 'Zoom', 'Colombia', 'Antioquia', 'Medellín', 'El Poblado'),
-(7, 9, 2, 7, 'FAC-007', 2400, 1500, 10, 18900, '2026-01-21', 'DHL', 'México', 'CDMX', 'Coyoacán', 'Calle Londres'),
-(8, 10, 1, 8, 'FAC-008', 1760, 990, 9, 13750, '2026-01-22', 'FedEx', 'Venezuela', 'Zulia', 'Maracaibo', 'Calle 72'),
-(9, 3, 2, 9, 'FAC-009', 960, 480, 8, 7440, '2026-01-23', 'Zoom', 'Venezuela', 'Bolívar', 'San Félix', 'Av. Guayana'),
-(10, 4, 1, 10, 'FAC-010', 640, 280, 7, 4920, '2026-01-24', 'DHL', 'Francia', 'Isla de Francia', 'París', 'Rue de Rivoli');
+INSERT INTO `venta` (`id`, `comprador_id`, `administrador_id`, `obra_id`, `direccion_id`, `codigoDeFactura`, `iva`, `gananciaMuseoDolares`, `gananciaMuseoPorcentaje`, `precioFinalVenta`, `fechaDeVenta`, `empresaEnvio`) VALUES
+(1, 3, 1, 1, 1, 'FAC-001', 800, 500, 10, 6300, '2026-01-15', 'DHL'),
+(2, 4, 1, 2, 2, 'FAC-002', 1920, 960, 8, 14880, '2026-01-16', 'FedEx'),
+(3, 5, 2, 3, 3, 'FAC-003', 1360, 595, 7, 10455, '2026-01-17', 'Zoom'),
+(4, 6, 1, 4, 4, 'FAC-004', 480, 150, 5, 3630, '2026-01-18', 'DHL'),
+(5, 7, 2, 5, 5, 'FAC-005', 720, 270, 6, 5490, '2026-01-19', 'FedEx'),
+(6, 8, 1, 6, 6, 'FAC-006', 320, 100, 5, 2420, '2026-01-20', 'Zoom'),
+(7, 9, 2, 7, 7, 'FAC-007', 2400, 1500, 10, 18900, '2026-01-21', 'DHL'),
+(8, 10, 1, 8, 8, 'FAC-008', 1760, 990, 9, 13750, '2026-01-22', 'FedEx'),
+(9, 3, 2, 9, 9, 'FAC-009', 960, 480, 8, 7440, '2026-01-23', 'Zoom'),
+(10, 4, 1, 10, 10, 'FAC-010', 640, 280, 7, 4920, '2026-01-24', 'DHL');
 
 --
 -- Índices para tablas volcadas
@@ -574,19 +596,6 @@ ALTER TABLE `usuario`
   ADD UNIQUE KEY `gmail` (`gmail`),
   ADD KEY `rol_id` (`rol_id`);
 
---
--- Indices de la tabla `venta`
---
-ALTER TABLE `venta`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `obra_id` (`obra_id`),
-  ADD UNIQUE KEY `codigoDeFactura` (`codigoDeFactura`),
-  ADD KEY `comprador_id` (`comprador_id`),
-  ADD KEY `administrador_id` (`administrador_id`);
-
---
--- AUTO_INCREMENT de las tablas volcadas
---
 
 --
 -- AUTO_INCREMENT de la tabla `artista`
@@ -733,7 +742,8 @@ ALTER TABLE `usuario`
 ALTER TABLE `venta`
   ADD CONSTRAINT `venta_ibfk_1` FOREIGN KEY (`comprador_id`) REFERENCES `usuario` (`id`),
   ADD CONSTRAINT `venta_ibfk_2` FOREIGN KEY (`administrador_id`) REFERENCES `usuario` (`id`),
-  ADD CONSTRAINT `venta_ibfk_3` FOREIGN KEY (`obra_id`) REFERENCES `obra` (`id`);
+  ADD CONSTRAINT `venta_ibfk_3` FOREIGN KEY (`obra_id`) REFERENCES `obra` (`id`),
+  ADD CONSTRAINT `venta_ibfk_4` FOREIGN KEY (`direccion_id`) REFERENCES `direccion` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
