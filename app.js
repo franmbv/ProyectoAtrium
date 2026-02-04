@@ -28,7 +28,6 @@ app.get('/', (req, res) => {
     res.redirect('/auth/login'); 
 });
 
-
 // --- 3. IMPORTACIÓN DE RUTAS ---
 const authRoutes = require('./src/routes/authRoutes'); 
 const pagoRoutes = require('./src/routes/pagoRoutes');
