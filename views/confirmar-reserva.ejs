@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>CONFIRMAR RESERVA</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .producto { background: white; padding: 10px; margin: 5px 0; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+
+        /* Nuevos estilos */
+        .mensaje { margin: 15px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #e6ffed; color: #046337; border: 1px solid #b9f0c6; }
+        .error { background: #ffe6e6; color: #7a1a1a; border: 1px solid #f0b9b9; }
+        form { margin-top: 10px; display:flex; gap:8px; align-items:center; }
+        input[type="text"] { padding:6px; border:1px solid #ccc; border-radius:4px; width:200px; }
+        button { padding:6px 10px; border-radius:4px; cursor:pointer; }
+    </style>
+</head>
+<body>
+	<h1>Confirmar reserva</h1>
+	<p>Ingrese su código de seguridad para validar la reserva.</p>
+
+	<!-- Formulario para ingresar código (numérico) -->
+	<form method="POST" action="/confirmar-reserva" novalidate>
+		<label for="codigoSeguridad">Código:</label>
+		<input id="codigoSeguridad" name="codigoSeguridad" type="text" inputmode="numeric" pattern="\d*" required maxlength="20" />
+		<button type="submit">Validar</button>
+	</form>
+
+	<!-- Mostrar mensaje si el servidor envía alguno -->
+	<% if (typeof message !== 'undefined' && message) { %>
+		<div class="mensaje <%= success ? 'success' : 'error' %>">
+			<%= message %>
+		</div>
+	<% } %>
+
+    <!-- Botón para volver al inicio -->
+	<a href="/"><button type="button">Volver</button></a>
+</body>
+</html>
