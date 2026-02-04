@@ -24,7 +24,7 @@
 	<p>Ingrese su código de seguridad para validar la reserva.</p>
 
 	<!-- Formulario para ingresar código (numérico) -->
-	<form method="POST" action="/confirmar-reserva" novalidate>
+	<form method="POST" action="/pagos/confirmar-reserva" novalidate>
 		<label for="codigoSeguridad">Código:</label>
 		<input id="codigoSeguridad" name="codigoSeguridad" type="text" inputmode="numeric" pattern="\d*" required maxlength="20" />
 		<button type="submit">Validar</button>
