@@ -14,7 +14,7 @@
 body{
     margin:0;
     font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: linear-gradient(180deg, #000f42 20%, var(--bg) 120%);
+    background: linear-gradient(180deg, #131418 20%, var(--bg) 120%);
     color: #111827;
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
@@ -26,7 +26,7 @@ body{
 }
 
 .card{
-    background:var(--card);
+    background: var(--card);
     width:100%;
     max-width:var(--maxw);
     border-radius:var(--radius);
@@ -75,7 +75,7 @@ form.grid{
 }
 label{
     font-size:13px;
-    color:#374151;
+    color:#000000;
     font-weight:600;
 }
 
@@ -92,7 +92,7 @@ input[type="text"]{
 }
 input[type="text"]:focus{
     border-color: var(--primary);
-    box-shadow: 0 4px 14px rgba(43,110,246,0.12);
+    box-shadow: 0 4px 14px rgba(255, 255, 255, 0.12);
     transform:translateY(-1px);
 }
 
