@@ -33,11 +33,13 @@ app.get('/', (req, res) => {
 const authRoutes = require('./src/routes/authRoutes'); 
 const pagoRoutes = require('./src/routes/pagoRoutes');
 const galeriaRoutes = require('./src/routes/galeriaRoutes'); 
+const adminRoutes = require('./src/routes/adminRoutes');
 
 // --- 4. USO DE RUTAS ---
 app.use('/auth', authRoutes);  
 app.use('/pagos', pagoRoutes);
 app.use('/galeria', galeriaRoutes); 
+app.use('/admin', adminRoutes);
 
 
 // --- LEVANTAR SERVIDOR ---

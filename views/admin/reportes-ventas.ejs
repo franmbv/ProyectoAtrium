@@ -1,0 +1,49 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+    <h2>Reporte de Facturación y Ventas</h2>
+    
+    <form action="/admin/reportes-ventas" method="GET" class="row g-3 mb-4">
+        <div class="col-auto">
+            <input type="date" name="fechaInicio" class="form-control" required>
+        </div>
+        <div class="col-auto">
+            <input type="date" name="fechaFin" class="form-control" required>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-secondary">Filtrar Periodo</button>
+        </div>
+    </form>
+
+    <div class="table-responsive shadow-sm">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Código</th>
+                    <th>Fecha</th>
+                    <th>Obra</th>
+                    <th>Ganancia Museo ($)</th>
+                    <th>Total Recaudado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (ventas.length > 0) { %>
+                    <% ventas.forEach(v => { %>
+                        <tr>
+                            <td><%= v.codigoDeFactura %></td>
+                            <td><%= new Date(v.fechaDeVenta).toLocaleDateString() %></td>
+                            <td><%= v.nombre_obra %></td>
+                            <td>$<%= v.gananciaMuseoDolares %></td>
+                            <td><strong>$<%= v.precioFinalVenta %></strong></td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="5" class="text-center">No hay ventas en este periodo.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
