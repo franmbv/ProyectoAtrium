@@ -54,9 +54,9 @@ module.exports = function(app) {
 			});
 		}
 
-		console.log('Iniciando consulta DB para codigo:', codigoRaw);
+		console.log('Iniciando consulta DB (estado) para codigo:', codigoRaw);
 		try {
-			const results = await queryWithTimeout('SELECT * FROM info_comprador WHERE codigoSeguridad = ?', [codigoRaw], 5000);
+			const results = await queryWithTimeout('SELECT estado FROM info_comprador WHERE codigoSeguridad = ? LIMIT 1', [codigoRaw], 5000);
 
 			// Normalizar: si el driver devuelve [rows, fields], tomar rows en índice 0
 			let rows = results;
@@ -64,9 +64,18 @@ module.exports = function(app) {
 				rows = results[0];
 			}
 
-			console.log('Resultado consulta DB (filas encontradas):', rows && rows.length ? `${rows.length} filas` : '0 filas');
+			if (!rows || rows.length === 0) {
+				return res.render('confirmar-reserva', {
+					message: 'Su código de seguridad es incorrecto por favor reintente',
+					success: false
+				}, (err, html) => {
+					if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
+					res.send(html);
+				});
+			}
 
-			if (rows && rows.length > 0) {
+			const estadoRaw = rows[0].estado ? String(rows[0].estado).trim() : '';
+			if (estadoRaw.toLowerCase() === 'activo') {
 				return res.render('confirmar-reserva', {
 					message: 'Su código de seguridad ha sido validado',
 					success: true,
@@ -77,9 +86,11 @@ module.exports = function(app) {
 				});
 			}
 
+			// Estado no activo
 			return res.render('confirmar-reserva', {
-				message: 'Su código de seguridad es incorrecto por favor reintente',
-				success: false
+				message: 'Licencia Vencida',
+				success: false,
+				info: rows
 			}, (err, html) => {
 				if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
 				res.send(html);
@@ -96,6 +107,51 @@ module.exports = function(app) {
 				if (renderErr) { console.error('Render error:', renderErr.message); return res.status(500).send('Error al renderizar.'); }
 				res.send(html);
 			});
+		}
+	});
+
+	app.post('/info-comprador', async (req, res) => {
+		console.log('POST /info-comprador recibido, body:', req.body);
+		const codigoRaw = (req.body && req.body.codigoSeguridad) ? String(req.body.codigoSeguridad).trim() : '';
+
+		// Validación básica: debe ser numérico (igual que en confirmar-reserva)
+		if (!/^\d+$/.test(codigoRaw)) {
+			console.warn('Código de seguridad inválido:', codigoRaw);
+			return res.status(400).json({ message: 'Código de seguridad inválido' });
+		}
+
+		try {
+			const results = await queryWithTimeout(
+				'SELECT estado FROM info_comprador WHERE codigoSeguridad = ? LIMIT 1',
+				[codigoRaw],
+				5000
+			);
+
+			// Normalizar: si el driver devuelve [rows, fields], tomar rows en índice 0
+			let rows = results;
+			if (Array.isArray(results) && Array.isArray(results[0])) {
+				rows = results[0];
+			}
+
+			if (!rows || rows.length === 0) {
+				console.info('Comprador no encontrado para codigo:', codigoRaw);
+				return res.status(404).json({ message: 'Comprador no encontrado' });
+			}
+
+			const estadoRaw = rows[0].estado ? String(rows[0].estado).trim() : '';
+			if (estadoRaw.toLowerCase() === 'activo') {
+				console.log(`Estado Activo para codigo ${codigoRaw}`);
+				return res.status(200).json({ success: true, message: 'Código validado', estado: 'Activo' });
+			}
+
+			console.log(`Estado no activo para codigo ${codigoRaw}:`, estadoRaw);
+			return res.status(200).json({ success: false, message: 'licencia vencida', estado: estadoRaw || 'Inactivo' });
+		} catch (err) {
+			console.error('Error al consultar estado de membresía:', err);
+			if (err && err.code === 'DB_TIMEOUT') {
+				return res.status(503).json({ message: 'Tiempo de respuesta de la base de datos agotado. Intente de nuevo.' });
+			}
+			return res.status(500).json({ message: 'Ocurrió un error en el servidor. Por favor intente más tarde.' });
 		}
 	});
 };

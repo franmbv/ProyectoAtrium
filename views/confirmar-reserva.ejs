@@ -37,6 +37,12 @@
 		</div>
 	<% } %>
 
+    <form method="" action="/confirmar-reserva" novalidate>
+		<label for="codigoSeguridad">Código:</label>
+		<input id="codigoSeguridad" name="codigoSeguridad" type="text" inputmode="numeric" pattern="\d*" required maxlength="20" />
+		<button type="submit">Validar</button>
+	</form>
+
     <!-- Botón para volver al inicio -->
 	<a href="/"><button type="button">Volver</button></a>
 </body>
