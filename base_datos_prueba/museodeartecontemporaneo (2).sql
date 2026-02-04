@@ -595,8 +595,6 @@ ALTER TABLE `usuario`
   ADD UNIQUE KEY `cedula` (`cedula`),
   ADD UNIQUE KEY `gmail` (`gmail`),
   ADD KEY `rol_id` (`rol_id`);
-
-
 --
 -- AUTO_INCREMENT de la tabla `artista`
 --
