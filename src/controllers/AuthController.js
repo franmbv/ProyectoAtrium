@@ -91,6 +91,15 @@ const AuthController = {
         req.session.destroy(() => {
             res.redirect('/auth/login');
         });
+    },
+
+    // --- 5. MIDDLEWARE DE VERIFICACIÓN DE SESIÓN ---
+    verificarSesion: (req, res, next) => {
+        if (req.session && req.session.usuario) {
+            return next();
+        } else {
+            return res.redirect('/auth/login?error=Acceso denegado: Debes iniciar sesión');
+        }
     }
 };
 
