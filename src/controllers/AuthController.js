@@ -24,7 +24,8 @@ const AuthController = {
             }
 
             const passwordEncriptado = await bcrypt.hash(password, 10);
-            const codigoSeguridad = 'MUSEO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            const numeroAleatorio = Math.floor(Math.random() * 1000); 
+            const codigoSeguridad = numeroAleatorio.toString().padStart(3, '0');
 
             const nuevoUsuario = {
                 nombre, 
@@ -74,7 +75,7 @@ const AuthController = {
                 login: usuario.login
             };
 
-            if (usuario.rol_id === 2) {
+            if (usuario.rol_id === 1) {
                 res.redirect('/admin/dashboard');
             } else {
                 res.redirect('/galeria');
