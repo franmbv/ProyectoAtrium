@@ -8,12 +8,18 @@ const adminController = {
             const [[{ recaudado }]] = await db.execute('SELECT COALESCE(SUM(gananciaMuseoDolares), 0) AS recaudado FROM venta');
             const [[{ membresias }]] = await db.execute('SELECT COUNT(*) AS membresias FROM membresia WHERE estadoMembresia = 1');
 
-            res.render('admin/dashboard', {
-                stats: {
-                    totalObras,
-                    recaudado,
-                    membresias
+            const stats = {
+                totalObras: totalObras ?? 0,
+                recaudado: recaudado ?? 0,
+                membresias: membresias ?? 0
+            };
+
+            res.render('admin/dashboard', { stats }, (err, html) => {
+                if (err) {
+                    console.error('Error render dashboard:', err);
+                    return res.status(500).send('Error al renderizar el dashboard');
                 }
+                res.send(html);
             });
         } catch (error) {
             console.error(error);
