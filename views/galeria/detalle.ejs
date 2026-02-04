@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><%= obra.nombre %> | Detalle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <%- include('../partials/navbar') %>
+
+    <div class="container py-5">
+        <div class="card shadow-lg">
+            <div class="row g-0">
+                <!-- Columna Imagen -->
+                <div class="col-md-6">
+                    <img src="/img/<%= obra.foto ? obra.foto : 'default_obra.jpg' %>" class="img-fluid rounded-start w-100 h-100 object-fit-cover" alt="<%= obra.nombre %>">
+                </div>
+                
+                <!-- Columna Datos -->
+                <div class="col-md-6">
+                    <div class="card-body p-4">
+                        <span class="badge bg-info text-dark mb-2"><%= obra.nombre_genero %></span>
+                        <h2 class="card-title fw-bold"><%= obra.nombre %></h2>
+                        
+                        <h4 class="text-muted mb-3">
+                            Artista: <a href="/galeria/artista/<%= obra.autor_id %>"><%= obra.nombre_artista %> <%= obra.apellido_artista %></a>
+                        </h4>
+                        
+                        <h1 class="text-success fw-bold mb-4">$<%= parseFloat(obra.precioObra).toLocaleString('en-US') %></h1>
+
+                        <hr>
+
+                        <h5>Características Específicas</h5>
+                        <ul class="list-group list-group-flush mb-4">
+                            <!-- Datos Generales -->
+                            <li class="list-group-item"><strong>Nacionalidad Autor:</strong> <%= obra.nacionalidad %></li>
+
+                            <!-- LÓGICA DE HERENCIA VISUAL (EJS) -->
+                            
+                            <!-- Si es PINTURA -->
+                            <% if (obra.tecnica) { %>
+                                <li class="list-group-item"><strong>Técnica:</strong> <%= obra.tecnica %></li>
+                                <li class="list-group-item"><strong>Soporte:</strong> <%= obra.soporte %></li>
+                            <% } %>
+
+                            <!-- Si es ESCULTURA -->
+                            <% if (obra.material) { %>
+                                <li class="list-group-item"><strong>Material:</strong> <%= obra.material %></li>
+                                <li class="list-group-item"><strong>Peso:</strong> <%= obra.peso %> Kg</li>
+                                <li class="list-group-item"><strong>Dimensiones:</strong> <%= obra.largo %>x<%= obra.ancho %>x<%= obra.profundidad %> cm</li>
+                            <% } %>
+
+                            <!-- Si es FOTOGRAFÍA -->
+                            <% if (obra.tipo_foto) { %>
+                                <li class="list-group-item"><strong>Tipo:</strong> <%= obra.tipo_foto %></li>
+                                <li class="list-group-item"><strong>Papel:</strong> <%= obra.papel %></li>
+                                <li class="list-group-item"><strong>Formato:</strong> <%= obra.formato %></li>
+                            <% } %>
+
+                            <!-- Si es CERÁMICA -->
+                            <% if (obra.tipoArcilla) { %>
+                                <li class="list-group-item"><strong>Arcilla:</strong> <%= obra.tipoArcilla %></li>
+                                <li class="list-group-item"><strong>Temperatura:</strong> <%= obra.temperaturaCoccion %> °C</li>
+                            <% } %>
+
+                             <!-- Si es ORFEBRERÍA -->
+                             <% if (obra.metal) { %>
+                                <li class="list-group-item"><strong>Metal:</strong> <%= obra.metal %></li>
+                                <li class="list-group-item"><strong>Pureza:</strong> <%= obra.pureza %></li>
+                                <li class="list-group-item"><strong>Piedra Preciosa:</strong> <%= obra.piedraPreciosa ? 'Sí' : 'No' %></li>
+                            <% } %>
+                        </ul>
+
+                        <div class="d-grid gap-2">
+                            <!-- Botón de compra: Lleva a la lógica de la Persona 2 (Pagos) -->
+                            <a href="/pagos/confirmar-reserva" class="btn btn-primary btn-lg">Comprar ahora</a>
+                            <a href="/galeria" class="btn btn-outline-secondary">Volver al catálogo</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
