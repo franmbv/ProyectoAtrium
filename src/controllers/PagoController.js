@@ -14,7 +14,7 @@ const PagoController = {
     validarCodigo: async (req, res) => {
         const codigoRaw = req.body.codigoSeguridad ? String(req.body.codigoSeguridad).trim() : '';
 
-        if (!/^\d+$/.test(codigoRaw)) {
+        if (!/^\d{3}$/.test(codigoRaw)) {
             return res.render('confirmar-reserva', {
                 message: 'Su código de seguridad es incorrecto, por favor reintente (solo números).',
                 success: false
