@@ -22,18 +22,23 @@ app.use(session({
     cookie: { secure: false } 
 }));
 
-// --- 3. IMPORTACIÓN DE RUTAS (Aquí conectamos los módulos) ---
-const authRoutes = require('./src/routes/authRoutes'); 
-const pagoRoutes = require('./src/routes/pagoRoutes'); 
-
-// --- 4. USO DE RUTAS ---
-app.use('/auth', authRoutes);  
-app.use('/pagos', pagoRoutes);  
 
 // --- RUTA RAÍZ ---
 app.get('/', (req, res) => {
     res.redirect('/auth/login'); 
 });
+
+
+// --- 3. IMPORTACIÓN DE RUTAS ---
+const authRoutes = require('./src/routes/authRoutes'); 
+const pagoRoutes = require('./src/routes/pagoRoutes');
+const galeriaRoutes = require('./src/routes/galeriaRoutes'); 
+
+// --- 4. USO DE RUTAS ---
+app.use('/auth', authRoutes);  
+app.use('/pagos', pagoRoutes);
+app.use('/galeria', galeriaRoutes); 
+
 
 // --- LEVANTAR SERVIDOR ---
 const PORT = process.env.PORT || 3000;

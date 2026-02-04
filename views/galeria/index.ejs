@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Catálogo de Obras | Museo Atrium</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card-img-top { height: 200px; object-fit: cover; }
+        .precio { font-size: 1.2rem; font-weight: bold; color: #333; }
+        .artista-link { text-decoration: none; color: #666; font-size: 0.9rem; }
+        .artista-link:hover { color: #000; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <%- include('../partials/navbar') %>
+
+    <div class="container">
+        <div class="row">
+            
+            <!-- SIDEBAR DE FILTROS -->
+            <div class="col-md-3 mb-4">
+                <div class="card p-3 shadow-sm">
+                    <h5>Filtrar Obras</h5>
+                    <form action="/galeria" method="GET">
+                        
+                        <!-- Filtro Genero -->
+                        <div class="mb-3">
+                            <label class="form-label">Género</label>
+                            <select name="genero" class="form-select" onchange="this.form.submit()">
+                                <option value="">Todos</option>
+                                <% generos.forEach(g => { %>
+                                    <option value="<%= g.Id %>" <%= filtros.genero == g.Id ? 'selected' : '' %>>
+                                        <%= g.nombre %>
+                                    </option>
+                                <% }) %>
+                            </select>
+                        </div>
+
+                        <!-- Filtro Artista -->
+                        <div class="mb-3">
+                            <label class="form-label">Artista</label>
+                            <select name="artista" class="form-select" onchange="this.form.submit()">
+                                <option value="">Todos</option>
+                                <% artistas.forEach(a => { %>
+                                    <option value="<%= a.id %>" <%= filtros.artista == a.id ? 'selected' : '' %>>
+                                        <%= a.nombre %> <%= a.apellido %>
+                                    </option>
+                                <% }) %>
+                            </select>
+                        </div>
+
+                        <!-- Filtro Precio -->
+                        <div class="mb-3">
+                            <label class="form-label">Precio</label>
+                            <select name="precio" class="form-select" onchange="this.form.submit()">
+                                <option value="">Relevancia</option>
+                                <option value="menor" <%= filtros.precio == 'menor' ? 'selected' : '' %>>Menor Precio</option>
+                                <option value="mayor" <%= filtros.precio == 'mayor' ? 'selected' : '' %>>Mayor Precio</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a href="/galeria" class="btn btn-outline-secondary btn-sm">Limpiar Filtros</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- GRID DE PRODUCTOS (OBRAS) -->
+            <div class="col-md-9">
+                <h3 class="mb-3">Obras Disponibles</h3>
+                
+                <% if(obras.length === 0) { %>
+                    <div class="alert alert-warning">No se encontraron obras con estos criterios.</div>
+                <% } %>
+
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    <% obras.forEach(obra => { %>
+                        <div class="col">
+                            <div class="card h-100 shadow-sm border-0">
+                                <!-- Imagen (Si no hay, usa una por defecto) -->
+                                <img src="/img/<%= obra.foto ? obra.foto : 'default_obra.jpg' %>" class="card-img-top" alt="<%= obra.nombre %>">
+                                
+                                <div class="card-body">
+                                    <h5 class="card-title text-truncate"><%= obra.nombre %></h5>
+                                    
+                                    <!-- Link al Artista -->
+                                    <p class="mb-1">
+                                        Por: <a href="/galeria/artista/<%= obra.autor_id %>" class="artista-link">
+                                            <%= obra.nombre_artista %> <%= obra.apellido_artista %>
+                                        </a>
+                                    </p>
+
+                                    <p class="precio mb-2">$<%= parseFloat(obra.precioObra).toLocaleString('en-US') %></p>
+                                    
+                                    <span class="badge bg-secondary mb-2"><%= obra.nombre_genero %></span>
+                                </div>
+                                <div class="card-footer bg-white border-0">
+                                    <a href="/galeria/detalle/<%= obra.id %>" class="btn btn-primary w-100">Ver Detalles</a>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

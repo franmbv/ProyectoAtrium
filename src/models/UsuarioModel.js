@@ -3,7 +3,7 @@ const db = require('../config/db');
 class UsuarioModel {
 
     // 1. Método para Registrar un Nuevo Usuario
-    static async crear(datos, rol = 1) {
+    static async crear(datos, rol = 2) {
         try {
             const query = `
                 INSERT INTO Usuario 
