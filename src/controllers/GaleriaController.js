@@ -19,12 +19,19 @@ const GaleriaController = {
             const generos = await ObraModel.obtenerGeneros();
             const artistas = await ObraModel.obtenerArtistas();
 
-            // 3. Renderizar vista pasando todos los datos
-            res.render('galeria/index', { 
-                obras, 
-                generos, 
+            // 3. Obtener mensaje de sesión (flash message)
+            const message = req.session.message;
+            if (req.session.message) {
+                delete req.session.message; // Limpiar el mensaje después de usarlo
+            }
+
+            // 4. Renderizar vista pasando todos los datos
+            res.render('galeria/index', {
+                obras,
+                generos,
                 artistas,
-                filtros // Para mantener seleccionado el filtro actual
+                filtros, // Para mantener seleccionado el filtro actual
+                message // Mensaje flash
             });
 
         } catch (error) {

@@ -32,7 +32,12 @@ module.exports = function(app) {
 	// GET: mostrar formulario
 	app.get('/confirmar-reserva', (req, res) => {
 		console.log('GET /confirmar-reserva recibido');
-		res.render('confirmar-reserva', { message: null, success: null }, (err, html) => {
+		// Obtener obraNombre desde query (si viene) y validar formato
+		let obraNombre = (req.query && req.query.obraNombre) ? String(req.query.obraNombre).trim() : '';
+		if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ ]+$/.test(obraNombre)) {
+			obraNombre = ''; // ignorar si no válido
+		}
+		res.render('confirmar-reserva', { message: null, success: null, form: { obraNombre }, info: null }, (err, html) => {
 			if (err) {
 				console.error('Error al renderizar confirmar-reserva:', err.message);
 				return res.status(500).send('Vista confirmar-reserva no encontrada o error al renderizar.');
@@ -46,10 +51,24 @@ module.exports = function(app) {
 		console.log('POST /confirmar-reserva recibido, body:', req.body);
 		const codigoRaw = (req.body && req.body.codigoSeguridad) ? String(req.body.codigoSeguridad).trim() : '';
 		const obraNombreRaw = (req.body && req.body.obraNombre) ? String(req.body.obraNombre).trim() : '';
+
 		if (!/^\d+$/.test(codigoRaw)) {
 			return res.render('confirmar-reserva', {
 				message: 'Su código de seguridad es incorrecto por favor reintente',
-				success: false
+				success: false,
+				form: { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw }
+			}, (err, html) => {
+				if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
+				res.send(html);
+			});
+		}
+
+		// Validar nombre de obra (para evitar consultas innecesarias / inyecciones)
+		if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ ]+$/.test(obraNombreRaw)) {
+			return res.render('confirmar-reserva', {
+				message: 'Nombre de obra inválido (solo letras y espacios)',
+				success: false,
+				form: { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw }
 			}, (err, html) => {
 				if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
 				res.send(html);
@@ -69,7 +88,8 @@ module.exports = function(app) {
 			if (!rows || rows.length === 0) {
 				return res.render('confirmar-reserva', {
 					message: 'Su código de seguridad es incorrecto por favor reintente',
-					success: false
+					success: false,
+					form: { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw }
 				}, (err, html) => {
 					if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
 					res.send(html);
@@ -77,24 +97,29 @@ module.exports = function(app) {
 			}
 
 			const estadoRaw = rows[0].estado ? String(rows[0].estado).trim() : '';
+
+			// Si comprador activo, proceder con verificación y reserva de obra
 			if (estadoRaw.toLowerCase() === 'activo') {
-				// Usuario activo: buscar la obra y reservarla si está disponible
+				// Buscar obra
 				const obraRow = await obraModel.findByNombre(obraNombreRaw);
 				if (!obraRow) {
 					return res.render('confirmar-reserva', {
 						message: `Obra "${obraNombreRaw}" no encontrada`,
-						success: false
+						success: false,
+						form: { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw }
 					}, (err, html) => {
 						if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
 						res.send(html);
 					});
 				}
 
+				// Verificar estatus de obra
 				if (!obraRow.estatus || String(obraRow.estatus).toLowerCase() !== 'disponible') {
 					return res.render('confirmar-reserva', {
 						message: `Obra "${obraNombreRaw}" ya a sido vendida o reservada`,
 						success: false,
-						info: rows
+						info: rows,
+						form: { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw }
 					}, (err, html) => {
 						if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
 						res.send(html);
@@ -107,19 +132,32 @@ module.exports = function(app) {
 					return res.render('confirmar-reserva', {
 						message: `Su código ha sido validado y la obra "${obraNombreRaw}" ha sido reservada`,
 						success: true,
-						info: rows
+						info: rows,
+						form: { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw }
 					}, (err, html) => {
 						if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
 						res.send(html);
 					});
 				}
+
+				// Si no se pudo reservar (posible concurrencia)
+				return res.render('confirmar-reserva', {
+					message: `Obra "${obraNombreRaw}" ya a sido vendida o reservada`,
+					success: false,
+					info: rows,
+					form: { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw }
+				}, (err, html) => {
+					if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
+					res.send(html);
+				});
 			}
 
-			// Estado no activo
+			// Comprador no activo
 			return res.render('confirmar-reserva', {
 				message: 'Licencia Vencida',
 				success: false,
-				info: rows
+				info: rows,
+				form: { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw }
 			}, (err, html) => {
 				if (err) { console.error('Render error:', err.message); return res.status(500).send('Error al renderizar.'); }
 				res.send(html);
@@ -131,7 +169,8 @@ module.exports = function(app) {
 				: 'Ocurrió un error en el servidor. Por favor intente más tarde.';
 			return res.render('confirmar-reserva', {
 				message: msg,
-				success: false
+				success: false,
+				form: { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw }
 			}, (renderErr, html) => {
 				if (renderErr) { console.error('Render error:', renderErr.message); return res.status(500).send('Error al renderizar.'); }
 				res.send(html);

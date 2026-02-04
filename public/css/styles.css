@@ -149,3 +149,18 @@ button.ghost{
     form.grid{ grid-template-columns: 1fr 1fr; }
     .actions{ justify-content:flex-end; grid-column:1/-1; }
 }
+
+/* Estilos para el cuadro de compra inline */
+#comprarBox { display:flex; flex-direction:column; gap:8px; background: #fafafa; padding:12px; border-radius:8px; border:1px solid #eef2f6; }
+#comprarBox .field { margin:0; }
+#codigoCompra { width:320px; max-width:100%; }
+
+/* Estilos para el recuadro de la obra */
+.obra-box {
+    border: 1px solid #e6e9ef;
+    background: #fafafa;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 6px;
+}

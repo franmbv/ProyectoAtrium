@@ -73,8 +73,8 @@
                         </ul>
 
                         <div class="d-grid gap-2">
-                            <!-- Botón de compra: Lleva a la lógica de la Persona 2 (Pagos) -->
-                            <a href="/pagos/confirmar-reserva" class="btn btn-primary btn-lg">Comprar ahora</a>
+                            <!-- Botón de compra: Verificar disponibilidad antes de redirigir -->
+                            <button onclick="comprarAhora('<%= obra.nombre %>')" class="btn btn-primary btn-lg">Comprar ahora</button>
                             <a href="/galeria" class="btn btn-outline-secondary">Volver al catálogo</a>
                         </div>
                     </div>
@@ -83,5 +83,24 @@
         </div>
     </div>
 
+    <script>
+        async function comprarAhora(nombre) {
+            try {
+                const res = await fetch('/obra/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ obraNombre: nombre })
+                });
+                const data = await res.json();
+                if (res.ok && data.found && (data.estatus || '').toLowerCase() === 'disponible') {
+                    window.location.href = '/confirmar-reserva?obraNombre=' + encodeURIComponent(nombre);
+                } else {
+                    alert('La Obra ' + nombre + ' ya está Reservada o ha sido Comprada');
+                }
+            } catch (err) {
+                alert('Error al verificar la disponibilidad de la obra. Intente de nuevo.');
+            }
+        }
+    </script>
 </body>
 </html>

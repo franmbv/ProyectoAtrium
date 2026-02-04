@@ -22,6 +22,11 @@ app.use(session({
     cookie: { secure: false } 
 }));
 
+// Registrar rutas (importa el módulo pasándole 'app')
+require('./src/models/infoComprador')(app);
+const obraModule = require('./src/models/obra'); // registrar rutas de obra
+obraModule.init(app); // registra /obra/check
+
 
 // --- RUTA RAÍZ ---
 app.get('/', (req, res) => {
