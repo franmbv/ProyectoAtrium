@@ -25,11 +25,13 @@
                 <div class="help">Solo letras y espacios.</div>
             </div>
 
-            <div class="actions" aria-hidden="false">
-                <a href="/"><button type="button" class="ghost">Volver</button></a>
-                <button type="submit" class="primary">Validar y reservar</button>
-            </div>
-        </form>
+
+	<!-- Formulario para ingresar código (numérico) -->
+	<form method="POST" action="/pagos/confirmar-reserva" novalidate>
+		<label for="codigoSeguridad">Código:</label>
+		<input id="codigoSeguridad" name="codigoSeguridad" type="text" inputmode="numeric" pattern="\d*" required maxlength="20" />
+		<button type="submit">Validar</button>
+	</form>
 
         <% if (typeof message !== 'undefined' && message) { %>
             <div class="mensaje <%= success ? 'success' : 'error' %>">

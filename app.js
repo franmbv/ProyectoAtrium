@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const session = require('express-session'); // ¡VITAL para ti (Persona 2)!
 require('dotenv').config();
 
 const app = express();
@@ -13,13 +14,30 @@ app.use(express.static(path.join(__dirname, 'public'))); // Archivos estáticos
 app.use(express.urlencoded({ extended: true })); // Para capturar formularios 
 app.use(express.json());
 
-// Registrar rutas (importa el módulo pasándole 'app')
-require('./src/models/infoComprador')(app);
+// CONFIGURACIÓN DE SESIÓN 
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'secreto_museo_uneg',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false } 
+}));
 
-// --- RUTAS BASE ---
+
+// --- RUTA RAÍZ ---
 app.get('/', (req, res) => {
-    res.render('index.ejs'); 
+    res.redirect('/auth/login'); 
 });
+
+// --- 3. IMPORTACIÓN DE RUTAS ---
+const authRoutes = require('./src/routes/authRoutes'); 
+const pagoRoutes = require('./src/routes/pagoRoutes');
+const galeriaRoutes = require('./src/routes/galeriaRoutes'); 
+
+// --- 4. USO DE RUTAS ---
+app.use('/auth', authRoutes);  
+app.use('/pagos', pagoRoutes);
+app.use('/galeria', galeriaRoutes); 
+
 
 // --- LEVANTAR SERVIDOR ---
 const PORT = process.env.PORT || 3000;
