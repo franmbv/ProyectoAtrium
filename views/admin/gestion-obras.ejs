@@ -11,7 +11,7 @@
             </div>
             <div class="col-md-3 mb-3">
                 <label class="form-label">Género</label>
-                <select name="genero_id" class="form-select" required>
+                <select name="genero_id" class="form-select" id="genero_id" required>
                     <option value="">Seleccionar</option>
                     <% generos.forEach(g => { %>
                         <option value="<%= g.Id %>"><%= g.nombre %></option>
@@ -26,6 +26,9 @@
                         <option value="<%= a.id %>"><%= a.nombre %> <%= a.apellido %></option>
                     <% }) %>
                 </select>
+                <div class="form-text">
+                    ¿No aparece? <a href="/admin/gestion-artistas">Agregar nuevo artista</a>
+                </div>
             </div>
         </div>
 
@@ -45,8 +48,137 @@
             <input type="file" name="foto" class="form-control" accept="image/*" required>
         </div>
 
+        <!-- Campos específicos por género -->
+        <div id="campos-genero" class="mt-3">
+            <div class="card p-3 mb-3 d-none" data-genero="1">
+                <h5>Pintura</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Técnica</label>
+                        <input type="text" name="tecnica" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Soporte</label>
+                        <input type="text" name="soporte" class="form-control" data-required="true">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-3 mb-3 d-none" data-genero="2">
+                <h5>Escultura</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Material</label>
+                        <input type="text" name="material" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Peso (kg)</label>
+                        <input type="number" step="0.01" name="peso" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Largo (cm)</label>
+                        <input type="number" step="0.01" name="largo" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Ancho (cm)</label>
+                        <input type="number" step="0.01" name="ancho" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Profundidad (cm)</label>
+                        <input type="number" step="0.01" name="profundidad" class="form-control" data-required="true">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-3 mb-3 d-none" data-genero="3">
+                <h5>Fotografía</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo</label>
+                        <input type="text" name="tipo_foto" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Papel</label>
+                        <input type="text" name="papel" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Formato</label>
+                        <input type="text" name="formato" class="form-control" data-required="true">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-3 mb-3 d-none" data-genero="4">
+                <h5>Cerámica</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo de Arcilla</label>
+                        <input type="text" name="tipoArcilla" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Temperatura Cocción (°C)</label>
+                        <input type="number" step="0.01" name="temperaturaCoccion" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo de Esmalte</label>
+                        <input type="text" name="tipoEsmalte" class="form-control" data-required="true">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-3 mb-3 d-none" data-genero="5">
+                <h5>Orfebrería</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Metal</label>
+                        <input type="text" name="metal" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Pureza</label>
+                        <input type="number" step="0.01" name="pureza" class="form-control" data-required="true">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Piedra Preciosa</label>
+                        <select name="piedraPreciosa" class="form-select" data-required="true">
+                            <option value="">Seleccionar</option>
+                            <option value="1">Sí</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <button type="submit" class="btn btn-primary">Cargar al Catálogo</button>
     </form>
 </div>
+
+<script>
+    const generoSelect = document.getElementById('genero_id');
+    const bloques = document.querySelectorAll('[data-genero]');
+
+    const actualizarCampos = () => {
+        const genero = generoSelect.value;
+        bloques.forEach(b => {
+            const activo = b.getAttribute('data-genero') === genero;
+            b.classList.toggle('d-none', !activo);
+            b.querySelectorAll('[data-required]').forEach(input => {
+                if (activo) {
+                    input.setAttribute('required', 'required');
+                } else {
+                    input.removeAttribute('required');
+                    if (input.tagName === 'SELECT') {
+                        input.value = '';
+                    } else {
+                        input.value = '';
+                    }
+                }
+            });
+        });
+    };
+
+    generoSelect.addEventListener('change', actualizarCampos);
+    actualizarCampos();
+</script>
 
 <%- include('../partials/footer') %>

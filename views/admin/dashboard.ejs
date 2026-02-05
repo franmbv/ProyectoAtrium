@@ -1,0 +1,48 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Panel Administrativo - Gerencia</h1>
+    <% if (errorMsg) { %>
+        <div class="alert alert-warning" role="alert">
+            <%= errorMsg %>
+        </div>
+    <% } %>
+    <div class="row">
+        <div class="col-md-4">
+            <a href="/admin/inventario" class="text-decoration-none">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5>Obras en Inventario</h5>
+                    <p class="display-6">Total: <%= stats.totalObras %></p>
+                </div>
+            </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5>Total Recaudado</h5>
+                    <p class="display-6">$<%= stats.recaudado %></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h5>Nuevas Membresías</h5>
+                    <p class="display-6"><%= stats.membresias %></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="list-group mt-3">
+        <a href="/admin/inventario" class="list-group-item list-group-item-action">Ver Inventario de Obras</a>
+        <a href="/admin/gestion-obras" class="list-group-item list-group-item-action">Gestión de Inventario (CRUD)</a>
+        <a href="/admin/reportes-ventas" class="list-group-item list-group-item-action">Reportes de Ventas y Ganancias</a>
+        <a href="/admin/reportes-membresia" class="list-group-item list-group-item-action">Usuarios con Membresía</a>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -15,6 +15,8 @@ router.get('/', (req, res) => {
 
 router.get('/dashboard', adminController.dashboard);
 
+router.get('/inventario', adminController.inventarioObras);
+
 router.get('/gestion-obras', adminController.gestionObras);
 router.post('/guardar-obra', upload, adminController.guardarObra);
 

@@ -22,6 +22,12 @@ app.use(session({
     cookie: { secure: false } 
 }));
 
+// Exponer la sesión a todas las vistas
+app.use((req, res, next) => {
+    res.locals.usuario = req.session?.usuario || null;
+    next();
+});
+
 
 // --- RUTA RAÍZ ---
 app.get('/', (req, res) => {

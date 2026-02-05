@@ -1,0 +1,48 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Recaudación por Membresías</h2>
+        <span class="badge bg-success fs-5">Costo: $10.00</span>
+    </div>
+
+    <form action="/admin/reportes-membresia" method="GET" class="row g-3 mb-4 bg-white p-3 border rounded shadow-sm">
+        <div class="col-auto">
+            <label class="form-label">Desde:</label>
+            <input type="date" name="fechaInicio" class="form-control" value="<%= filtros?.fechaInicio || '' %>">
+        </div>
+        <div class="col-auto">
+            <label class="form-label">Hasta:</label>
+            <input type="date" name="fechaFin" class="form-control" value="<%= filtros?.fechaFin || '' %>">
+        </div>
+        <div class="col-auto d-flex align-items-end">
+            <button type="submit" class="btn btn-info text-white">Filtrar Reporte</button>
+        </div>
+    </form>
+
+    <table class="table table-hover border">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Comprador</th>
+                <th>Fecha de Pago</th>
+                <th>Monto</th>
+                <th>Estatus</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% membresias.forEach(m => { %>
+                <tr>
+                    <td>#<%= m.id %></td>
+                    <td><%= m.nombre %> <%= m.apellido %></td>
+                    <td><%= new Date(m.fechaPago).toLocaleDateString() %></td>
+                    <td>$10.00</td>
+                    <td><span class="badge bg-success">Pagado</span></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<%- include('../partials/footer') %>

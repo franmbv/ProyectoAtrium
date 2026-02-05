@@ -4,9 +4,21 @@ const adminController = {
     // Dashboard de administración
     dashboard: async (req, res) => {
         try {
-            const [[{ totalObras }]] = await db.execute('SELECT COUNT(*) AS totalObras FROM obra');
-            const [[{ recaudado }]] = await db.execute('SELECT COALESCE(SUM(gananciaMuseoDolares), 0) AS recaudado FROM venta');
-            const [[{ membresias }]] = await db.execute('SELECT COUNT(*) AS membresias FROM membresia WHERE estadoMembresia = 1');
+            const [totalObrasRes, recaudadoRes, membresiasRes] = await Promise.allSettled([
+                db.execute('SELECT COUNT(*) AS totalObras FROM obra'),
+                db.execute('SELECT COALESCE(SUM(gananciaMuseoDolares), 0) AS recaudado FROM venta'),
+                db.execute('SELECT COUNT(*) AS membresias FROM membresia WHERE estadoMembresia = 1')
+            ]);
+
+            const totalObras = totalObrasRes.status === 'fulfilled'
+                ? totalObrasRes.value[0][0]?.totalObras
+                : 0;
+            const recaudado = recaudadoRes.status === 'fulfilled'
+                ? recaudadoRes.value[0][0]?.recaudado
+                : 0;
+            const membresias = membresiasRes.status === 'fulfilled'
+                ? membresiasRes.value[0][0]?.membresias
+                : 0;
 
             const stats = {
                 totalObras: totalObras ?? 0,
@@ -14,16 +26,17 @@ const adminController = {
                 membresias: membresias ?? 0
             };
 
-            res.render('admin/dashboard', { stats }, (err, html) => {
-                if (err) {
-                    console.error('Error render dashboard:', err);
-                    return res.status(500).send('Error al renderizar el dashboard');
-                }
-                res.send(html);
-            });
+            const errorMsg = [totalObrasRes, recaudadoRes, membresiasRes].some(r => r.status === 'rejected')
+                ? 'No se pudieron cargar todas las métricas. Revisa la conexión a la base de datos.'
+                : null;
+
+            res.render('admin/dashboard', { stats, errorMsg });
         } catch (error) {
             console.error(error);
-            res.status(500).send('Error al cargar el dashboard');
+            res.render('admin/dashboard', {
+                stats: { totalObras: 0, recaudado: 0, membresias: 0 },
+                errorMsg: 'Error al cargar el dashboard. Verifica la conexión a la base de datos.'
+            });
         }
     },
 
@@ -40,10 +53,37 @@ const adminController = {
         }
     },
 
+    // Listado de obras en inventario
+    inventarioObras: async (req, res) => {
+        try {
+            const sql = `
+                SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto,
+                       a.nombre AS nombre_artista, a.apellido AS apellido_artista,
+                       g.nombre AS nombre_genero
+                FROM obra o
+                INNER JOIN artista a ON o.autor_id = a.id
+                INNER JOIN genero g ON o.genero_id = g.Id
+                ORDER BY o.id DESC
+            `;
+            const [obras] = await db.execute(sql);
+            res.render('admin/inventario', { obras });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar inventario de obras');
+        }
+    },
+
     // Guardar obra (con foto)
     guardarObra: async (req, res) => {
         try {
-            const { nombre, precioObra, porcentajeGanancia, genero_id, autor_id } = req.body;
+            const {
+                nombre, precioObra, porcentajeGanancia, genero_id, autor_id,
+                tecnica, soporte,
+                material, peso, largo, ancho, profundidad,
+                tipo_foto, papel, formato,
+                tipoArcilla, temperaturaCoccion, tipoEsmalte,
+                metal, pureza, piedraPreciosa
+            } = req.body;
             const foto = req.file ? req.file.filename : null;
 
             if (!nombre || !precioObra || !porcentajeGanancia || !genero_id || !autor_id) {
@@ -54,7 +94,7 @@ const adminController = {
                 (genero_id, autor_id, nombre, fechaCreacion, precioObra, porcentajeGanancia, estatus, foto)
                 VALUES (?, ?, ?, CURDATE(), ?, ?, 'Disponible', ?)`;
 
-            await db.execute(sql, [
+            const [resultado] = await db.execute(sql, [
                 genero_id,
                 autor_id,
                 nombre,
@@ -62,6 +102,60 @@ const adminController = {
                 parseFloat(porcentajeGanancia),
                 foto
             ]);
+
+            const obraId = resultado.insertId;
+
+            switch (parseInt(genero_id, 10)) {
+                case 1: // Pintura
+                    await db.execute(
+                        'INSERT INTO pintura (obra_id, tecnica, soporte) VALUES (?, ?, ?)',
+                        [obraId, tecnica || null, soporte || null]
+                    );
+                    break;
+                case 2: // Escultura
+                    await db.execute(
+                        'INSERT INTO escultura (obra_id, material, peso, largo, ancho, profundidad) VALUES (?, ?, ?, ?, ?, ?)',
+                        [
+                            obraId,
+                            material || null,
+                            peso ? parseFloat(peso) : null,
+                            largo ? parseFloat(largo) : null,
+                            ancho ? parseFloat(ancho) : null,
+                            profundidad ? parseFloat(profundidad) : null
+                        ]
+                    );
+                    break;
+                case 3: // Fotografía
+                    await db.execute(
+                        'INSERT INTO fotografia (obra_id, tipo, papel, formato) VALUES (?, ?, ?, ?)',
+                        [obraId, tipo_foto || null, papel || null, formato || null]
+                    );
+                    break;
+                case 4: // Cerámica
+                    await db.execute(
+                        'INSERT INTO ceramica (obra_id, tipoArcilla, temperaturaCoccion, tipoEsmalte) VALUES (?, ?, ?, ?)',
+                        [
+                            obraId,
+                            tipoArcilla || null,
+                            temperaturaCoccion ? parseFloat(temperaturaCoccion) : null,
+                            tipoEsmalte || null
+                        ]
+                    );
+                    break;
+                case 5: // Orfebrería
+                    await db.execute(
+                        'INSERT INTO orfebreria (obra_id, metal, pureza, piedraPreciosa) VALUES (?, ?, ?, ?)',
+                        [
+                            obraId,
+                            metal || null,
+                            pureza ? parseFloat(pureza) : null,
+                            piedraPreciosa !== undefined && piedraPreciosa !== '' ? parseInt(piedraPreciosa, 10) : null
+                        ]
+                    );
+                    break;
+                default:
+                    break;
+            }
 
             res.redirect('/admin/gestion-obras');
         } catch (error) {
@@ -83,7 +177,7 @@ const adminController = {
     // Guardar artista (con foto)
     guardarArtista: async (req, res) => {
         try {
-            const { nombre, apellido, nacionalidad, biografia } = req.body;
+            const { nombre, apellido, nacionalidad, biografia, fechaNac, fechaFal } = req.body;
             const foto = req.file ? req.file.filename : null;
 
             if (!nombre || !nacionalidad) {
@@ -91,12 +185,14 @@ const adminController = {
             }
 
             const sql = `INSERT INTO artista
-                (nombre, apellido, nacionalidad, descripcion, fotografia)
-                VALUES (?, ?, ?, ?, ?)`;
+                (nombre, apellido, fechaNac, fechaFal, nacionalidad, descripcion, fotografia)
+                VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
             await db.execute(sql, [
                 nombre,
                 apellido || null,
+                fechaNac || null,
+                fechaFal || null,
                 nacionalidad,
                 biografia || null,
                 foto
@@ -172,15 +268,16 @@ const adminController = {
     reporteVentas: async (req, res) => {
         try {
             const { fechaInicio, fechaFin } = req.query;
-            if (!fechaInicio || !fechaFin) {
-                return res.render('admin/reportes-ventas', { reporte: { totalRecaudado: 0, totalGanancia: 0 }, ventas: [] });
-            }
+            const usarRango = fechaInicio && fechaFin;
+
+            const where = usarRango ? 'WHERE fechaDeVenta BETWEEN ? AND ?' : '';
+            const params = usarRango ? [fechaInicio, fechaFin] : [];
 
             const sqlResumen = `SELECT 
                                     COALESCE(SUM(precioFinalVenta), 0) as totalRecaudado,
                                     COALESCE(SUM(gananciaMuseoDolares), 0) as totalGanancia
                                 FROM venta 
-                                WHERE fechaDeVenta BETWEEN ? AND ?`;
+                                ${where}`;
 
             const sqlDetalle = `SELECT 
                                     v.*, 
@@ -190,13 +287,17 @@ const adminController = {
                                 FROM venta v
                                 JOIN obra o ON v.obra_id = o.id
                                 JOIN usuario u ON v.comprador_id = u.id
-                                WHERE v.fechaDeVenta BETWEEN ? AND ?
+                                ${usarRango ? 'WHERE v.fechaDeVenta BETWEEN ? AND ?' : ''}
                                 ORDER BY v.fechaDeVenta DESC`;
 
-            const [reporte] = await db.execute(sqlResumen, [fechaInicio, fechaFin]);
-            const [ventas] = await db.execute(sqlDetalle, [fechaInicio, fechaFin]);
+            const [reporte] = await db.execute(sqlResumen, params);
+            const [ventas] = await db.execute(sqlDetalle, params);
 
-            res.render('admin/reportes-ventas', { reporte: reporte[0], ventas });
+            res.render('admin/reportes-ventas', { 
+                reporte: reporte[0], 
+                ventas,
+                filtros: { fechaInicio: fechaInicio || '', fechaFin: fechaFin || '' }
+            });
         } catch (error) {
             res.status(500).send("Error al generar reporte");
         }
@@ -206,18 +307,22 @@ const adminController = {
     reporteMembresias: async (req, res) => {
         try {
             const { fechaInicio, fechaFin } = req.query;
-            if (!fechaInicio || !fechaFin) {
-                return res.render('admin/reportes-membresia', { membresias: [] });
-            }
+            const usarRango = fechaInicio && fechaFin;
+
+            const where = usarRango ? 'WHERE m.fechaPago BETWEEN ? AND ?' : '';
+            const params = usarRango ? [fechaInicio, fechaFin] : [];
 
             const sql = `SELECT m.Id as id, m.fechaPago, m.estadoMembresia, u.nombre, u.apellido
                          FROM membresia m
                          JOIN usuario u ON m.comprador_id = u.id
-                         WHERE m.fechaPago BETWEEN ? AND ?
+                         ${where}
                          ORDER BY m.fechaPago DESC`;
 
-            const [membresias] = await db.execute(sql, [fechaInicio, fechaFin]);
-            res.render('admin/reportes-membresia', { membresias });
+            const [membresias] = await db.execute(sql, params);
+            res.render('admin/reportes-membresia', { 
+                membresias,
+                filtros: { fechaInicio: fechaInicio || '', fechaFin: fechaFin || '' }
+            });
         } catch (error) {
             console.error(error);
             res.status(500).send('Error al generar reporte de membresías');
