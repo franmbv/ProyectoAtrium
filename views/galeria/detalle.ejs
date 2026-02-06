@@ -14,7 +14,7 @@
             <div class="row g-0">
                 <!-- Columna Imagen -->
                 <div class="col-md-6">
-                    <img src="/img/<%= obra.foto ? obra.foto : 'default_obra.jpg' %>" class="img-fluid rounded-start w-100 h-100 object-fit-cover" alt="<%= obra.nombre %>">
+                    <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" class="img-fluid rounded-start w-100 h-100 object-fit-cover" alt="<%= obra.nombre %>">
                 </div>
                 
                 <!-- Columna Datos -->

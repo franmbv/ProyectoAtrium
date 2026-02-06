@@ -88,7 +88,7 @@
                         <div class="col">
                             <div class="card h-100 shadow-sm border-0">
                                 <!-- Imagen (Si no hay, usa una por defecto) -->
-                                <img src="/img/<%= obra.foto ? obra.foto : 'default_obra.jpg' %>" class="card-img-top" alt="<%= obra.nombre %>">
+                                <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" class="card-img-top" alt="<%= obra.nombre %>">
                                 
                                 <div class="card-body">
                                     <h5 class="card-title text-truncate"><%= obra.nombre %></h5>

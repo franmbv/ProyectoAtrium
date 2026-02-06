@@ -1,0 +1,60 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <h4>Emitir Factura Legal</h4>
+        </div>
+        <div class="card-body">
+            <form action="/admin/emitir-factura" method="POST">
+                <input type="hidden" name="obra_id" value="<%= obra.id %>">
+                <input type="hidden" name="precioObra" value="<%= obra.precioObra %>">
+                <input type="hidden" name="porcentajeGanancia" value="<%= obra.porcentajeGanancia %>">
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Obra:</strong> <%= obra.nombre %></p>
+                        <p><strong>Precio Base:</strong> $<%= obra.precioObra %></p>
+                    </div>
+                    <div class="col-md-6 border-start">
+                        <label class="form-label">Seleccionar Comprador</label>
+                        <select name="comprador_id" class="form-select" required>
+                            <% compradores.forEach(c => { %>
+                                <option value="<%= c.id %>"><%= c.nombre %> <%= c.apellido %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Dirección de Envío</label>
+                        <select name="direccion_id" class="form-select" required>
+                            <% direcciones.forEach(d => { %>
+                                <option value="<%= d.id %>"><%= d.ciudad %>, <%= d.calle %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Empresa de Envío (Courier)</label>
+                        <select name="empresaEnvio" class="form-select" required>
+                            <option value="DHL">DHL</option>
+                            <option value="FedEx">FedEx</option>
+                            <option value="MRW">MRW</option>
+                            <option value="Zoom">Zoom</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    El sistema calculará automáticamente el 16% de IVA sobre el precio base.
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg w-100">Confirmar Venta y Generar Código</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
