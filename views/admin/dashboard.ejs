@@ -1,7 +1,54 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
+<style>
+    :root {
+        --admin-bg: #eaeff0;
+        --admin-surface: #bfc9d1;
+        --admin-ink: #25343f;
+        --admin-accent: #ff9b51;
+    }
+
+    .admin-dashboard {
+        background: var(--admin-bg);
+        border-radius: 16px;
+        padding: 24px;
+    }
+
+    .admin-kpi {
+        border: 0;
+        border-radius: 14px;
+        color: var(--admin-ink);
+        box-shadow: 0 10px 20px rgba(37, 52, 63, 0.12);
+    }
+
+    .admin-kpi--inventory {
+        background: var(--admin-surface);
+    }
+
+    .admin-kpi--revenue {
+        background: var(--admin-ink);
+        color: #eaeff0;
+    }
+
+    .admin-kpi--memberships {
+        background: var(--admin-accent);
+        color: #25343f;
+    }
+
+    .admin-kpi h5 {
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+    }
+
+    .admin-kpi .display-6 {
+        font-weight: 700;
+    }
+</style>
+
+<div class="container mt-4 admin-dashboard">
     <h1 class="mb-4">Panel Administrativo - Gerencia</h1>
     <% if (errorMsg) { %>
         <div class="alert alert-warning" role="alert">
@@ -11,16 +58,16 @@
     <div class="row">
         <div class="col-md-4">
             <a href="/admin/inventario" class="text-decoration-none">
-            <div class="card bg-primary text-white mb-4">
-                <div class="card-body">
-                    <h5>Obras en Inventario</h5>
-                    <p class="display-6">Total: <%= stats.totalObras %></p>
+                <div class="card admin-kpi admin-kpi--inventory mb-4">
+                    <div class="card-body">
+                        <h5>Obras en Inventario</h5>
+                        <p class="display-6">Total: <%= stats.totalObras %></p>
+                    </div>
                 </div>
-            </div>
             </a>
         </div>
         <div class="col-md-4">
-            <div class="card bg-success text-white mb-4">
+            <div class="card admin-kpi admin-kpi--revenue mb-4">
                 <div class="card-body">
                     <h5>Total Recaudado</h5>
                     <p class="display-6">$<%= stats.recaudado %></p>
@@ -28,7 +75,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card bg-info text-white mb-4">
+            <div class="card admin-kpi admin-kpi--memberships mb-4">
                 <div class="card-body">
                     <h5>Nuevas Membresías</h5>
                     <p class="display-6"><%= stats.membresias %></p>
@@ -39,7 +86,7 @@
     
     <div class="list-group mt-3">
         <a href="/admin/inventario" class="list-group-item list-group-item-action">Ver Inventario de Obras</a>
-        <a href="/admin/gestion-obras" class="list-group-item list-group-item-action">Gestión de Inventario (CRUD)</a>
+        <a href="/admin/gestion-obras" class="list-group-item list-group-item-action">Gestión de Inventario</a>
         <a href="/admin/reportes-ventas" class="list-group-item list-group-item-action">Reportes de Ventas y Ganancias</a>
         <a href="/admin/reportes-membresia" class="list-group-item list-group-item-action">Usuarios con Membresía</a>
     </div>

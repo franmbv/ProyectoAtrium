@@ -283,7 +283,8 @@ const adminController = {
                                     v.*, 
                                     o.nombre AS nombre_obra, 
                                     u.nombre AS nombre_comprador, 
-                                    u.apellido AS apellido_comprador
+                                    u.apellido AS apellido_comprador,
+                                    (v.precioFinalVenta - v.iva - v.gananciaMuseoDolares) AS gananciaArtistaDolares
                                 FROM venta v
                                 JOIN obra o ON v.obra_id = o.id
                                 JOIN usuario u ON v.comprador_id = u.id

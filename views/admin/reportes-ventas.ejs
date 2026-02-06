@@ -23,6 +23,7 @@
                     <th>Código</th>
                     <th>Fecha</th>
                     <th>Obra</th>
+                    <th>Ganancia Artista ($)</th>
                     <th>Ganancia Museo ($)</th>
                     <th>Total Recaudado</th>
                 </tr>
@@ -34,12 +35,13 @@
                             <td><%= v.codigoDeFactura %></td>
                             <td><%= new Date(v.fechaDeVenta).toLocaleDateString() %></td>
                             <td><%= v.nombre_obra %></td>
+                            <td>$<%= v.gananciaArtistaDolares %></td>
                             <td>$<%= v.gananciaMuseoDolares %></td>
                             <td><strong>$<%= v.precioFinalVenta %></strong></td>
                         </tr>
                     <% }) %>
                 <% } else { %>
-                    <tr><td colspan="5" class="text-center">No hay ventas en este periodo.</td></tr>
+                    <tr><td colspan="6" class="text-center">No hay ventas en este periodo.</td></tr>
                 <% } %>
             </tbody>
         </table>
