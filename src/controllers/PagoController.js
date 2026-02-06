@@ -13,6 +13,7 @@ const PagoController = {
     // POST: Procesar la validación
     validarCodigo: async (req, res) => {
         const codigoRaw = req.body.codigoSeguridad ? String(req.body.codigoSeguridad).trim() : '';
+        const usuarioId = req.session.usuario.id; // Obtener el ID del usuario logueado
 
         if (!/^\d{3}$/.test(codigoRaw)) {
             return res.render('confirmar-reserva', {
@@ -22,17 +23,17 @@ const PagoController = {
         }
 
         try {
-            const info = await InfoCompradorModel.buscarPorCodigo(codigoRaw);
+            const info = await InfoCompradorModel.buscarPorUsuarioYCodigo(usuarioId, codigoRaw);
 
             if (info) {
                 return res.render('confirmar-reserva', {
                     message: 'Su código de seguridad ha sido validado exitosamente.',
                     success: true,
-                    info: info 
+                    info: info
                 });
             } else {
                 return res.render('confirmar-reserva', {
-                    message: 'Código no encontrado en el sistema.',
+                    message: 'Código de seguridad incorrecto.',
                     success: false
                 });
             }

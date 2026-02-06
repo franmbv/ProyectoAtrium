@@ -64,6 +64,13 @@ function init(app) {
 
 	// Nuevo: comprar una obra verificando codigoSeguridad del comprador
 	app.post('/obra/comprar', async (req, res) => {
+		// Verificar sesión del usuario
+		if (!req.session || !req.session.usuario || !req.session.usuario.id) {
+			req.session.message = { type: 'error', text: 'Debe iniciar sesión para comprar una obra' };
+			return res.redirect('/auth/login');
+		}
+
+		const usuarioId = req.session.usuario.id;
 		const obraNombreRaw = (req.body && req.body.obraNombre) ? String(req.body.obraNombre).trim() : '';
 		const codigoRaw = (req.body && req.body.codigoSeguridad) ? String(req.body.codigoSeguridad).trim() : '';
 
@@ -89,17 +96,17 @@ function init(app) {
 				return res.redirect('/galeria/');
 			}
 
-			// Verificar comprador / codigo
+			// Verificar comprador / codigo - Solo para el usuario logueado
 			const results = await queryWithTimeout(
-				'SELECT estado FROM info_comprador WHERE codigoSeguridad = ? LIMIT 1',
-				[codigoRaw],
+				'SELECT estado FROM info_comprador WHERE comprador_id = ? AND codigoSeguridad = ? LIMIT 1',
+				[usuarioId, codigoRaw],
 				5000
 			);
 			let rows = results;
 			if (Array.isArray(results) && Array.isArray(results[0])) rows = results[0];
 
 			if (!rows || rows.length === 0) {
-				req.session.message = { type: 'error', text: 'Código de seguridad no encontrado' };
+				req.session.message = { type: 'error', text: 'Código de seguridad incorrecto o no pertenece a su cuenta' };
 				return res.redirect('/galeria/');
 			}
 			const estadoRaw = rows[0].estado ? String(rows[0].estado).trim() : '';
