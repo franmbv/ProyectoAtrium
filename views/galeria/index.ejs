@@ -16,6 +16,13 @@
 
     <%- include('../partials/navbar') %>
 
+    <% if (message) { %>
+        <div class="alert alert-<%= message.type === 'success' ? 'success' : 'danger' %> alert-dismissible fade show" role="alert">
+            <%= message.text %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+
     <div class="container">
         <div class="row">
             

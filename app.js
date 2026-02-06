@@ -22,6 +22,12 @@ app.use(session({
     cookie: { secure: false } 
 }));
 
+
+// Registrar rutas (importa el módulo pasándole 'app')
+require('./src/models/infoComprador')(app);
+const obraModule = require('./src/models/obra'); // registrar rutas de obra
+obraModule.init(app); // registra /obra/check
+
 // Exponer la sesión a todas las vistas
 app.use((req, res, next) => {
     res.locals.usuario = req.session?.usuario || null;
@@ -33,7 +39,6 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
     res.redirect('/auth/login'); 
 });
-
 
 // --- 3. IMPORTACIÓN DE RUTAS ---
 const authRoutes = require('./src/routes/authRoutes'); 
