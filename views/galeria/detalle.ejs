@@ -86,6 +86,16 @@
     <script>
         async function comprarAhora(nombre) {
             try {
+                // Primero verificar si el usuario está logueado
+                const sessionRes = await fetch('/auth/check-session');
+                const sessionData = await sessionRes.json();
+                if (!sessionData.loggedIn) {
+                    // Si no está logueado, redirigir al login
+                    window.location.href = '/auth/login';
+                    return;
+                }
+
+                // Si está logueado, verificar disponibilidad de la obra
                 const res = await fetch('/obra/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -93,7 +103,7 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.found && (data.estatus || '').toLowerCase() === 'disponible') {
-                    window.location.href = '/confirmar-reserva?obraNombre=' + encodeURIComponent(nombre);
+                    window.location.href = '/pagos/confirmar-reserva?obraNombre=' + encodeURIComponent(nombre);
                 } else {
                     alert('La Obra ' + nombre + ' ya está Reservada o ha sido Comprada');
                 }

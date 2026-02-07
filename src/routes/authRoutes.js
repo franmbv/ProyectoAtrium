@@ -25,4 +25,7 @@ router.post('/login', AuthController.login);
 // 5. Cerrar sesión y destruir la cookie (GET)
 router.get('/logout', AuthController.logout);
 
+// 6. Verificar sesión para frontend (GET)
+router.get('/check-session', AuthController.checkSession);
+
 module.exports = router;

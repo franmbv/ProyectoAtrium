@@ -43,9 +43,9 @@ async function reservarById(id) {
 function init(app) {
 	app.post('/obra/check', async (req, res) => {
 		const obraNombreRaw = (req.body && req.body.obraNombre) ? String(req.body.obraNombre).trim() : '';
-		// Validación: solo letras y espacios
-		if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ ]+$/.test(obraNombreRaw)) {
-			return res.status(400).json({ found: false, message: 'Nombre de obra inválido (solo letras y espacios)' });
+		// Validación: letras, espacios, números, paréntesis y otros caracteres comunes
+		if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ0-9().,\- ]+$/.test(obraNombreRaw)) {
+			return res.status(400).json({ found: false, message: 'Nombre de obra inválido' });
 		}
 		try {
 			const obraRow = await findByNombre(obraNombreRaw);
@@ -75,8 +75,8 @@ function init(app) {
 		const codigoRaw = (req.body && req.body.codigoSeguridad) ? String(req.body.codigoSeguridad).trim() : '';
 
 		// Validaciones básicas
-		if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ ]+$/.test(obraNombreRaw)) {
-			req.session.message = { type: 'error', text: 'Nombre de obra inválido (solo letras y espacios)' };
+		if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ0-9().,\- ]+$/.test(obraNombreRaw)) {
+			req.session.message = { type: 'error', text: 'Nombre de obra inválido' };
 			return res.redirect('/galeria/');
 		}
 		if (!/^\d+$/.test(codigoRaw)) {
@@ -106,7 +106,7 @@ function init(app) {
 			if (Array.isArray(results) && Array.isArray(results[0])) rows = results[0];
 
 			if (!rows || rows.length === 0) {
-				req.session.message = { type: 'error', text: 'Código de seguridad incorrecto o no pertenece a su cuenta' };
+				req.session.message = { type: 'error', text: 'Código de seguridad incorrecto' };
 				return res.redirect('/galeria/');
 			}
 			const estadoRaw = rows[0].estado ? String(rows[0].estado).trim() : '';
