@@ -31,7 +31,6 @@ module.exports = function(app) {
 
 	// GET: mostrar formulario
 	app.get('/confirmar-reserva', (req, res) => {
-		console.log('GET /confirmar-reserva recibido');
 		// Obtener obraNombre desde query (si viene) y validar formato
 		let obraNombre = (req.query && req.query.obraNombre) ? String(req.query.obraNombre).trim() : '';
 		if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ ]+$/.test(obraNombre)) {

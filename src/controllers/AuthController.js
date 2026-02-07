@@ -101,6 +101,15 @@ const AuthController = {
         } else {
             return res.redirect('/auth/login?error=Acceso denegado: Debes iniciar sesión');
         }
+    },
+
+    // --- 6. VERIFICAR SESIÓN PARA FRONTEND ---
+    checkSession: (req, res) => {
+        if (req.session && req.session.usuario) {
+            res.json({ loggedIn: true });
+        } else {
+            res.json({ loggedIn: false });
+        }
     }
 };
 

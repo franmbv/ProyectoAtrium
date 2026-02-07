@@ -4,9 +4,11 @@ const PagoController = {
 
     // GET: Mostrar el formulario
     mostrarConfirmacion: (req, res) => {
-        res.render('confirmar-reserva', { 
-            message: null, 
-            success: null 
+        const obraNombre = req.query.obraNombre || '';
+        res.render('confirmar-reserva', {
+            message: null,
+            success: null,
+            form: { obraNombre }
         });
     },
 
