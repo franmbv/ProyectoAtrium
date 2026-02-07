@@ -13,4 +13,7 @@ router.get('/artista/:id', (req, res) => {
     res.send("Perfil del artista en construcción (Persona 3 encargada)");
 });
 
+// Ruta API: Verificar disponibilidad de una obra 
+router.get('/api/verificar/:id', GaleriaController.verificarDisponibilidadAPI);
+
 module.exports = router;

@@ -74,7 +74,9 @@
 
                         <div class="d-grid gap-2">
                             <!-- Botón de compra: Verificar disponibilidad antes de redirigir -->
-                            <button onclick="comprarAhora('<%= obra.nombre %>')" class="btn btn-primary btn-lg">Comprar ahora</button>
+                            <button onclick="intentarComprar('<%= obra.id %>', '<%= obra.nombre %>')" class="btn btn-primary btn-lg">
+                                Comprar ahora
+                            </button>
                             <a href="/galeria" class="btn btn-outline-secondary">Volver al catálogo</a>
                         </div>
                     </div>
@@ -83,32 +85,34 @@
         </div>
     </div>
 
+    <%- include('../partials/footer') %>
+
     <script>
-        async function comprarAhora(nombre) {
+        async function intentarComprar(idObra, nombreObra) {
             try {
-                // Primero verificar si el usuario está logueado
+                // 1. Verificar si hay sesión activa 
                 const sessionRes = await fetch('/auth/check-session');
                 const sessionData = await sessionRes.json();
+
                 if (!sessionData.loggedIn) {
-                    // Si no está logueado, redirigir al login
-                    window.location.href = '/auth/login';
+                    window.location.href = '/auth/login?mensaje=Debes iniciar sesión primero';
                     return;
                 }
 
-                // Si está logueado, verificar disponibilidad de la obra
-                const res = await fetch('/obra/check', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ obraNombre: nombre })
-                });
+                // 2. Verificar disponibilidad de la obra (AJAX)
+                const res = await fetch(`/galeria/api/verificar/${idObra}`);
                 const data = await res.json();
-                if (res.ok && data.found && (data.estatus || '').toLowerCase() === 'disponible') {
-                    window.location.href = '/pagos/confirmar-reserva?obraNombre=' + encodeURIComponent(nombre);
+
+                if (data.disponible) {
+                    window.location.href = `/pagos/confirmar-reserva?obraNombre=${encodeURIComponent(nombreObra)}`;
                 } else {
-                    alert('La Obra ' + nombre + ' ya está Reservada o ha sido Comprada');
+                    alert(`Lo sentimos, la obra "${nombreObra}" ya no está disponible. Estatus actual: ${data.estatus}`);
+                    window.location.reload();
                 }
+
             } catch (err) {
-                alert('Error al verificar la disponibilidad de la obra. Intente de nuevo.');
+                console.error(err);
+                alert('Ocurrió un error de conexión. Intente nuevamente.');
             }
         }
     </script>

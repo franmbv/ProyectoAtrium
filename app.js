@@ -23,11 +23,6 @@ app.use(session({
 }));
 
 
-// Registrar rutas (importa el módulo pasándole 'app')
-require('./src/models/infoComprador')(app);
-const obraModule = require('./src/models/obra'); // registrar rutas de obra
-obraModule.init(app); // registra /obra/check
-
 // Exponer la sesión a todas las vistas
 app.use((req, res, next) => {
     res.locals.usuario = req.session?.usuario || null;
@@ -37,7 +32,7 @@ app.use((req, res, next) => {
 
 // --- RUTA RAÍZ ---
 app.get('/', (req, res) => {
-    res.redirect('/auth/login'); 
+    res.redirect('/galeria'); 
 });
 
 // --- 3. IMPORTACIÓN DE RUTAS ---
@@ -52,6 +47,9 @@ app.use('/pagos', pagoRoutes);
 app.use('/galeria', galeriaRoutes); 
 app.use('/admin', adminRoutes);
 
+app.use((req, res) => {
+    res.status(404).send('Página no encontrada (404)');
+});
 
 // --- LEVANTAR SERVIDOR ---
 const PORT = process.env.PORT || 3000;

@@ -88,6 +88,88 @@ class ObraModel {
         const [rows] = await db.execute('SELECT id, nombre, apellido FROM artista ORDER BY nombre ASC');
         return rows;
     }
+
+    // Buscar obra por nombre (Insensible a mayúsculas/minúsculas)
+    static async findByNombre(nombre) {
+        const query = 'SELECT * FROM obra WHERE LOWER(nombre) = LOWER(?) LIMIT 1';
+        const [rows] = await db.execute(query, [nombre]);
+        return rows[0]; // Retorna la obra o undefined
+    }
+
+    // Reservar obra (Atómico: Solo si está disponible)
+    static async reservarById(id) {
+        const query = "UPDATE obra SET estatus = 'Reservada' WHERE id = ? AND estatus = 'Disponible'";
+        const [result] = await db.execute(query, [id]);
+        
+        // Retorna true si se modificó una fila (éxito), false si no (ya estaba reservada)
+        return result.affectedRows > 0;
+    }
+
+    // DASHBOARD: Contar obras
+    static async contarTotal() {
+        const [rows] = await db.execute('SELECT COUNT(*) AS total FROM obra');
+        return rows[0].total;
+    }
+
+    // INVENTARIO: Listar todas con joins
+    static async obtenerInventario() {
+        const sql = `
+            SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto,
+                   a.nombre AS nombre_artista, a.apellido AS apellido_artista,
+                   g.nombre AS nombre_genero
+            FROM obra o
+            INNER JOIN artista a ON o.autor_id = a.id
+            INNER JOIN genero g ON o.genero_id = g.id
+            ORDER BY o.id DESC
+        `;
+        const [rows] = await db.execute(sql);
+        return rows;
+    }
+
+    // CREAR OBRA 
+    static async crear(datos, fotoFilename) {
+        // 1. Insertar Obra Padre
+        const sqlObra = `INSERT INTO obra
+            (genero_id, autor_id, nombre, fechaCreacion, precioObra, porcentajeGanancia, estatus, foto)
+            VALUES (?, ?, ?, CURDATE(), ?, ?, 'Disponible', ?)`;
+        
+        const [result] = await db.execute(sqlObra, [
+            datos.genero_id, datos.autor_id, datos.nombre, 
+            parseFloat(datos.precioObra), parseFloat(datos.porcentajeGanancia), fotoFilename
+        ]);
+        
+        const obraId = result.insertId;
+        const generoId = parseInt(datos.genero_id, 10);
+
+        // 2. Insertar Subtipo 
+        if (generoId === 1) { // Pintura
+            await db.execute('INSERT INTO pintura (obra_id, tecnica, soporte) VALUES (?, ?, ?)', 
+                [obraId, datos.tecnica, datos.soporte]);
+        } 
+        else if (generoId === 2) { // Escultura
+            await db.execute('INSERT INTO escultura (obra_id, material, peso, largo, ancho, profundidad) VALUES (?, ?, ?, ?, ?, ?)',
+                [obraId, datos.material, datos.peso, datos.largo, datos.ancho, datos.profundidad]);
+        }
+        else if (generoId === 3) { // Fotografía
+            await db.execute('INSERT INTO fotografia (obra_id, tipo, papel, formato) VALUES (?, ?, ?, ?)',
+                [obraId, datos.tipo_foto, datos.papel, datos.formato]);
+        }
+        else if (generoId === 4) { // Cerámica
+            await db.execute('INSERT INTO ceramica (obra_id, tipoArcilla, temperaturaCoccion, tipoEsmalte) VALUES (?, ?, ?, ?)',
+                [obraId, datos.tipoArcilla, datos.temperaturaCoccion, datos.tipoEsmalte]);
+        }
+        else if (generoId === 5) { // Orfebrería
+            await db.execute('INSERT INTO orfebreria (obra_id, metal, pureza, piedraPreciosa) VALUES (?, ?, ?, ?)',
+                [obraId, datos.metal, datos.pureza, datos.piedraPreciosa]);
+        }
+        
+        return obraId;
+    }
+
+    // Actualizar estatus a Vendida
+    static async marcarComoVendida(id) {
+        await db.execute("UPDATE obra SET estatus = 'Vendida' WHERE id = ?", [id]);
+    }
 }
 
 module.exports = ObraModel;

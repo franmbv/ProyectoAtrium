@@ -56,6 +56,26 @@ const GaleriaController = {
             console.error("Error en Detalle:", error);
             res.status(500).send("Error al cargar la obra");
         }
+    },
+
+    // API para consultar disponibilidad en vivo
+    verificarDisponibilidadAPI: async (req, res) => {
+        try {
+            const id = req.params.id;
+            const obra = await ObraModel.obtenerPorId(id);
+
+            if (obra && obra.estatus === 'Disponible') {
+                return res.json({ disponible: true });
+            } else {
+                return res.json({ 
+                    disponible: false, 
+                    estatus: obra ? obra.estatus : 'No encontrada' 
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error del servidor' });
+        }
     }
 };
 

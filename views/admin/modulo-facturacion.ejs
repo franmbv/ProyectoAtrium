@@ -12,14 +12,18 @@
                 <input type="hidden" name="precioObra" value="<%= obra.precioObra %>">
                 <input type="hidden" name="porcentajeGanancia" value="<%= obra.porcentajeGanancia %>">
 
-                <div class="row mb-3">
+                <div class="row mb-4">
                     <div class="col-md-6">
-                        <p><strong>Obra:</strong> <%= obra.nombre %></p>
-                        <p><strong>Precio Base:</strong> $<%= obra.precioObra %></p>
+                        <h5 class="text-secondary">Detalle de la Obra</h5>
+                        <p><strong>Título:</strong> <%= obra.nombre %></p>
+                        <p><strong>Precio Base:</strong> $<%= parseFloat(obra.precioObra).toLocaleString('en-US') %></p>
+                        <p><strong>% Ganancia Museo:</strong> <%= obra.porcentajeGanancia %>%</p>
                     </div>
                     <div class="col-md-6 border-start">
-                        <label class="form-label">Seleccionar Comprador</label>
+                        <h5 class="text-secondary">Datos del Comprador</h5>
+                        <label class="form-label">Seleccionar Cliente</label>
                         <select name="comprador_id" class="form-select" required>
+                            <option value="">-- Seleccione --</option>
                             <% compradores.forEach(c => { %>
                                 <option value="<%= c.id %>"><%= c.nombre %> <%= c.apellido %></option>
                             <% }) %>
@@ -27,31 +31,67 @@
                     </div>
                 </div>
 
+                <hr>
+
+                <h5 class="mb-3 text-secondary">Datos de Envío y Facturación</h5>
+                
                 <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Dirección de Envío</label>
-                        <select name="direccion_id" class="form-select" required>
-                            <% direcciones.forEach(d => { %>
-                                <option value="<%= d.id %>"><%= d.ciudad %>, <%= d.calle %></option>
-                            <% }) %>
-                        </select>
+                    <div class="col-md-4">
+                        <label class="form-label">País</label>
+                        <input type="text" name="pais" class="form-control" value="Venezuela" readonly>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Empresa de Envío (Courier)</label>
-                        <select name="empresaEnvio" class="form-select" required>
-                            <option value="DHL">DHL</option>
-                            <option value="FedEx">FedEx</option>
-                            <option value="MRW">MRW</option>
-                            <option value="Zoom">Zoom</option>
-                        </select>
+                    <div class="col-md-4">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-select" required>
+                            <option value="">Seleccione</option>
+                            <option value="Bolívar">Bolívar</option>
+                            <option value="Caracas">Caracas</option>
+                            <option value="Anzoátegui">Anzoátegui</option>
+                            <option value="Carabobo">Carabobo</option>
+                            <option value="Zulia">Zulia</option>
+                            <option value="Lara">Lara</option>
+                            <option value="Monagas">Monagas</option>
+                            </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Ciudad</label>
+                        <input type="text" name="ciudad" class="form-control" required placeholder="Ej: Puerto Ordaz">
                     </div>
                 </div>
 
-                <div class="alert alert-warning">
-                    El sistema calculará automáticamente el 16% de IVA sobre el precio base.
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Municipio</label>
+                        <input type="text" name="municipio" class="form-control" placeholder="Ej: Caroní">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Calle / Avenida / Casa / Edificio</label>
+                        <input type="text" name="calle" class="form-control" required placeholder="Dirección exacta...">
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-success btn-lg w-100">Confirmar Venta y Generar Código</button>
+                <div class="mb-4">
+                    <label class="form-label">Empresa de Envío (Courier)</label>
+                    <select name="empresaEnvio" class="form-select" required>
+                        <option value="DHL">DHL</option>
+                        <option value="FedEx">FedEx</option>
+                        <option value="MRW">MRW</option>
+                        <option value="Zoom">Zoom</option>
+                        <option value="Tealca">Tealca</option>
+                        <option value="Liberty Express">Liberty Express</option>
+                    </select>
+                </div>
+
+                <div class="alert alert-info d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <div>
+                        El sistema calculará automáticamente el <strong>16% de IVA</strong> y la ganancia del museo sobre el precio base.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg w-100">
+                    Confirmar Venta y Generar Factura
+                </button>
             </form>
         </div>
     </div>

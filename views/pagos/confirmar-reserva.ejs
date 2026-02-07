@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>CONFIRMAR RESERVA</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        /* Estilos rápidos para mensajes (por si no cargan los tuyos) */
+        .mensaje { padding: 15px; margin-bottom: 20px; border-radius: 4px; font-weight: bold; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <% // Helper para evitar caracteres raros %>
+    <% const esc = s => String((s === null || typeof s === 'undefined') ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); %>
+
+    <div class="card" role="main">
+        <header class="h">
+            <h1 id="titulo">CONFIRMAR RESERVA</h1>
+        </header>
+
+        <p class="lead">Ingrese su código de seguridad para finalizar la compra.</p>
+
+        <% if (locals.message) { %>
+            <div class="mensaje <%= locals.success ? 'success' : 'error' %>">
+                <%= message %>
+            </div>
+        <% } %>
+
+        <form class="grid" method="POST" action="/pagos/confirmar-reserva" novalidate>
+            
+            <div class="field">
+                <label for="codigoSeguridad">Código de seguridad (PIN)</label>
+                <input 
+                    id="codigoSeguridad" 
+                    name="codigoSeguridad" 
+                    type="text" 
+                    inputmode="numeric" 
+                    pattern="\d*" 
+                    required 
+                    maxlength="3" 
+                    placeholder="Ej: 007" 
+                    autofocus
+                    class="form-control"
+                    value="<%= esc((typeof form !== 'undefined' && form.codigoSeguridad) ? form.codigoSeguridad : '') %>" 
+                />
+                <div class="help">Ingrese los 3 dígitos de su membresía.</div>
+            </div>
+
+            <div class="field" style="margin-top: 20px;">
+                <label>Obra a Reservar:</label>
+                
+                <% if (typeof form !== 'undefined' && form.obraNombre) { %>
+                    <div class="h1 obra-box">
+                        <strong><%= esc(form.obraNombre) %></strong>
+                    </div>
+                    <input type="hidden" name="obraNombre" value="<%= esc(form.obraNombre) %>" />
+                <% } else { %>
+                    <div class="alert alert-warning">
+                        ⚠️ No se especificó ninguna obra. Vuelva a la galería.
+                    </div>
+                <% } %>
+            </div>
+
+            <div class="actions" style="margin-top: 20px;">
+                <button type="submit" class="primary" <%= (typeof form !== 'undefined' && form.obraNombre) ? '' : 'disabled' %>>
+                    Confirmar Compra
+                </button>
+            </div>
+        </form>
+
+        <div style="margin-top: 30px;">
+            <a href="/galeria">Volver a la Galería</a>
+        </div>
+    </div>
+
+    <script>
+        // ÚNICO SCRIPT: Validar que solo escriban números (Mejora UX)
+        // Ya no hay fetch ni llamadas al servidor aquí.
+        const inputCodigo = document.getElementById('codigoSeguridad');
+        if (inputCodigo) {
+            inputCodigo.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs'); // Para encriptar contraseñas
 const UsuarioModel = require('../models/UsuarioModel');
+const InfoCompradorModel = require('../models/InfoCompradorModel'); 
 
 const AuthController = {
 
@@ -37,7 +38,8 @@ const AuthController = {
             };
 
             const idUsuario = await UsuarioModel.crear(nuevoUsuario);
-
+            await InfoCompradorModel.crear(idUsuario, codigoSeguridad);
+            
             console.log("---------------------------------------------------");
             console.log(`📧 SIMULANDO ENVÍO DE CORREO A: ${gmail}`);
             console.log(`🔐 SU CÓDIGO DE SEGURIDAD ES: ${codigoSeguridad}`);

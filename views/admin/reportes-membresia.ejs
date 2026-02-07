@@ -34,11 +34,13 @@
         <tbody>
             <% membresias.forEach(m => { %>
                 <tr>
-                    <td>#<%= m.id %></td>
+                    <td>#<%= m.Id %></td>
                     <td><%= m.nombre %> <%= m.apellido %></td>
-                    <td><%= new Date(m.fechaPago).toLocaleDateString() %></td>
-                    <td>$10.00</td>
-                    <td><span class="badge bg-success">Pagado</span></td>
+                    <td><%= m.fechaPago ? new Date(m.fechaPago).toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'Sin fecha' %></td>
+                    <td>$<%= parseFloat(m.montoPagado).toFixed(2) %></td>
+                    <td><span class="badge bg-<%= (m.estado === 'Activo' || m.estado === 'activo') ? 'success' : 'secondary' %>">
+                            <%= m.estado || 'Inactivo' %>
+                        </span></td>
                 </tr>
             <% }) %>
         </tbody>

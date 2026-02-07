@@ -5,10 +5,11 @@ const PagoController = require('../controllers/PagoController');
 const AuthController = require('../controllers/AuthController');
 
 // Rutas
-// GET: Ver pantalla (Protegida por tu sesión)
+// GET: Ver pantalla 
 router.get('/confirmar-reserva', AuthController.verificarSesion, PagoController.mostrarConfirmacion);
 
-// POST: Enviar formulario (Protegida por tu sesión)
-router.post('/confirmar-reserva', AuthController.verificarSesion, PagoController.validarCodigo);
+// POST: Enviar formulario 
+router.post('/confirmar-reserva', AuthController.verificarSesion, PagoController.procesarReserva);
+
 
 module.exports = router;
