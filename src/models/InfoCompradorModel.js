@@ -69,11 +69,12 @@ class InfoCompradorModel {
         return rows[0].total;
     }
 
-    // 5. ACTUALIZAR CÓDIGO DE SEGURIDAD
-    static async actualizarCodigo(comprador_id, nuevoCodigo) {
-        const query = 'UPDATE info_comprador SET codigoSeguridad = ? WHERE comprador_id = ?';
-        const [result] = await db.execute(query, [nuevoCodigo, comprador_id]);
-        return result.affectedRows > 0;
+
+    // 5. ACTUALIZAR CÓDIGOS 
+    static async actualizarCodigo(compradorId, nuevoCodigo) {
+        const sql = 'UPDATE info_comprador SET codigoSeguridad = ? WHERE comprador_id = ?';
+        await db.execute(sql, [nuevoCodigo, compradorId]);
+        return true;
     }
 }
 
