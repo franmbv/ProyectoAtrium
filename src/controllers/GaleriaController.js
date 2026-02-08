@@ -1,37 +1,30 @@
 const ObraModel = require('../models/ObraModel');
+const ArtistaModel = require('../models/ArtistaModel'); // Importar el modelo
 
 const GaleriaController = {
     
-    // Mostrar la Galería Principal (Grid Mercado Libre)
+    // Mostrar la Galería Principal
     mostrarGaleria: async (req, res) => {
         try {
-            // Recoger filtros de la URL (query params)
             const filtros = {
                 genero: req.query.genero || null,
                 artista: req.query.artista || null,
                 precio: req.query.precio || null
             };
 
-            // 1. Obtener las obras filtradas
             const obras = await ObraModel.obtenerFiltradas(filtros);
-
-            // 2. Obtener listas para llenar los <select> de filtros
             const generos = await ObraModel.obtenerGeneros();
             const artistas = await ObraModel.obtenerArtistas();
 
-            // 3. Obtener mensaje de sesión (flash message)
             const message = req.session.message;
-            if (req.session.message) {
-                delete req.session.message; // Limpiar el mensaje después de usarlo
-            }
+            if (req.session.message) delete req.session.message;
 
-            // 4. Renderizar vista pasando todos los datos
             res.render('galeria/index', {
                 obras,
                 generos,
                 artistas,
-                filtros, // Para mantener seleccionado el filtro actual
-                message // Mensaje flash
+                filtros, 
+                message
             });
 
         } catch (error) {
@@ -40,7 +33,7 @@ const GaleriaController = {
         }
     },
 
-    // Mostrar el Detalle de una Obra (Ficha Técnica)
+    // Mostrar el Detalle de una Obra
     verFichaTecnica: async (req, res) => {
         try {
             const idObra = req.params.id;
@@ -58,7 +51,27 @@ const GaleriaController = {
         }
     },
 
-    // API para consultar disponibilidad en vivo
+    // NUEVO: Ver Perfil Público del Artista
+    verPerfilArtista: async (req, res) => {
+        try {
+            const id = req.params.id;
+            
+            // 1. Datos del artista
+            const artista = await ArtistaModel.obtenerPorId(id);
+            if (!artista) return res.redirect('/galeria');
+
+            // 2. Sus obras
+            const obras = await ObraModel.obtenerPorAutor(id);
+
+            res.render('artista/perfil', { artista, obras });
+
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar perfil del artista');
+        }
+    },
+
+    // API para consultar disponibilidad
     verificarDisponibilidadAPI: async (req, res) => {
         try {
             const id = req.params.id;

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const adminController = require('../controllers/AdminController');
+const adminController = require('../controllers/adminController'); // <--- CORREGIDO: minúscula
 const AuthController = require('../controllers/AuthController');
 const upload = require('../config/multer');
 
@@ -13,19 +13,26 @@ router.get('/', (req, res) => {
 	res.redirect('/admin/dashboard');
 });
 
+// Dashboard e Inventario
 router.get('/dashboard', adminController.dashboard);
-
 router.get('/inventario', adminController.inventarioObras);
 
+// Gestión Obras
 router.get('/gestion-obras', adminController.gestionObras);
 router.post('/guardar-obra', upload, adminController.guardarObra);
 
+// Gestión Artistas (CRUD)
 router.get('/gestion-artistas', adminController.gestionArtistas);
 router.post('/guardar-artista', upload, adminController.guardarArtista);
+router.get('/editar-artista/:id', adminController.editarArtista);
+router.post('/actualizar-artista/:id', upload, adminController.actualizarArtista);
+router.get('/eliminar-artista/:id', adminController.eliminarArtista);
 
+// Facturación
 router.get('/facturar/:id', adminController.pantallaFactura);
 router.post('/emitir-factura', adminController.emitirFactura);
 
+// Reportes
 router.get('/reportes-ventas', adminController.reporteVentas);
 router.get('/reportes-membresia', adminController.reporteMembresias);
 
