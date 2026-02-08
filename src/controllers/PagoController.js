@@ -30,7 +30,7 @@ const PagoController = {
 
         const formData = { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw };
 
-        if (!/^\d{3}$/.test(codigoRaw)) { 
+        if (!/^\d{3}$/.test(codigoRaw)) {
             return res.render('pagos/confirmar-reserva', {
                 message: 'El código debe ser de 3 dígitos numéricos.',
                 success: false,
@@ -48,16 +48,47 @@ const PagoController = {
             });
         }
 
+        // Inicializar contador de intentos fallidos si no existe
+        if (!req.session.failedAttempts) {
+            req.session.failedAttempts = 0;
+        }
+
         try {
             const membresia = await InfoCompradorModel.buscarPorCodigoyUsuario(codigoRaw, req.session.usuario?.id);
 
             if (!membresia) {
-                return res.render('pagos/confirmar-reserva', {
-                    message: 'Código de seguridad incorrecto o no encontrado.',
-                    success: false,
-                    form: formData
-                });
+                req.session.failedAttempts += 1;
+
+                if (req.session.failedAttempts >= 3) {
+                    // Generar nuevo código de 3 dígitos
+                    const nuevoCodigo = Math.floor(100 + Math.random() * 900).toString();
+                    const updated = await InfoCompradorModel.actualizarCodigo(req.session.usuario?.id, nuevoCodigo);
+                    if (updated) {
+                        console.log(`Nuevo código generado para usuario ${req.session.usuario?.id}: ${nuevoCodigo}`);
+                        req.session.failedAttempts = 0; // Resetear intentos
+                        return res.render('pagos/confirmar-reserva', {
+                            message: 'Demasiados intentos fallidos. Se ha generado un nuevo código de seguridad. Revise su correo o contacte al administrador.',
+                            success: false,
+                            form: formData
+                        });
+                    } else {
+                        return res.render('pagos/confirmar-reserva', {
+                            message: 'Error al generar nuevo código.',
+                            success: false,
+                            form: formData
+                        });
+                    }
+                } else {
+                    return res.render('pagos/confirmar-reserva', {
+                        message: `Código de seguridad incorrecto o no encontrado. Intentos restantes: ${3 - req.session.failedAttempts}`,
+                        success: false,
+                        form: formData
+                    });
+                }
             }
+
+            // Resetear intentos en caso de éxito
+            req.session.failedAttempts = 0;
 
             if (membresia.estado && membresia.estado.toLowerCase() !== 'activo') {
                 return res.render('pagos/confirmar-reserva', {
