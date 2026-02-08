@@ -68,6 +68,13 @@ class InfoCompradorModel {
         const [rows] = await db.execute("SELECT COUNT(*) as total FROM info_comprador WHERE estado = 'Activo'");
         return rows[0].total;
     }
+
+    // 5. ACTUALIZAR CÓDIGOS 
+    static async actualizarCodigo(compradorId, nuevoCodigo) {
+        const sql = 'UPDATE info_comprador SET codigoSeguridad = ? WHERE comprador_id = ?';
+        await db.execute(sql, [nuevoCodigo, compradorId]);
+        return true;
+    }
 }
 
 module.exports = InfoCompradorModel;

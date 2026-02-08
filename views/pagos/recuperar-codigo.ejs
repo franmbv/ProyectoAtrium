@@ -1,0 +1,51 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4>🔐 Recuperar Código de Seguridad</h4>
+                </div>
+                <div class="card-body">
+                    
+                    <% if (error) { %>
+                        <div class="alert alert-danger"><%= error %></div>
+                    <% } %>
+
+                    <% if (success) { %>
+                        <div class="alert alert-success">
+                            <h4><%= success %></h4>
+                            <a href="/galeria" class="btn btn-success mt-3">Ir a Comprar</a>
+                        </div>
+                    <% } %>
+
+                    <% if (preguntas && preguntas.length > 0 && !success) { %>
+                        <p>Responde tus siguientes preguntas de seguridad:</p>
+                        
+                        <form action="/pagos/recuperar" method="POST">
+                            
+                            <% preguntas.forEach((item, index) => { %>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">
+                                        <%= index + 1 %>. <%= item.pregunta %>
+                                    </label>
+                                    <input type="text" name="respuestas[]" class="form-control" required autocomplete="off">
+                                </div>
+                            <% }) %>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Verificar Respuestas</button>
+                                <a href="/galeria" class="btn btn-secondary">Cancelar</a>
+                            </div>
+                        </form>
+                    <% } %>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

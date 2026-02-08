@@ -1,5 +1,6 @@
 const InfoCompradorModel = require('../models/InfoCompradorModel');
 const ObraModel = require('../models/ObraModel'); 
+const UsuarioModel = require('../models/UsuarioModel');
 
 const PagoController = {
 
@@ -138,6 +139,78 @@ const PagoController = {
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: 'Error interno' });
+        }
+    },
+
+    formRecuperarCodigo: async (req, res) => {
+        try {
+            const usuarioId = req.session.usuario?.id;
+            if (!usuarioId) return res.redirect('/auth/login');
+
+            const datos = await UsuarioModel.obtenerPreguntasSeguridad(usuarioId);
+            
+            if (!datos || datos.length === 0) {
+                return res.render('pagos/recuperar-codigo', { 
+                    error: 'No tienes preguntas de seguridad asignadas.',
+                    preguntas: [] 
+                });
+            }
+
+            res.render('pagos/recuperar-codigo', { 
+                error: null, 
+                success: null,
+                preguntas: datos 
+            });
+
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar formulario');
+        }
+    },
+
+    procesarRecuperacion: async (req, res) => {
+        try {
+            const usuarioId = req.session.usuario?.id;
+            const respuestasUsuario = req.body.respuestas; 
+
+            const datosCorrectos = await UsuarioModel.obtenerPreguntasSeguridad(usuarioId);
+
+            if (!datosCorrectos || datosCorrectos.length === 0) {
+                return res.redirect('/pagos/recuperar');
+            }
+
+            let todoCorrecto = true;
+            
+            for (let i = 0; i < datosCorrectos.length; i++) {
+                const respuestaReal = datosCorrectos[i].respuesta.trim().toLowerCase();
+                const respuestaInput = respuestasUsuario[i] ? respuestasUsuario[i].trim().toLowerCase() : '';
+
+                if (respuestaReal !== respuestaInput) {
+                    todoCorrecto = false;
+                    break; 
+                }
+            }
+
+            if (todoCorrecto) {
+                const nuevoCodigo = Math.floor(100 + Math.random() * 900);
+                await InfoCompradorModel.actualizarCodigo(usuarioId, nuevoCodigo);
+
+                return res.render('pagos/recuperar-codigo', {
+                    error: null,
+                    success: `¡Identidad verificada! Tu nuevo código es: ${nuevoCodigo}`,
+                    preguntas: []
+                });
+            } else {
+                return res.render('pagos/recuperar-codigo', {
+                    error: 'Una o más respuestas son incorrectas.',
+                    success: null,
+                    preguntas: datosCorrectos
+                });
+            }
+
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al procesar');
         }
     }
 };
