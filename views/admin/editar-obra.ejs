@@ -1,0 +1,180 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Editar Obra</h2>
+        <a href="/admin/inventario" class="btn btn-outline-secondary">Volver al inventario</a>
+    </div>
+
+    <form action="/admin/obras/<%= obra.id %>/editar" method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
+        <input type="hidden" name="obra_id" value="<%= obra.id %>">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Nombre de la Obra</label>
+                <input type="text" name="nombre" class="form-control" value="<%= obra.nombre %>" required>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Género</label>
+                <select name="genero_id" class="form-select" id="genero_id" required>
+                    <option value="">Seleccionar</option>
+                    <% generos.forEach(g => { %>
+                        <option value="<%= g.Id %>" <%= String(g.Id) === String(obra.genero_id) ? 'selected' : '' %>><%= g.nombre %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Artista</label>
+                <select name="autor_id" class="form-select" required>
+                    <option value="">Seleccionar</option>
+                    <% artistas.forEach(a => { %>
+                        <option value="<%= a.id %>" <%= String(a.id) === String(obra.autor_id) ? 'selected' : '' %>><%= a.nombre %> <%= a.apellido %></option>
+                    <% }) %>
+                </select>
+                <div class="form-text">
+                    ¿No aparece? <a href="/admin/gestion-artistas">Agregar nuevo artista</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Precio Base ($)</label>
+                <input type="number" name="precioObra" class="form-control" value="<%= obra.precioObra %>" required>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">% Ganancia Museo</label>
+                <input type="number" name="porcentajeGanancia" min="5" max="10" class="form-control" value="<%= obra.porcentajeGanancia %>" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Foto Actual</label>
+            <div class="mb-2">
+                <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" alt="<%= obra.nombre %>" class="img-fluid rounded" style="max-height: 200px;">
+            </div>
+            <label class="form-label">Reemplazar Foto (opcional)</label>
+            <input type="file" name="foto" class="form-control" accept="image/*">
+        </div>
+
+        <div id="campos-genero" class="mt-3">
+            <div class="card p-3 mb-3 d-none" data-genero="1">
+                <h5>Pintura</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Técnica</label>
+                        <input type="text" name="tecnica" class="form-control" data-required="true" value="<%= obra.tecnica || '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Soporte</label>
+                        <input type="text" name="soporte" class="form-control" data-required="true" value="<%= obra.soporte || '' %>">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-3 mb-3 d-none" data-genero="2">
+                <h5>Escultura</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Material</label>
+                        <input type="text" name="material" class="form-control" data-required="true" value="<%= obra.material || '' %>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Peso (kg)</label>
+                        <input type="number" step="0.01" name="peso" class="form-control" data-required="true" value="<%= obra.peso || '' %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Largo (cm)</label>
+                        <input type="number" step="0.01" name="largo" class="form-control" data-required="true" value="<%= obra.largo || '' %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Ancho (cm)</label>
+                        <input type="number" step="0.01" name="ancho" class="form-control" data-required="true" value="<%= obra.ancho || '' %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Profundidad (cm)</label>
+                        <input type="number" step="0.01" name="profundidad" class="form-control" data-required="true" value="<%= obra.profundidad || '' %>">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-3 mb-3 d-none" data-genero="3">
+                <h5>Fotografía</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo</label>
+                        <input type="text" name="tipo_foto" class="form-control" data-required="true" value="<%= obra.tipo_foto || '' %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Papel</label>
+                        <input type="text" name="papel" class="form-control" data-required="true" value="<%= obra.papel || '' %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Formato</label>
+                        <input type="text" name="formato" class="form-control" data-required="true" value="<%= obra.formato || '' %>">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-3 mb-3 d-none" data-genero="4">
+                <h5>Cerámica</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo de Arcilla</label>
+                        <input type="text" name="tipoArcilla" class="form-control" data-required="true" value="<%= obra.tipoArcilla || '' %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Temperatura Cocción (°C)</label>
+                        <input type="number" step="0.01" name="temperaturaCoccion" class="form-control" data-required="true" value="<%= obra.temperaturaCoccion || '' %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo de Esmalte</label>
+                        <input type="text" name="tipoEsmalte" class="form-control" data-required="true" value="<%= obra.tipoEsmalte || '' %>">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-3 mb-3 d-none" data-genero="5">
+                <h5>Orfebrería</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Metal</label>
+                        <input type="text" name="metal" class="form-control" data-required="true" value="<%= obra.metal || '' %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Pureza</label>
+                        <input type="number" step="0.01" name="pureza" class="form-control" data-required="true" value="<%= obra.pureza || '' %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Piedra Preciosa</label>
+                        <select name="piedraPreciosa" class="form-select" data-required="true">
+                            <option value="">Seleccionar</option>
+                            <option value="1" <%= String(obra.piedraPreciosa) === '1' ? 'selected' : '' %>>Sí</option>
+                            <option value="0" <%= String(obra.piedraPreciosa) === '0' ? 'selected' : '' %>>No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    </form>
+</div>
+
+<script>
+    const generoSelect = document.getElementById('genero_id');
+    const bloques = document.querySelectorAll('[data-genero]');
+
+    const actualizarCampos = () => {
+        const genero = generoSelect.value;
+        bloques.forEach(b => {
+            const activo = b.getAttribute('data-genero') === genero;
+            b.classList.toggle('d-none', !activo);
+        });
+    };
+
+    generoSelect.addEventListener('change', actualizarCampos);
+    actualizarCampos();
+</script>
+
+<%- include('../partials/footer') %>

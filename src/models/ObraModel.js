@@ -166,6 +166,114 @@ class ObraModel {
         return obraId;
     }
 
+    // ACTUALIZAR OBRA
+    static async actualizar(id, datos, fotoFilename) {
+        const [rows] = await db.execute('SELECT genero_id, foto FROM obra WHERE id = ?', [id]);
+        if (rows.length === 0) {
+            return false;
+        }
+
+        const actual = rows[0];
+        const nuevoGeneroId = parseInt(datos.genero_id, 10);
+        const nuevaFoto = fotoFilename || actual.foto;
+
+        await db.execute(
+            'UPDATE obra SET genero_id = ?, autor_id = ?, nombre = ?, precioObra = ?, porcentajeGanancia = ?, foto = ? WHERE id = ?',
+            [
+                nuevoGeneroId,
+                datos.autor_id,
+                datos.nombre,
+                parseFloat(datos.precioObra),
+                parseFloat(datos.porcentajeGanancia),
+                nuevaFoto,
+                id
+            ]
+        );
+
+        if (nuevoGeneroId !== actual.genero_id) {
+            await db.execute('DELETE FROM pintura WHERE obra_id = ?', [id]);
+            await db.execute('DELETE FROM escultura WHERE obra_id = ?', [id]);
+            await db.execute('DELETE FROM fotografia WHERE obra_id = ?', [id]);
+            await db.execute('DELETE FROM ceramica WHERE obra_id = ?', [id]);
+            await db.execute('DELETE FROM orfebreria WHERE obra_id = ?', [id]);
+            await ObraModel._insertarSubtipo(id, nuevoGeneroId, datos);
+        } else {
+            await ObraModel._actualizarSubtipo(id, nuevoGeneroId, datos);
+        }
+
+        return true;
+    }
+
+    // ELIMINAR OBRA
+    static async eliminar(id) {
+        const [rows] = await db.execute('SELECT id FROM obra WHERE id = ?', [id]);
+        if (rows.length === 0) {
+            return false;
+        }
+
+        await db.execute('DELETE FROM pintura WHERE obra_id = ?', [id]);
+        await db.execute('DELETE FROM escultura WHERE obra_id = ?', [id]);
+        await db.execute('DELETE FROM fotografia WHERE obra_id = ?', [id]);
+        await db.execute('DELETE FROM ceramica WHERE obra_id = ?', [id]);
+        await db.execute('DELETE FROM orfebreria WHERE obra_id = ?', [id]);
+        await db.execute('DELETE FROM obra WHERE id = ?', [id]);
+
+        return true;
+    }
+
+    static async _insertarSubtipo(obraId, generoId, datos) {
+        if (generoId === 1) {
+            await db.execute('INSERT INTO pintura (obra_id, tecnica, soporte) VALUES (?, ?, ?)', [
+                obraId, datos.tecnica, datos.soporte
+            ]);
+        } else if (generoId === 2) {
+            await db.execute('INSERT INTO escultura (obra_id, material, peso, largo, ancho, profundidad) VALUES (?, ?, ?, ?, ?, ?)', [
+                obraId, datos.material, datos.peso, datos.largo, datos.ancho, datos.profundidad
+            ]);
+        } else if (generoId === 3) {
+            await db.execute('INSERT INTO fotografia (obra_id, tipo, papel, formato) VALUES (?, ?, ?, ?)', [
+                obraId, datos.tipo_foto, datos.papel, datos.formato
+            ]);
+        } else if (generoId === 4) {
+            await db.execute('INSERT INTO ceramica (obra_id, tipoArcilla, temperaturaCoccion, tipoEsmalte) VALUES (?, ?, ?, ?)', [
+                obraId, datos.tipoArcilla, datos.temperaturaCoccion, datos.tipoEsmalte
+            ]);
+        } else if (generoId === 5) {
+            await db.execute('INSERT INTO orfebreria (obra_id, metal, pureza, piedraPreciosa) VALUES (?, ?, ?, ?)', [
+                obraId, datos.metal, datos.pureza, datos.piedraPreciosa
+            ]);
+        }
+    }
+
+    static async _actualizarSubtipo(obraId, generoId, datos) {
+        if (generoId === 1) {
+            await db.execute(
+                'UPDATE pintura SET tecnica = COALESCE(NULLIF(?, \'\'), tecnica), soporte = COALESCE(NULLIF(?, \'\'), soporte) WHERE obra_id = ?',
+                [datos.tecnica, datos.soporte, obraId]
+            );
+        } else if (generoId === 2) {
+            await db.execute(
+                'UPDATE escultura SET material = COALESCE(NULLIF(?, \'\'), material), peso = COALESCE(NULLIF(?, \'\'), peso), largo = COALESCE(NULLIF(?, \'\'), largo), ancho = COALESCE(NULLIF(?, \'\'), ancho), profundidad = COALESCE(NULLIF(?, \'\'), profundidad) WHERE obra_id = ?',
+                [datos.material, datos.peso, datos.largo, datos.ancho, datos.profundidad, obraId]
+            );
+        } else if (generoId === 3) {
+            await db.execute(
+                'UPDATE fotografia SET tipo = COALESCE(NULLIF(?, \'\'), tipo), papel = COALESCE(NULLIF(?, \'\'), papel), formato = COALESCE(NULLIF(?, \'\'), formato) WHERE obra_id = ?',
+                [datos.tipo_foto, datos.papel, datos.formato, obraId]
+            );
+        } else if (generoId === 4) {
+            await db.execute(
+                'UPDATE ceramica SET tipoArcilla = COALESCE(NULLIF(?, \'\'), tipoArcilla), temperaturaCoccion = COALESCE(NULLIF(?, \'\'), temperaturaCoccion), tipoEsmalte = COALESCE(NULLIF(?, \'\'), tipoEsmalte) WHERE obra_id = ?',
+                [datos.tipoArcilla, datos.temperaturaCoccion, datos.tipoEsmalte, obraId]
+            );
+        } else if (generoId === 5) {
+            await db.execute(
+                'UPDATE orfebreria SET metal = COALESCE(NULLIF(?, \'\'), metal), pureza = COALESCE(NULLIF(?, \'\'), pureza), piedraPreciosa = COALESCE(NULLIF(?, \'\'), piedraPreciosa) WHERE obra_id = ?',
+                [datos.metal, datos.pureza, datos.piedraPreciosa, obraId]
+            );
+        }
+    }
+
     // Actualizar estatus a Vendida
     static async marcarComoVendida(id) {
         await db.execute("UPDATE obra SET estatus = 'Vendida' WHERE id = ?", [id]);

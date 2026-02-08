@@ -44,6 +44,14 @@ const AdminController = {
     guardarObra: async (req, res) => {
         try {
             const foto = req.file ? req.file.filename : null;
+            if (req.body.obra_id) {
+                const actualizada = await ObraModel.actualizar(req.body.obra_id, req.body, foto);
+                if (!actualizada) {
+                    return res.status(404).send('Obra no encontrada');
+                }
+                return res.redirect('/admin/inventario');
+            }
+
             await ObraModel.crear(req.body, foto);
             res.redirect('/admin/gestion-obras');
         } catch (error) {
@@ -60,6 +68,55 @@ const AdminController = {
         } catch (error) {
             console.error(error);
             res.status(500).send('Error al cargar inventario');
+        }
+    },
+
+    editarObraForm: async (req, res) => {
+        try {
+            const obra = await ObraModel.obtenerPorId(req.params.id);
+            if (!obra) {
+                return res.redirect('/admin/inventario');
+            }
+
+            const [generos, artistas] = await Promise.all([
+                ObraModel.obtenerGeneros(),
+                ArtistaModel.listar()
+            ]);
+
+            res.render('admin/editar-obra', { obra, generos, artistas });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar la obra');
+        }
+    },
+
+    actualizarObra: async (req, res) => {
+        try {
+            const foto = req.file ? req.file.filename : null;
+            const actualizada = await ObraModel.actualizar(req.params.id, req.body, foto);
+
+            if (!actualizada) {
+                return res.status(404).send('Obra no encontrada');
+            }
+
+            res.redirect('/admin/inventario');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al actualizar la obra');
+        }
+    },
+
+    eliminarObra: async (req, res) => {
+        try {
+            const eliminada = await ObraModel.eliminar(req.params.id);
+            if (!eliminada) {
+                return res.status(404).send('Obra no encontrada');
+            }
+
+            res.redirect('/admin/inventario');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al eliminar la obra');
         }
     },
 
