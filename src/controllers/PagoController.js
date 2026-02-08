@@ -1,5 +1,7 @@
 const InfoCompradorModel = require('../models/InfoCompradorModel');
 const ObraModel = require('../models/ObraModel'); 
+const UsuarioModel = require('../models/UsuarioModel');
+const { sendSecurityCode } = require('../config/mailer');
 
 const PagoController = {
 
@@ -66,6 +68,25 @@ const PagoController = {
                     if (updated) {
                         console.log(`Nuevo código generado para usuario ${req.session.usuario?.id}: ${nuevoCodigo}`);
                         req.session.failedAttempts = 0; // Resetear intentos
+
+                        // Intentar obtener el correo del usuario y enviar el nuevo código
+                        try {
+                            const usuario = await UsuarioModel.buscarPorId(req.session.usuario?.id);
+                            const correo = usuario && usuario.gmail ? String(usuario.gmail).trim() : null;
+                            if (correo && correo.endsWith('@gmail.com')) {
+                                try {
+                                    const result = await sendSecurityCode(correo, nuevoCodigo);
+                                    console.log('Código de seguridad enviado por correo. Preview:', result.previewUrl || result.info?.messageId);
+                                } catch (mailErr) {
+                                    console.error('Error al enviar correo con el nuevo código:', mailErr);
+                                }
+                            } else {
+                                console.log('No se encontró un correo @gmail.com para el usuario.');
+                            }
+                        } catch (userErr) {
+                            console.error('Error al obtener datos del usuario para envío de correo:', userErr);
+                        }
+
                         return res.render('pagos/confirmar-reserva', {
                             message: 'Demasiados intentos fallidos. Se ha generado un nuevo código de seguridad. Revise su correo o contacte al administrador.',
                             success: false,
