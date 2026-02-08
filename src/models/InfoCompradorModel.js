@@ -69,6 +69,7 @@ class InfoCompradorModel {
         return rows[0].total;
     }
 
+
     // 5. ACTUALIZAR CÓDIGOS 
     static async actualizarCodigo(compradorId, nuevoCodigo) {
         const sql = 'UPDATE info_comprador SET codigoSeguridad = ? WHERE comprador_id = ?';
