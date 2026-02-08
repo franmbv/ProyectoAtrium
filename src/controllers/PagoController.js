@@ -50,7 +50,7 @@ const PagoController = {
         }
 
         try {
-            const membresia = await InfoCompradorModel.buscarPorCodigo(codigoRaw);
+            const membresia = await InfoCompradorModel.buscarPorCodigoyUsuario(codigoRaw, req.session.usuario?.id);
 
             if (!membresia) {
                 return res.render('pagos/confirmar-reserva', {
