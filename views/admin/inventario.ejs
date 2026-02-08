@@ -1,41 +1,59 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Inventario de Obras</h2>
-        <a href="/admin/gestion-obras" class="btn btn-primary">Registrar nueva obra</a>
+<div class="container mt-4" style="max-width: 1000px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white fw-bold">🖼️ Inventario de Obras</h2>
+        <a href="/admin/gestion-obras" class="btn btn-primary">+ Nueva Obra</a>
     </div>
 
-    <div class="table-responsive shadow-sm">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Obra</th>
-                    <th>Artista</th>
-                    <th>Género</th>
-                    <th>Estatus</th>
-                    <th>Precio</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% if (obras.length > 0) { %>
-                    <% obras.forEach(o => { %>
-                        <tr>
-                            <td>#<%= o.id %></td>
-                            <td><%= o.nombre %></td>
-                            <td><%= o.nombre_artista %> <%= o.apellido_artista %></td>
-                            <td><%= o.nombre_genero %></td>
-                            <td><span class="badge bg-secondary"><%= o.estatus %></span></td>
-                            <td>$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
-                        </tr>
-                    <% }) %>
-                <% } else { %>
-                    <tr><td colspan="6" class="text-center">No hay obras registradas.</td></tr>
-                <% } %>
-            </tbody>
-        </table>
+    <div class="card shadow border-0 overflow-hidden" style="max-width: 100%;">
+        <div class="table-responsive bg-white">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Obra</th>
+                        <th>Artista</th>
+                        <th>Género</th>
+                        <th>Estatus</th>
+                        <th>Precio</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (obras.length > 0) { %>
+                        <% obras.forEach(o => { %>
+                            <tr>
+                                <td class="text-muted small">#<%= o.id %></td>
+                                <td class="fw-bold"><%= o.nombre %></td>
+                                <td><%= o.nombre_artista %> <%= o.apellido_artista %></td>
+                                <td><%= o.nombre_genero %></td>
+                                <td>
+                                    <span class="badge <%= o.estatus === 'Disponible' ? 'bg-success' : 'bg-secondary' %>">
+                                        <%= o.estatus %>
+                                    </span>
+                                </td>
+                                <td class="fw-bold text-success">$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
+                                <td>
+                                    <% if (o.estatus === 'Reservada') { %>
+                                        <a href="/admin/facturar/<%= o.id %>" class="btn btn-sm btn-primary">Facturar</a>
+                                    <% } else { %>
+                                        -
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr><td colspan="7" class="p-4">No hay obras registradas.</td></tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center mt-5 mb-5">
+        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
     </div>
 </div>
 
