@@ -8,87 +8,81 @@
         --admin-ink: #25343f;
         --admin-accent: #ff9b51;
     }
-
     .admin-dashboard {
         background: var(--admin-bg);
         border-radius: 16px;
-        padding: 24px;
+        padding: 30px;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 900px;
     }
-
     .admin-kpi {
         border: 0;
         border-radius: 14px;
         color: var(--admin-ink);
         box-shadow: 0 10px 20px rgba(37, 52, 63, 0.12);
+        height: 100%;
     }
-
-    .admin-kpi--inventory {
-        background: var(--admin-surface);
-    }
-
-    .admin-kpi--revenue {
-        background: var(--admin-ink);
-        color: #eaeff0;
-    }
-
-    .admin-kpi--memberships {
-        background: var(--admin-accent);
-        color: #25343f;
-    }
-
-    .admin-kpi h5 {
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        margin-bottom: 12px;
-    }
-
-    .admin-kpi .display-6 {
-        font-weight: 700;
-    }
+    .admin-kpi--inventory { background: var(--admin-surface); }
+    .admin-kpi--revenue { background: var(--admin-ink); color: #eaeff0; }
+    .admin-kpi--memberships { background: var(--admin-accent); color: #25343f; }
+    .admin-kpi h5 { letter-spacing: 0.02em; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 12px; }
+    .admin-kpi .display-6 { font-weight: 700; }
 </style>
 
-<div class="container mt-4 admin-dashboard">
-    <h1 class="mb-4">Panel Administrativo - Gerencia</h1>
-    <% if (errorMsg) { %>
-        <div class="alert alert-warning" role="alert">
-            <%= errorMsg %>
-        </div>
-    <% } %>
-    <div class="row">
-        <div class="col-md-4">
-            <a href="/admin/inventario" class="text-decoration-none">
-                <div class="card admin-kpi admin-kpi--inventory mb-4">
-                    <div class="card-body">
+<div class="container mt-4">
+    <div class="admin-dashboard shadow-sm">
+        <h1 class="mb-4 text-dark fw-bold">Panel Administrativo</h1>
+        
+        <% if (typeof errorMsg !== 'undefined' && errorMsg) { %>
+            <div class="alert alert-warning"><%= errorMsg %></div>
+        <% } %>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card admin-kpi admin-kpi--inventory">
+                    <div class="card-body text-center">
                         <h5>Obras en Inventario</h5>
-                        <p class="display-6">Total: <%= stats.totalObras %></p>
+                        <p class="display-6"><%= stats.totalObras %></p>
                     </div>
                 </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card admin-kpi admin-kpi--revenue">
+                    <div class="card-body text-center">
+                        <h5>Total Recaudado</h5>
+                        <p class="display-6">$<%= stats.recaudado %></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card admin-kpi admin-kpi--memberships">
+                    <div class="card-body text-center">
+                        <h5>Nuevas Membresías</h5>
+                        <p class="display-6"><%= stats.membresias %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="list-group mt-5 shadow-sm">
+            <div class="list-group-item bg-dark text-white fw-bold py-3">Acciones de Control</div>
+            <a href="/admin/inventario" class="list-group-item list-group-item-action py-3">
+                🖼️ Ver Inventario de Obras
+            </a>
+            <a href="/admin/gestion-obras" class="list-group-item list-group-item-action py-3">
+                🎨 Gestión de Inventario (Cargar Obras)
+            </a>
+            <a href="/admin/gestion-artistas" class="list-group-item list-group-item-action py-3">
+                👨‍🎨 Gestión de Artistas
+            </a>
+            <a href="/admin/reportes-ventas" class="list-group-item list-group-item-action py-3">
+                📊 Reportes de Ventas y Ganancias
+            </a>
+            <a href="/admin/reportes-membresia" class="list-group-item list-group-item-action py-3 border-0">
+                💳 Usuarios con Membresía
             </a>
         </div>
-        <div class="col-md-4">
-            <div class="card admin-kpi admin-kpi--revenue mb-4">
-                <div class="card-body">
-                    <h5>Total Recaudado</h5>
-                    <p class="display-6">$<%= stats.recaudado %></p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card admin-kpi admin-kpi--memberships mb-4">
-                <div class="card-body">
-                    <h5>Nuevas Membresías</h5>
-                    <p class="display-6"><%= stats.membresias %></p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="list-group mt-3">
-        <a href="/admin/inventario" class="list-group-item list-group-item-action">Ver Inventario de Obras</a>
-        <a href="/admin/gestion-obras" class="list-group-item list-group-item-action">Gestión de Inventario</a>
-        <a href="/admin/reportes-ventas" class="list-group-item list-group-item-action">Reportes de Ventas y Ganancias</a>
-        <a href="/admin/reportes-membresia" class="list-group-item list-group-item-action">Usuarios con Membresía</a>
     </div>
 </div>
 

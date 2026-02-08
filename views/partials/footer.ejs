@@ -1,46 +1,43 @@
-<footer class="bg-dark text-white pt-4 pb-2 mt-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <h5 class="text-uppercase text-warning">🏛️ ATRIUM</h5>
-                <p class="small text-white-50">
-                    La plataforma líder en gestión y venta de arte exclusivo. Conectamos artistas con coleccionistas de todo el mundo.
-                </p>
+</main>
+    <footer class="bg-dark text-white pt-4 pb-2 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <h5 class="text-uppercase text-warning fw-bold">🏛️ ATRIUM</h5>
+                    <p class="small text-white-50">
+                        La plataforma líder en gestión y venta de arte exclusivo. Conectamos artistas con coleccionistas de todo el mundo.
+                    </p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5 class="text-uppercase">Enlaces</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/galeria" class="text-white-50 text-decoration-none small">Galería</a></li>
+                        <% if (!usuario) { %>
+                            <li><a href="/auth/login" class="text-white-50 text-decoration-none small">Iniciar Sesión</a></li>
+                        <% } else { %>
+                            <li><a href="/auth/logout" class="text-white-50 text-decoration-none small">Cerrar Sesión</a></li>
+                        <% } %>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5 class="text-uppercase">Contacto</h5>
+                    <ul class="list-unstyled small text-white-50">
+                        <li>📍 Ciudad Guayana, Venezuela</li>
+                        <li>📧 contacto@atrium.com</li>
+                    </ul>
+                </div>
             </div>
-
-            <div class="col-md-4 mb-3">
-                <h5 class="text-uppercase">Enlaces</h5>
-                <ul class="list-unstyled">
-                    <li><a href="/galeria" class="text-white-50 text-decoration-none">Galería</a></li>
-                    <% if (!usuario) { %>
-                        <li><a href="/auth/login" class="text-white-50 text-decoration-none">Iniciar Sesión</a></li>
-                    <% } %>
-                </ul>
-            </div>
-
-            <div class="col-md-4 mb-3">
-                <h5 class="text-uppercase">Contacto</h5>
-                <ul class="list-unstyled small text-white-50">
-                    <li>📍 Ciudad Guayana, Venezuela</li>
-                    <li>📧 contacto@atrium.com</li>
-                    <li>📞 +58 (286) 555-0199</li>
-                </ul>
+            <hr class="border-secondary">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="small text-white-50 mb-0">&copy; 2026 Proyecto Atrium. UNEG.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <span class="text-white-50 small">Hecho con ❤️</span>
+                </div>
             </div>
         </div>
-
-        <hr class="border-secondary">
-
-        <div class="row align-items-center">
-            <div class="col-md-6 text-center text-md-start">
-                <p class="small text-white-50 mb-0">&copy; 2026 Proyecto Atrium. Todos los derechos reservados.</p>
-            </div>
-            <div class="col-md-6 text-center text-md-end">
-                <span class="text-white-50 small">Hecho con ❤️</span>
-            </div>
-        </div>
-    </div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
