@@ -1,4 +1,4 @@
-const db = require('../config/db'); 
+const db = require('../config/db');
 const ObraModel = require('../models/ObraModel');
 const VentaModel = require('../models/ventaModel');
 const ArtistaModel = require('../models/ArtistaModel');
@@ -10,29 +10,29 @@ const AdminController = {
     dashboard: async (req, res) => {
         try {
             const [totalObras, recaudado, membresias] = await Promise.all([
-                ObraModel.contarTotal(),        
-                VentaModel.totalRecaudado(),    
-                InfoCompradorModel.contarActivas()  
+                ObraModel.contarTotal(),
+                VentaModel.totalRecaudado(),
+                InfoCompradorModel.contarActivas()
             ]);
 
-            res.render('admin/dashboard', { 
-                stats: { totalObras, recaudado, membresias }, 
-                errorMsg: null 
+            res.render('admin/dashboard', {
+                stats: { totalObras, recaudado, membresias },
+                errorMsg: null
             });
         } catch (error) {
             console.error('Error en Dashboard:', error);
-            res.render('admin/dashboard', { 
-                stats: { totalObras: 0, recaudado: 0, membresias: 0 }, 
-                errorMsg: 'Error de conexión con la base de datos.' 
+            res.render('admin/dashboard', {
+                stats: { totalObras: 0, recaudado: 0, membresias: 0 },
+                errorMsg: 'Error de conexión con la base de datos.'
             });
         }
     },
 
-    // 2. GESTIÓN DE OBRAS
+    // 2. GESTION DE OBRAS
     gestionObras: async (req, res) => {
         try {
             const generos = await ObraModel.obtenerGeneros();
-            const artistas = await ArtistaModel.listar(); 
+            const artistas = await ArtistaModel.listar();
             res.render('admin/gestion-obras', { generos, artistas });
         } catch (error) {
             console.error(error);
@@ -69,7 +69,6 @@ const AdminController = {
         }
     },
 
-<<<<<<< HEAD
     editarObraForm: async (req, res) => {
         try {
             const obra = await ObraModel.obtenerPorId(req.params.id);
@@ -119,12 +118,8 @@ const AdminController = {
         }
     },
 
-    // 3. GESTIÓN DE ARTISTAS
-=======
-    // 3. GESTIÓN DE ARTISTAS (CRUD COMPLETO)
-    
+    // 3. GESTION DE ARTISTAS
     // Listar y Crear
->>>>>>> develop
     gestionArtistas: async (req, res) => {
         try {
             const artistas = await ArtistaModel.listar();
@@ -146,7 +141,7 @@ const AdminController = {
         }
     },
 
-    // Formulario de Edición
+    // Formulario de Edicion
     editarArtista: async (req, res) => {
         try {
             const artista = await ArtistaModel.obtenerPorId(req.params.id);
@@ -159,11 +154,11 @@ const AdminController = {
         }
     },
 
-    // Acción Actualizar
+    // Accion Actualizar
     actualizarArtista: async (req, res) => {
         try {
             const id = req.params.id;
-            const foto = req.file ? req.file.filename : null; 
+            const foto = req.file ? req.file.filename : null;
             
             await ArtistaModel.actualizar(id, req.body, foto);
             res.redirect('/admin/gestion-artistas');
@@ -173,7 +168,7 @@ const AdminController = {
         }
     },
 
-    // Acción Eliminar
+    // Accion Eliminar
     eliminarArtista: async (req, res) => {
         try {
             await ArtistaModel.eliminar(req.params.id);
@@ -184,7 +179,7 @@ const AdminController = {
         }
     },
 
-    // 4. FACTURACIÓN Y VENTAS
+    // 4. FACTURACION Y VENTAS
     pantallaFactura: async (req, res) => {
         try {
             const obra = await ObraModel.obtenerPorId(req.params.id);
@@ -199,9 +194,9 @@ const AdminController = {
 
     emitirFactura: async (req, res) => {
         try {
-            const { 
-                obra_id, precioObra, porcentajeGanancia, comprador_id, 
-                empresaEnvio, pais, estado, ciudad, municipio, calle 
+            const {
+                obra_id, precioObra, porcentajeGanancia, comprador_id,
+                empresaEnvio, pais, estado, ciudad, municipio, calle
             } = req.body;
 
             const admin_id = req.session?.usuario?.id;
@@ -212,12 +207,12 @@ const AdminController = {
             const iva = precioBase * 0.16;
             const ganancia = precioBase * (porc / 100);
             const total = precioBase + iva + ganancia;
-            const codigo = "FAC-" + Date.now(); 
+            const codigo = "FAC-" + Date.now();
 
             await VentaModel.crear({
                 comprador_id, admin_id, obra_id,
                 pais, estado, ciudad, municipio, calle, empresaEnvio,
-                iva, ganancia, porcentaje: porc, 
+                iva, ganancia, porcentaje: porc,
                 total, codigo
             });
 
@@ -237,8 +232,8 @@ const AdminController = {
             const ventas = await VentaModel.obtenerVentasPorPeriodo(fechaInicio, fechaFin);
             const resumen = await VentaModel.obtenerResumenFinanciero(fechaInicio, fechaFin);
 
-            res.render('admin/reportes-ventas', { 
-                reporte: resumen || { totalRecaudado: 0, totalGanancia: 0 }, 
+            res.render('admin/reportes-ventas', {
+                reporte: resumen || { totalRecaudado: 0, totalGanancia: 0 },
                 ventas: ventas || [],
                 filtros: { fechaInicio: fechaInicio || '', fechaFin: fechaFin || '' }
             });
@@ -253,7 +248,7 @@ const AdminController = {
             const { fechaInicio, fechaFin } = req.query;
             const membresias = await InfoCompradorModel.obtenerReportePorPeriodo(fechaInicio, fechaFin);
 
-            res.render('admin/reportes-membresia', { 
+            res.render('admin/reportes-membresia', {
                 membresias,
                 filtros: { fechaInicio: fechaInicio || '', fechaFin: fechaFin || '' }
             });

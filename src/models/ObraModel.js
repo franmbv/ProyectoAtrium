@@ -14,7 +14,7 @@ class ObraModel {
         
         const params = [];
 
-        // Filtro por Género
+        // Filtro por Genero
         if (filtros.genero && filtros.genero !== '') {
             query += ' AND o.genero_id = ?';
             params.push(filtros.genero);
@@ -50,11 +50,11 @@ class ObraModel {
                 e.material, e.peso, e.largo, e.ancho, e.profundidad,
                 -- Datos de Pintura
                 p.tecnica, p.soporte,
-                -- Datos de Fotografía
+                -- Datos de Fotografia
                 f.tipo as tipo_foto, f.papel, f.formato,
-                -- Datos de Cerámica
+                -- Datos de Ceramica
                 c.tipoArcilla, c.temperaturaCoccion, c.tipoEsmalte,
-                -- Datos de Orfebrería
+                -- Datos de Orfebreria
                 orf.metal, orf.pureza, orf.piedraPreciosa
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
@@ -139,15 +139,15 @@ class ObraModel {
             await db.execute('INSERT INTO escultura (obra_id, material, peso, largo, ancho, profundidad) VALUES (?, ?, ?, ?, ?, ?)',
                 [obraId, datos.material, datos.peso, datos.largo, datos.ancho, datos.profundidad]);
         }
-        else if (generoId === 3) { // Fotografía
+        else if (generoId === 3) { // Fotografia
             await db.execute('INSERT INTO fotografia (obra_id, tipo, papel, formato) VALUES (?, ?, ?, ?)',
                 [obraId, datos.tipo_foto, datos.papel, datos.formato]);
         }
-        else if (generoId === 4) { // Cerámica
+        else if (generoId === 4) { // Ceramica
             await db.execute('INSERT INTO ceramica (obra_id, tipoArcilla, temperaturaCoccion, tipoEsmalte) VALUES (?, ?, ?, ?)',
                 [obraId, datos.tipoArcilla, datos.temperaturaCoccion, datos.tipoEsmalte]);
         }
-        else if (generoId === 5) { // Orfebrería
+        else if (generoId === 5) { // Orfebreria
             await db.execute('INSERT INTO orfebreria (obra_id, metal, pureza, piedraPreciosa) VALUES (?, ?, ?, ?)',
                 [obraId, datos.metal, datos.pureza, datos.piedraPreciosa]);
         }
@@ -155,7 +155,6 @@ class ObraModel {
         return obraId;
     }
 
-<<<<<<< HEAD
     // ACTUALIZAR OBRA
     static async actualizar(id, datos, fotoFilename) {
         const [rows] = await db.execute('SELECT genero_id, foto FROM obra WHERE id = ?', [id]);
@@ -265,13 +264,12 @@ class ObraModel {
     }
 
     // Actualizar estatus a Vendida
-=======
->>>>>>> develop
+
     static async marcarComoVendida(id) {
         await db.execute("UPDATE obra SET estatus = 'Vendida' WHERE id = ?", [id]);
     }
 
-    // --- NUEVO: OBTENER OBRAS POR AUTOR (Para Biografía) ---
+    // --- NUEVO: OBTENER OBRAS POR AUTOR (Para Biografia) ---
     static async obtenerPorAutor(autorId) {
         const sql = `
             SELECT o.*, g.nombre as nombre_genero 
