@@ -7,8 +7,12 @@
         <a href="/admin/gestion-obras" class="btn btn-primary">+ Nueva Obra</a>
     </div>
 
-    <div class="table-responsive shadow-sm">
-        <table class="table table-striped table-hover">
+    <% const disponibles = obras.filter(o => o.estatus === 'Disponible'); %>
+    <% const reservadas = obras.filter(o => o.estatus === 'Reservada'); %>
+
+    <h5 class="text-white fw-bold mb-3">Disponibles</h5>
+    <div class="table-responsive shadow-sm mb-4 bg-white rounded overflow-hidden">
+        <table class="table table-striped table-hover align-middle w-100 mb-0">
             <thead class="table-dark">
                 <tr>
                     <th style="width: 70px;">Imagen</th>
@@ -21,8 +25,8 @@
                 </tr>
             </thead>
             <tbody>
-                <% if (obras.length > 0) { %>
-                    <% obras.forEach(o => { %>
+                <% if (disponibles.length > 0) { %>
+                    <% disponibles.forEach(o => { %>
                         <tr>
                             <td style="width: 70px;">
                                 <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" alt="<%= o.nombre %>" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
@@ -41,11 +45,53 @@
                         </tr>
                     <% }) %>
                 <% } else { %>
-                    <tr><td colspan="7" class="text-center">No hay obras registradas.</td></tr>
+                    <tr><td colspan="7" class="text-center">No hay obras disponibles.</td></tr>
                 <% } %>
             </tbody>
         </table>
     </div>
+
+    <h5 class="text-white fw-bold mb-3">Reservadas</h5>
+    <div class="table-responsive shadow-sm mb-4 bg-white rounded overflow-hidden">
+        <table class="table table-striped table-hover align-middle w-100 mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 70px;">Imagen</th>
+                    <th>Obra</th>
+                    <th>Artista</th>
+                    <th>Género</th>
+                    <th>Estatus</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (reservadas.length > 0) { %>
+                    <% reservadas.forEach(o => { %>
+                        <tr>
+                            <td style="width: 70px;">
+                                <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" alt="<%= o.nombre %>" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
+                            </td>
+                            <td><%= o.nombre %></td>
+                            <td><%= o.nombre_artista %> <%= o.apellido_artista %></td>
+                            <td><%= o.nombre_genero %></td>
+                            <td><span class="badge bg-secondary"><%= o.estatus %></span></td>
+                            <td>$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
+                            <td class="d-flex gap-2">
+                                <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-sm btn-outline-primary">Editar</a>
+                                <form action="/admin/obras/<%= o.id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar esta obra de forma permanente?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="7" class="text-center">No hay obras reservadas.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
 
     <div class="text-center mt-5 mb-5">
         <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>

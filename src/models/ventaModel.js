@@ -60,6 +60,31 @@ class VentaModel {
         return rows;
     }
 
+    // 2b. OBRAS VENDIDAS: Listado con filtro por periodo
+    static async obtenerObrasVendidasPorPeriodo(fechaInicio, fechaFin) {
+        let sql = `
+            SELECT v.codigoDeFactura, v.fechaDeVenta,
+                   o.id, o.nombre, o.estatus, o.precioObra, o.foto,
+                   a.nombre AS nombre_artista, a.apellido AS apellido_artista,
+                   g.nombre AS nombre_genero
+            FROM venta v
+            JOIN obra o ON v.obra_id = o.id
+            JOIN artista a ON o.autor_id = a.id
+            JOIN genero g ON o.genero_id = g.id
+        `;
+
+        const params = [];
+        if (fechaInicio && fechaFin) {
+            sql += ' WHERE v.fechaDeVenta BETWEEN ? AND ?';
+            params.push(fechaInicio, fechaFin);
+        }
+
+        sql += ' ORDER BY v.fechaDeVenta DESC';
+
+        const [rows] = await db.execute(sql, params);
+        return rows;
+    }
+
     // 3. REPORTE: Resumen Financiero
     static async obtenerResumenFinanciero(fechaInicio, fechaFin) {
         let sql = `
@@ -86,6 +111,13 @@ class VentaModel {
         const sql = 'SELECT COALESCE(SUM(precioFinalVenta), 0) as total FROM venta';
         const [rows] = await db.execute(sql);
         // Devolvemos el número limpio (ej: 5000.00)
+        return rows[0].total;
+    }
+
+    // 5. DASHBOARD: Total histórico de ganancia del museo
+    static async totalGananciaMuseo() {
+        const sql = 'SELECT COALESCE(SUM(gananciaMuseoDolares), 0) as total FROM venta';
+        const [rows] = await db.execute(sql);
         return rows[0].total;
     }
 }

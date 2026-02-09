@@ -1,0 +1,61 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4" style="max-width: 1000px;">
+    <h2 class="text-white fw-bold mb-4">🧾 Obras Vendidas</h2>
+
+    <form action="/admin/obras-vendidas" method="GET" class="row g-3 mb-4 bg-white p-3 rounded shadow-sm">
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">Desde</label>
+            <input type="date" name="fechaInicio" class="form-control" value="<%= filtros.fechaInicio %>">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">Hasta</label>
+            <input type="date" name="fechaFin" class="form-control" value="<%= filtros.fechaFin %>">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filtrar Periodo</button>
+        </div>
+    </form>
+
+    <div class="table-responsive shadow-sm bg-white rounded overflow-hidden">
+        <table class="table table-striped table-hover align-middle w-100 mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 70px;">Imagen</th>
+                    <th>Obra</th>
+                    <th>Artista</th>
+                    <th>Género</th>
+                    <th>Fecha de Venta</th>
+                    <th>Factura</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (obras.length > 0) { %>
+                    <% obras.forEach(o => { %>
+                        <tr>
+                            <td style="width: 70px;">
+                                <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" alt="<%= o.nombre %>" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
+                            </td>
+                            <td><%= o.nombre %></td>
+                            <td><%= o.nombre_artista %> <%= o.apellido_artista %></td>
+                            <td><%= o.nombre_genero %></td>
+                            <td><%= new Date(o.fechaDeVenta).toLocaleDateString() %></td>
+                            <td class="small fw-bold"><%= o.codigoDeFactura %></td>
+                            <td>$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="7" class="text-center">No hay obras vendidas en este periodo.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-center mt-5 mb-5">
+        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

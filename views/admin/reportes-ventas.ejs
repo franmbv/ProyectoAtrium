@@ -27,6 +27,7 @@
                         <th>Fecha</th>
                         <th>Obra</th>
                         <th>Ganancia Museo</th>
+                        <th>% Museo</th>
                         <th>Total Recaudado</th>
                     </tr>
                 </thead>
@@ -38,11 +39,12 @@
                                 <td><%= new Date(v.fechaDeVenta).toLocaleDateString() %></td>
                                 <td><%= v.nombre_obra %></td>
                                 <td class="text-primary">$<%= v.gananciaMuseoDolares %></td>
+                                <td><%= v.gananciaMuseoPorcentaje %>%</td>
                                 <td class="fw-bold text-success">$<%= v.precioFinalVenta %></td>
                             </tr>
                         <% }) %>
                     <% } else { %>
-                        <tr><td colspan="5" class="p-4">Sin datos en este periodo.</td></tr>
+                        <tr><td colspan="6" class="p-4">Sin datos en este periodo.</td></tr>
                     <% } %>
                 </tbody>
             </table>

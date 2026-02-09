@@ -102,6 +102,13 @@ class ObraModel {
         return rows[0].total;
     }
 
+    // DASHBOARD: Contar inventario activo (Disponible + Reservada)
+    static async contarInventarioActivo() {
+        const sql = "SELECT COUNT(*) AS total FROM obra WHERE estatus IN ('Disponible', 'Reservada')";
+        const [rows] = await db.execute(sql);
+        return rows[0].total;
+    }
+
     // INVENTARIO: Listar todas con joins
     static async obtenerInventario() {
         const sql = `

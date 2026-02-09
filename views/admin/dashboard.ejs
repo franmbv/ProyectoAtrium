@@ -11,10 +11,10 @@
     .admin-dashboard {
         background: var(--admin-bg);
         border-radius: 16px;
-        padding: 30px;
+        padding: 36px;
         margin: 0 auto;
         width: 100%;
-        max-width: 900px;
+        max-width: 1100px;
     }
     .admin-kpi {
         border: 0;
@@ -26,6 +26,7 @@
     .admin-kpi--inventory { background: var(--admin-surface); }
     .admin-kpi--revenue { background: var(--admin-ink); color: #eaeff0; }
     .admin-kpi--memberships { background: var(--admin-accent); color: #25343f; }
+    .admin-kpi--profit { background: var(--admin-surface); color: var(--admin-ink); }
     .admin-kpi h5 { letter-spacing: 0.02em; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 12px; }
     .admin-kpi .display-6 { font-weight: 700; }
 </style>
@@ -39,7 +40,7 @@
         <% } %>
 
         <div class="row g-4">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card admin-kpi admin-kpi--inventory">
                     <div class="card-body text-center">
                         <h5>Obras en Inventario</h5>
@@ -47,7 +48,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card admin-kpi admin-kpi--revenue">
                     <div class="card-body text-center">
                         <h5>Total Recaudado</h5>
@@ -55,7 +56,15 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <div class="card admin-kpi admin-kpi--profit">
+                    <div class="card-body text-center">
+                        <h5>Ganancia del Museo</h5>
+                        <p class="display-6">$<%= stats.gananciaMuseo %></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
                 <div class="card admin-kpi admin-kpi--memberships">
                     <div class="card-body text-center">
                         <h5>Nuevas Membresías</h5>
@@ -71,13 +80,16 @@
                 🖼️ Ver Inventario de Obras
             </a>
             <a href="/admin/gestion-obras" class="list-group-item list-group-item-action py-3">
-                🎨 Gestión de Inventario (Cargar Obras)
+                🎨 Registrar Obra
             </a>
             <a href="/admin/gestion-artistas" class="list-group-item list-group-item-action py-3">
                 👨‍🎨 Gestión de Artistas
             </a>
             <a href="/admin/reportes-ventas" class="list-group-item list-group-item-action py-3">
-                📊 Reportes de Ventas y Ganancias
+                📊 Reporte de Ventas
+            </a>
+            <a href="/admin/obras-vendidas" class="list-group-item list-group-item-action py-3">
+                🧾 Ver Obras Vendidas 
             </a>
             <a href="/admin/reportes-membresia" class="list-group-item list-group-item-action py-3 border-0">
                 💳 Usuarios con Membresía

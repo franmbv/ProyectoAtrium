@@ -26,7 +26,6 @@
             <table class="table table-hover align-middle mb-0 text-center">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
                         <th>Comprador</th>
                         <th>Cédula</th>
                         <th>Fecha de Pago</th>
@@ -37,7 +36,6 @@
                     <% if (typeof membresias !== 'undefined' && membresias.length > 0) { %>
                         <% membresias.forEach(m => { %>
                             <tr>
-                                <td class="text-muted small">#<%= m.Id %></td>
                                 <td class="fw-bold"><%= m.nombre %> <%= m.apellido %></td>
                                 <td><%= m.cedula %></td>
                                 <td><%= m.fechaPago ? new Date(m.fechaPago).toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'N/A' %></td>
@@ -45,7 +43,7 @@
                             </tr>
                         <% }) %>
                     <% } else { %>
-                        <tr><td colspan="5" class="p-4 text-dark">No se encontraron registros.</td></tr>
+                        <tr><td colspan="4" class="p-4 text-dark">No se encontraron registros.</td></tr>
                     <% } %>
                 </tbody>
             </table>

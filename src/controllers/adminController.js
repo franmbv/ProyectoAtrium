@@ -9,20 +9,21 @@ const AdminController = {
     // 1. DASHBOARD PRINCIPAL
     dashboard: async (req, res) => {
         try {
-            const [totalObras, recaudado, membresias] = await Promise.all([
-                ObraModel.contarTotal(),
+            const [totalObras, recaudado, gananciaMuseo, membresias] = await Promise.all([
+                ObraModel.contarInventarioActivo(),
                 VentaModel.totalRecaudado(),
+                VentaModel.totalGananciaMuseo(),
                 InfoCompradorModel.contarActivas()
             ]);
 
             res.render('admin/dashboard', {
-                stats: { totalObras, recaudado, membresias },
+                stats: { totalObras, recaudado, gananciaMuseo, membresias },
                 errorMsg: null
             });
         } catch (error) {
             console.error('Error en Dashboard:', error);
             res.render('admin/dashboard', {
-                stats: { totalObras: 0, recaudado: 0, membresias: 0 },
+                stats: { totalObras: 0, recaudado: 0, gananciaMuseo: 0, membresias: 0 },
                 errorMsg: 'Error de conexión con la base de datos.'
             });
         }
@@ -240,6 +241,21 @@ const AdminController = {
         } catch (error) {
             console.error(error);
             res.status(500).send("Error al generar reporte de ventas");
+        }
+    },
+
+    obrasVendidas: async (req, res) => {
+        try {
+            const { fechaInicio, fechaFin } = req.query;
+            const obrasVendidas = await VentaModel.obtenerObrasVendidasPorPeriodo(fechaInicio, fechaFin);
+
+            res.render('admin/obras-vendidas', {
+                obras: obrasVendidas || [],
+                filtros: { fechaInicio: fechaInicio || '', fechaFin: fechaFin || '' }
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar obras vendidas');
         }
     },
 
