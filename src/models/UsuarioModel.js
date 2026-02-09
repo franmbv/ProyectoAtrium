@@ -49,6 +49,21 @@ class UsuarioModel {
         const [rows] = await db.execute(query, [id]);
         return rows[0];
     }
+
+    //5. Obtener las preguntas y respuestas de un usuario
+    static async obtenerPreguntasSeguridad(usuarioId) {
+        const sql = `
+            SELECT 
+                cp.pregunta, 
+                aqc.respuesta 
+            FROM asignacion_q_comprador aqc
+            JOIN catalogopreguntas cp ON aqc.pregunta_id = cp.Id
+            WHERE aqc.comprador_id = ?
+        `;
+        
+        const [rows] = await db.execute(sql, [usuarioId]);
+        return rows; 
+    }
 }
 
 module.exports = UsuarioModel;

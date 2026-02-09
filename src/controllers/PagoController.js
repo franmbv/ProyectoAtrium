@@ -1,5 +1,7 @@
 const InfoCompradorModel = require('../models/InfoCompradorModel');
 const ObraModel = require('../models/ObraModel'); 
+const UsuarioModel = require('../models/UsuarioModel');
+const { sendSecurityCode } = require('../config/mailer');
 
 const PagoController = {
 
@@ -30,7 +32,7 @@ const PagoController = {
 
         const formData = { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw };
 
-        if (!/^\d{3}$/.test(codigoRaw)) { 
+        if (!/^\d{3}$/.test(codigoRaw)) {
             return res.render('pagos/confirmar-reserva', {
                 message: 'El código debe ser de 3 dígitos numéricos.',
                 success: false,
@@ -48,16 +50,66 @@ const PagoController = {
             });
         }
 
+        // Inicializar contador de intentos fallidos si no existe
+        if (!req.session.failedAttempts) {
+            req.session.failedAttempts = 0;
+        }
+
         try {
-            const membresia = await InfoCompradorModel.buscarPorCodigo(codigoRaw);
+            const membresia = await InfoCompradorModel.buscarPorCodigoyUsuario(codigoRaw, req.session.usuario?.id);
 
             if (!membresia) {
-                return res.render('pagos/confirmar-reserva', {
-                    message: 'Código de seguridad incorrecto o no encontrado.',
-                    success: false,
-                    form: formData
-                });
+                req.session.failedAttempts += 1;
+
+                if (req.session.failedAttempts >= 3) {
+                    // Generar nuevo código de 3 dígitos
+                    const nuevoCodigo = Math.floor(100 + Math.random() * 900).toString();
+                    const updated = await InfoCompradorModel.actualizarCodigo(req.session.usuario?.id, nuevoCodigo);
+                    if (updated) {
+                        console.log(`Nuevo código generado para usuario ${req.session.usuario?.id}: ${nuevoCodigo}`);
+                        req.session.failedAttempts = 0; // Resetear intentos
+
+                        // Intentar obtener el correo del usuario y enviar el nuevo código
+                        try {
+                            const usuario = await UsuarioModel.buscarPorId(req.session.usuario?.id);
+                            const correo = usuario && usuario.gmail ? String(usuario.gmail).trim() : null;
+                            if (correo && correo.endsWith('@gmail.com')) {
+                                try {
+                                    const result = await sendSecurityCode(correo, nuevoCodigo);
+                                    console.log('Código de seguridad enviado por correo. Preview:', result.previewUrl || result.info?.messageId);
+                                } catch (mailErr) {
+                                    console.error('Error al enviar correo con el nuevo código:', mailErr);
+                                }
+                            } else {
+                                console.log('No se encontró un correo @gmail.com para el usuario.');
+                            }
+                        } catch (userErr) {
+                            console.error('Error al obtener datos del usuario para envío de correo:', userErr);
+                        }
+
+                        return res.render('pagos/confirmar-reserva', {
+                            message: 'Demasiados intentos fallidos. Se ha generado un nuevo código de seguridad. Revise su correo o contacte al administrador.',
+                            success: false,
+                            form: formData
+                        });
+                    } else {
+                        return res.render('pagos/confirmar-reserva', {
+                            message: 'Error al generar nuevo código.',
+                            success: false,
+                            form: formData
+                        });
+                    }
+                } else {
+                    return res.render('pagos/confirmar-reserva', {
+                        message: `Código de seguridad incorrecto o no encontrado. Intentos restantes: ${3 - req.session.failedAttempts}`,
+                        success: false,
+                        form: formData
+                    });
+                }
             }
+
+            // Resetear intentos en caso de éxito
+            req.session.failedAttempts = 0;
 
             if (membresia.estado && membresia.estado.toLowerCase() !== 'activo') {
                 return res.render('pagos/confirmar-reserva', {
@@ -138,6 +190,78 @@ const PagoController = {
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: 'Error interno' });
+        }
+    },
+
+    formRecuperarCodigo: async (req, res) => {
+        try {
+            const usuarioId = req.session.usuario?.id;
+            if (!usuarioId) return res.redirect('/auth/login');
+
+            const datos = await UsuarioModel.obtenerPreguntasSeguridad(usuarioId);
+            
+            if (!datos || datos.length === 0) {
+                return res.render('pagos/recuperar-codigo', { 
+                    error: 'No tienes preguntas de seguridad asignadas.',
+                    preguntas: [] 
+                });
+            }
+
+            res.render('pagos/recuperar-codigo', { 
+                error: null, 
+                success: null,
+                preguntas: datos 
+            });
+
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar formulario');
+        }
+    },
+
+    procesarRecuperacion: async (req, res) => {
+        try {
+            const usuarioId = req.session.usuario?.id;
+            const respuestasUsuario = req.body.respuestas; 
+
+            const datosCorrectos = await UsuarioModel.obtenerPreguntasSeguridad(usuarioId);
+
+            if (!datosCorrectos || datosCorrectos.length === 0) {
+                return res.redirect('/pagos/recuperar');
+            }
+
+            let todoCorrecto = true;
+            
+            for (let i = 0; i < datosCorrectos.length; i++) {
+                const respuestaReal = datosCorrectos[i].respuesta.trim().toLowerCase();
+                const respuestaInput = respuestasUsuario[i] ? respuestasUsuario[i].trim().toLowerCase() : '';
+
+                if (respuestaReal !== respuestaInput) {
+                    todoCorrecto = false;
+                    break; 
+                }
+            }
+
+            if (todoCorrecto) {
+                const nuevoCodigo = Math.floor(100 + Math.random() * 900);
+                await InfoCompradorModel.actualizarCodigo(usuarioId, nuevoCodigo);
+
+                return res.render('pagos/recuperar-codigo', {
+                    error: null,
+                    success: `¡Identidad verificada! Tu nuevo código es: ${nuevoCodigo}`,
+                    preguntas: []
+                });
+            } else {
+                return res.render('pagos/recuperar-codigo', {
+                    error: 'Una o más respuestas son incorrectas.',
+                    success: null,
+                    preguntas: datosCorrectos
+                });
+            }
+
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al procesar');
         }
     }
 };

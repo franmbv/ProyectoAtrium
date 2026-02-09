@@ -1,50 +1,61 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Recaudación por Membresías</h2>
-        <span class="badge bg-success fs-5">Costo: $10.00</span>
-    </div>
+<div class="container mt-4" style="max-width: 1000px;">
+    
+    <h2 class="text-white fw-bold mb-4 text-center">💳 Usuarios con Membresía</h2>
 
-    <form action="/admin/reportes-membresia" method="GET" class="row g-3 mb-4 bg-white p-3 border rounded shadow-sm">
-        <div class="col-auto">
-            <label class="form-label">Desde:</label>
-            <input type="date" name="fechaInicio" class="form-control" value="<%= filtros?.fechaInicio || '' %>">
+    <!-- Formulario de filtros (Mide 1000px de ancho) -->
+    <form action="/admin/reportes-membresia" method="GET" class="row g-3 mb-4 bg-white p-3 rounded border shadow-sm mx-0">
+        <div class="col-md-4">
+            <label class="form-label small fw-bold text-dark">Desde:</label>
+            <input type="date" name="fechaInicio" class="form-control" value="<%= filtros?.fechaInicio %>">
         </div>
-        <div class="col-auto">
-            <label class="form-label">Hasta:</label>
-            <input type="date" name="fechaFin" class="form-control" value="<%= filtros?.fechaFin || '' %>">
+        <div class="col-md-4">
+            <label class="form-label small fw-bold text-dark">Hasta:</label>
+            <input type="date" name="fechaFin" class="form-control" value="<%= filtros?.fechaFin %>">
         </div>
-        <div class="col-auto d-flex align-items-end">
-            <button type="submit" class="btn btn-info text-white">Filtrar Reporte</button>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filtrar Reporte</button>
         </div>
     </form>
 
-    <table class="table table-hover border">
-        <thead class="table-light">
-            <tr>
-                <th>ID</th>
-                <th>Comprador</th>
-                <th>Fecha de Pago</th>
-                <th>Monto</th>
-                <th>Estatus</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% membresias.forEach(m => { %>
-                <tr>
-                    <td>#<%= m.Id %></td>
-                    <td><%= m.nombre %> <%= m.apellido %></td>
-                    <td><%= m.fechaPago ? new Date(m.fechaPago).toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'Sin fecha' %></td>
-                    <td>$<%= parseFloat(m.montoPagado).toFixed(2) %></td>
-                    <td><span class="badge bg-<%= (m.estado === 'Activo' || m.estado === 'activo') ? 'success' : 'secondary' %>">
-                            <%= m.estado || 'Inactivo' %>
-                        </span></td>
-                </tr>
-            <% }) %>
-        </tbody>
-    </table>
+    <!-- Listado (Forzamos que mida el 100% para ignorar los 680px del CSS global) -->
+    <div class="card shadow border-0 overflow-hidden mx-auto" style="max-width: 100% !important;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Comprador</th>
+                        <th>Cédula</th>
+                        <th>Fecha de Pago</th>
+                        <th>Estatus</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (typeof membresias !== 'undefined' && membresias.length > 0) { %>
+                        <% membresias.forEach(m => { %>
+                            <tr>
+                                <td class="text-muted small">#<%= m.Id %></td>
+                                <td class="fw-bold"><%= m.nombre %> <%= m.apellido %></td>
+                                <td><%= m.cedula %></td>
+                                <td><%= m.fechaPago ? new Date(m.fechaPago).toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'N/A' %></td>
+                                <td><span class="badge bg-success">Activo</span></td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr><td colspan="5" class="p-4 text-dark">No se encontraron registros.</td></tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Botón de regreso -->
+    <div class="text-center mt-5 mb-5">
+        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
+    </div>
 </div>
 
 <%- include('../partials/footer') %>

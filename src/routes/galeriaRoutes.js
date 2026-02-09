@@ -8,12 +8,10 @@ router.get('/', GaleriaController.mostrarGaleria);
 // Ruta detalle: Ver una obra específica por su ID
 router.get('/detalle/:id', GaleriaController.verFichaTecnica);
 
-// Nota: La ruta de perfil de artista la haremos después o redirigimos por ahora
-router.get('/artista/:id', (req, res) => {
-    res.send("Perfil del artista en construcción (Persona 3 encargada)");
-});
+// Ruta Perfil del Artista (Biografía Pública)
+router.get('/artista/:id', GaleriaController.verPerfilArtista);
 
-// Ruta API: Verificar disponibilidad de una obra 
+// Ruta API: Verificar disponibilidad
 router.get('/api/verificar/:id', GaleriaController.verificarDisponibilidadAPI);
 
 module.exports = router;

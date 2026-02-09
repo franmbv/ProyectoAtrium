@@ -1,10 +1,10 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Inventario de Obras</h2>
-        <a href="/admin/gestion-obras" class="btn btn-primary">Registrar nueva obra</a>
+<div class="container mt-4" style="max-width: 1000px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white fw-bold">🖼️ Inventario de Obras</h2>
+        <a href="/admin/gestion-obras" class="btn btn-primary">+ Nueva Obra</a>
     </div>
 
     <div class="table-responsive shadow-sm">
@@ -45,6 +45,10 @@
                 <% } %>
             </tbody>
         </table>
+    </div>
+
+    <div class="text-center mt-5 mb-5">
+        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
     </div>
 </div>
 

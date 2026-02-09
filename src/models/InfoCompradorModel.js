@@ -3,9 +3,9 @@ const db = require('../config/db');
 class InfoCompradorModel {
 
     // 1. VALIDAR CÓDIGO (Usado en la compra de obra)
-    static async buscarPorCodigo(codigo) {
-        const query = 'SELECT * FROM info_comprador WHERE codigoSeguridad = ? LIMIT 1';
-        const [rows] = await db.execute(query, [codigo]);
+    static async buscarPorCodigoyUsuario(codigo, comprador_id) {
+        const query = 'SELECT * FROM info_comprador WHERE codigoSeguridad = ? AND comprador_id = ? LIMIT 1';
+        const [rows] = await db.execute(query, [codigo, comprador_id]);
         return rows[0];
     }
 
@@ -67,6 +67,14 @@ class InfoCompradorModel {
     static async contarActivas() {
         const [rows] = await db.execute("SELECT COUNT(*) as total FROM info_comprador WHERE estado = 'Activo'");
         return rows[0].total;
+    }
+
+
+    // 5. ACTUALIZAR CÓDIGOS 
+    static async actualizarCodigo(compradorId, nuevoCodigo) {
+        const sql = 'UPDATE info_comprador SET codigoSeguridad = ? WHERE comprador_id = ?';
+        await db.execute(sql, [nuevoCodigo, compradorId]);
+        return true;
     }
 }
 
