@@ -46,6 +46,89 @@
                 <input type="file" name="foto" class="form-control" accept="image/*" required>
             </div>
 
+            <div class="mb-4">
+                <label class="form-label">Detalles por género</label>
+
+                <div class="row g-3" data-genero="1" style="display: none;">
+                    <div class="col-md-6">
+                        <label class="form-label">Técnica</label>
+                        <input type="text" name="tecnica" class="form-control" placeholder="Óleo, acrílico, acuarela">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Soporte</label>
+                        <input type="text" name="soporte" class="form-control" placeholder="Lienzo, madera, papel">
+                    </div>
+                </div>
+
+                <div class="row g-3" data-genero="2" style="display: none;">
+                    <div class="col-md-4">
+                        <label class="form-label">Material</label>
+                        <input type="text" name="material" class="form-control" placeholder="Bronce, mármol">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Peso (kg)</label>
+                        <input type="number" step="0.01" name="peso" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Largo (cm)</label>
+                        <input type="number" step="0.01" name="largo" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Ancho (cm)</label>
+                        <input type="number" step="0.01" name="ancho" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Profundidad (cm)</label>
+                        <input type="number" step="0.01" name="profundidad" class="form-control">
+                    </div>
+                </div>
+
+                <div class="row g-3" data-genero="3" style="display: none;">
+                    <div class="col-md-4">
+                        <label class="form-label">Tipo</label>
+                        <input type="text" name="tipo_foto" class="form-control" placeholder="Digital, analógica">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Papel</label>
+                        <input type="text" name="papel" class="form-control" placeholder="Mate, brillante">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Formato</label>
+                        <input type="text" name="formato" class="form-control" placeholder="A3, 20x30">
+                    </div>
+                </div>
+
+                <div class="row g-3" data-genero="4" style="display: none;">
+                    <div class="col-md-4">
+                        <label class="form-label">Tipo de arcilla</label>
+                        <input type="text" name="tipoArcilla" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Temperatura de cocción (°C)</label>
+                        <input type="number" step="1" name="temperaturaCoccion" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Tipo de esmalte</label>
+                        <input type="text" name="tipoEsmalte" class="form-control">
+                    </div>
+                </div>
+
+                <div class="row g-3" data-genero="5" style="display: none;">
+                    <div class="col-md-4">
+                        <label class="form-label">Metal</label>
+                        <input type="text" name="metal" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Pureza</label>
+                        <input type="text" name="pureza" class="form-control" placeholder="18K, 925">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Piedra preciosa</label>
+                        <input type="text" name="piedraPreciosa" class="form-control">
+                    </div>
+                </div>
+            </div>
+
             <div class="text-end">
                 <button type="submit" class="btn btn-success px-5">Publicar Obra</button>
             </div>
@@ -56,5 +139,30 @@
         <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
     </div>
 </div>
+
+<script>
+    (function () {
+        const generoSelect = document.getElementById('genero_id');
+        const bloques = Array.from(document.querySelectorAll('[data-genero]'));
+
+        const setRequired = (block, isRequired) => {
+            block.querySelectorAll('input, select, textarea').forEach((field) => {
+                field.required = isRequired;
+            });
+        };
+
+        const toggleBloques = () => {
+            const generoId = generoSelect.value;
+            bloques.forEach((block) => {
+                const active = block.getAttribute('data-genero') === generoId;
+                block.style.display = active ? 'flex' : 'none';
+                setRequired(block, active);
+            });
+        };
+
+        generoSelect.addEventListener('change', toggleBloques);
+        toggleBloques();
+    })();
+</script>
 
 <%- include('../partials/footer') %>
