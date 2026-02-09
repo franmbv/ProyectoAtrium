@@ -203,6 +203,7 @@ const PagoController = {
             if (!datos || datos.length === 0) {
                 return res.render('pagos/recuperar-codigo', { 
                     error: 'No tienes preguntas de seguridad asignadas.',
+                    success: null,
                     preguntas: [] 
                 });
             }
