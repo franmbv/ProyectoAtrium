@@ -121,18 +121,47 @@ class VentaModel {
         return rows[0].total;
     }
 
-    static async listarFacturas() {
-        const sql = `
-            SELECT v.id, v.codigoDeFactura, v.fechaDeVenta, v.precioFinalVenta,
+    static async listarFacturas(filtros = {}) {
+        const condiciones = [];
+        const params = [];
+
+        const nombre = filtros.nombre ? String(filtros.nombre).trim() : '';
+        const fechaInicio = filtros.fechaInicio ? String(filtros.fechaInicio).trim() : '';
+        const fechaFin = filtros.fechaFin ? String(filtros.fechaFin).trim() : '';
+
+        if (nombre) {
+            condiciones.push('(u.nombre LIKE ? OR u.apellido LIKE ? OR CONCAT(u.nombre, " ", u.apellido) LIKE ?)');
+            const likeNombre = `%${nombre}%`;
+            params.push(likeNombre, likeNombre, likeNombre);
+        }
+
+        if (fechaInicio && fechaFin) {
+            condiciones.push('v.fechaDeVenta BETWEEN ? AND ?');
+            params.push(fechaInicio, fechaFin);
+        } else if (fechaInicio) {
+            condiciones.push('v.fechaDeVenta >= ?');
+            params.push(fechaInicio);
+        } else if (fechaFin) {
+            condiciones.push('v.fechaDeVenta <= ?');
+            params.push(fechaFin);
+        }
+
+        let sql = `
+            SELECT v.id, v.comprador_id, v.codigoDeFactura, v.fechaDeVenta, v.precioFinalVenta,
                    o.nombre AS nombre_obra,
                    u.nombre AS nombre_comprador, u.apellido AS apellido_comprador
             FROM venta v
             JOIN obra o ON v.obra_id = o.id
             JOIN usuario u ON v.comprador_id = u.id
-            ORDER BY v.fechaDeVenta DESC
         `;
 
-        const [rows] = await db.execute(sql);
+        if (condiciones.length > 0) {
+            sql += ' WHERE ' + condiciones.join(' AND ');
+        }
+
+        sql += ' ORDER BY v.fechaDeVenta DESC';
+
+        const [rows] = await db.execute(sql, params);
         return rows;
     }
 

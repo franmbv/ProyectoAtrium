@@ -1,13 +1,15 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4" style="max-width: 1100px;">
-    <div class="card shadow border-0">
-        <div class="card-header bg-dark text-white">
-            <h4 class="mb-0">Detalle de factura</h4>
-        </div>
-        <div class="card-body">
-            <% const precioBase = (factura.precioObra !== null && factura.precioObra !== undefined) ? parseFloat(factura.precioObra) : null; %>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12" style="max-width: 1100px;">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">Detalle de factura</h4>
+                </div>
+                <div class="card-body">
+                    <% const precioBase = (factura.precioObra !== null && factura.precioObra !== undefined) ? parseFloat(factura.precioObra) : null; %>
 
             <div class="row mb-4">
                 <div class="col-md-6">
@@ -54,6 +56,8 @@
                     <p class="mb-1"><strong>Ganancia museo:</strong> $<%= parseFloat(factura.gananciaMuseoDolares).toLocaleString('en-US') %></p>
                     <p class="mb-1"><strong>% museo:</strong> <%= factura.gananciaMuseoPorcentaje %>%</p>
                     <p class="mb-1"><strong>Total:</strong> $<%= parseFloat(factura.precioFinalVenta).toLocaleString('en-US') %></p>
+                </div>
+            </div>
                 </div>
             </div>
         </div>

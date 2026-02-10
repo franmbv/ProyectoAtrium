@@ -261,8 +261,33 @@ const AdminController = {
 
     facturasListado: async (req, res) => {
         try {
-            const facturas = await VentaModel.listarFacturas();
-            res.render('admin/facturas', { facturas: facturas || [] });
+            const { fechaInicio, fechaFin, nombre } = req.query;
+            const facturas = await VentaModel.listarFacturas({ fechaInicio, fechaFin, nombre });
+            const agrupadas = new Map();
+
+            (facturas || []).forEach((factura) => {
+                const idKey = factura.comprador_id ? String(factura.comprador_id) : null;
+                const nameKey = `${factura.nombre_comprador || ''}-${factura.apellido_comprador || ''}`;
+                const groupKey = idKey || nameKey;
+
+                if (!agrupadas.has(groupKey)) {
+                    agrupadas.set(groupKey, {
+                        comprador: `${factura.nombre_comprador || ''} ${factura.apellido_comprador || ''}`.trim(),
+                        facturas: []
+                    });
+                }
+
+                agrupadas.get(groupKey).facturas.push(factura);
+            });
+
+            res.render('admin/facturas', {
+                grupos: Array.from(agrupadas.values()),
+                filtros: {
+                    fechaInicio: fechaInicio || '',
+                    fechaFin: fechaFin || '',
+                    nombre: nombre || ''
+                }
+            });
         } catch (error) {
             console.error(error);
             res.status(500).send('Error al cargar facturas');
