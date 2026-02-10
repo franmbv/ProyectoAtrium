@@ -70,6 +70,30 @@ const AdminController = {
         }
     },
 
+    reservasObras: async (req, res) => {
+        try {
+            const reservadas = await ObraModel.obtenerReservadas();
+            res.render('admin/reservas', { obras: reservadas || [] });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar reservas');
+        }
+    },
+
+    rechazarReserva: async (req, res) => {
+        try {
+            const actualizado = await ObraModel.marcarComoDisponible(req.params.id);
+            if (!actualizado) {
+                return res.status(404).send('Obra no encontrada o no reservada');
+            }
+
+            res.redirect('/admin/reservas');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al rechazar la reserva');
+        }
+    },
+
     editarObraForm: async (req, res) => {
         try {
             const obra = await ObraModel.obtenerPorId(req.params.id);

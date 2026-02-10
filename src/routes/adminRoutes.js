@@ -16,6 +16,8 @@ router.get('/', (req, res) => {
 // Dashboard e Inventario
 router.get('/dashboard', adminController.dashboard);
 router.get('/inventario', adminController.inventarioObras);
+router.get('/reservas', adminController.reservasObras);
+router.post('/reservas/:id/rechazar', adminController.rechazarReserva);
 router.get('/obras/:id/editar', adminController.editarObraForm);
 router.post('/obras/:id/editar', upload, adminController.actualizarObra);
 router.post('/obras/:id/eliminar', adminController.eliminarObra);
