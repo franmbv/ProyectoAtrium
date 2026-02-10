@@ -9,7 +9,7 @@ class ObraModel {
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
             INNER JOIN genero g ON o.genero_id = g.Id
-            WHERE 1=1 
+            WHERE o.estatus = 'Disponible' 
         `;
         
         const params = [];

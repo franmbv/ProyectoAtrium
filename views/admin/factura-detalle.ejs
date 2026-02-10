@@ -1,0 +1,68 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4" style="max-width: 1100px;">
+    <div class="card shadow border-0">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">Detalle de factura</h4>
+        </div>
+        <div class="card-body">
+            <% const precioBase = (factura.precioObra !== null && factura.precioObra !== undefined) ? parseFloat(factura.precioObra) : null; %>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-secondary">Factura</h6>
+                    <p class="mb-1"><strong>Codigo:</strong> <%= factura.codigoDeFactura %></p>
+                    <p class="mb-1"><strong>Fecha:</strong> <%= new Date(factura.fechaDeVenta).toLocaleDateString() %></p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-secondary">Comprador</h6>
+                    <p class="mb-1"><strong>Nombre:</strong> <%= factura.nombre_comprador %> <%= factura.apellido_comprador %></p>
+                    <p class="mb-1"><strong>Cedula:</strong> <%= factura.cedula %></p>
+                    <p class="mb-1"><strong>Correo:</strong> <%= factura.gmail %></p>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-secondary">Obra</h6>
+                    <p class="mb-1"><strong>Titulo:</strong> <%= factura.nombre_obra %></p>
+                    <p class="mb-1"><strong>Artista:</strong> <%= factura.nombre_artista %> <%= factura.apellido_artista %></p>
+                    <% if (precioBase !== null && !isNaN(precioBase)) { %>
+                        <p class="mb-1"><strong>Precio base:</strong> $<%= precioBase.toLocaleString('en-US') %></p>
+                    <% } %>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-secondary">Envio</h6>
+                    <p class="mb-1"><strong>Empresa:</strong> <%= factura.empresaEnvio %></p>
+                    <p class="mb-1"><strong>Pais:</strong> <%= factura.pais %></p>
+                    <p class="mb-1"><strong>Estado:</strong> <%= factura.estado %></p>
+                    <p class="mb-1"><strong>Ciudad:</strong> <%= factura.ciudad %></p>
+                    <p class="mb-1"><strong>Municipio:</strong> <%= factura.municipio %></p>
+                    <p class="mb-1"><strong>Calle:</strong> <%= factura.calle %></p>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-secondary">Totales</h6>
+                    <p class="mb-1"><strong>IVA:</strong> $<%= parseFloat(factura.iva).toLocaleString('en-US') %></p>
+                    <p class="mb-1"><strong>Ganancia museo:</strong> $<%= parseFloat(factura.gananciaMuseoDolares).toLocaleString('en-US') %></p>
+                    <p class="mb-1"><strong>% museo:</strong> <%= factura.gananciaMuseoPorcentaje %>%</p>
+                    <p class="mb-1"><strong>Total:</strong> $<%= parseFloat(factura.precioFinalVenta).toLocaleString('en-US') %></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5 mb-5">
+        <a href="/admin/facturas" class="btn btn-secondary shadow-sm">← Volver a Facturas</a>
+        <a href="/admin/dashboard" class="btn btn-outline-dark shadow-sm ms-2">Ir al Panel</a>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

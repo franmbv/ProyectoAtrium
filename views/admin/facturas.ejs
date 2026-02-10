@@ -1,0 +1,47 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4" style="max-width: 1100px;">
+    <h2 class="text-white fw-bold mb-4">Facturas por comprador</h2>
+
+    <div class="card shadow border-0 overflow-hidden">
+        <div class="table-responsive bg-white">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Factura</th>
+                        <th>Fecha</th>
+                        <th>Comprador</th>
+                        <th>Obra</th>
+                        <th>Total</th>
+                        <th>Accion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (facturas.length > 0) { %>
+                        <% facturas.forEach(f => { %>
+                            <tr>
+                                <td class="small fw-bold"><%= f.codigoDeFactura %></td>
+                                <td><%= new Date(f.fechaDeVenta).toLocaleDateString() %></td>
+                                <td><%= f.nombre_comprador %> <%= f.apellido_comprador %></td>
+                                <td><%= f.nombre_obra %></td>
+                                <td class="fw-bold text-success">$<%= parseFloat(f.precioFinalVenta).toLocaleString('en-US') %></td>
+                                <td>
+                                    <a href="/admin/facturas/<%= f.id %>" class="btn btn-outline-dark btn-sm">Ver detalle</a>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr><td colspan="6" class="p-4">No hay facturas registradas.</td></tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center mt-5 mb-5">
+        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

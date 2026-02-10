@@ -259,6 +259,30 @@ const AdminController = {
         }
     },
 
+    facturasListado: async (req, res) => {
+        try {
+            const facturas = await VentaModel.listarFacturas();
+            res.render('admin/facturas', { facturas: facturas || [] });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar facturas');
+        }
+    },
+
+    facturaDetalle: async (req, res) => {
+        try {
+            const factura = await VentaModel.obtenerFacturaPorId(req.params.id);
+            if (!factura) {
+                return res.status(404).send('Factura no encontrada');
+            }
+
+            res.render('admin/factura-detalle', { factura });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar la factura');
+        }
+    },
+
     reporteMembresias: async (req, res) => {
         try {
             const { fechaInicio, fechaFin } = req.query;

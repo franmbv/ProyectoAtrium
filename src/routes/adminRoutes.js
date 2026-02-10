@@ -38,6 +38,8 @@ router.post('/emitir-factura', adminController.emitirFactura);
 // Reportes
 router.get('/reportes-ventas', adminController.reporteVentas);
 router.get('/obras-vendidas', adminController.obrasVendidas);
+router.get('/facturas', adminController.facturasListado);
+router.get('/facturas/:id', adminController.facturaDetalle);
 router.get('/reportes-membresia', adminController.reporteMembresias);
 
 module.exports = router;

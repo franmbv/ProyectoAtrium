@@ -120,6 +120,40 @@ class VentaModel {
         const [rows] = await db.execute(sql);
         return rows[0].total;
     }
+
+    static async listarFacturas() {
+        const sql = `
+            SELECT v.id, v.codigoDeFactura, v.fechaDeVenta, v.precioFinalVenta,
+                   o.nombre AS nombre_obra,
+                   u.nombre AS nombre_comprador, u.apellido AS apellido_comprador
+            FROM venta v
+            JOIN obra o ON v.obra_id = o.id
+            JOIN usuario u ON v.comprador_id = u.id
+            ORDER BY v.fechaDeVenta DESC
+        `;
+
+        const [rows] = await db.execute(sql);
+        return rows;
+    }
+
+    static async obtenerFacturaPorId(id) {
+        const sql = `
+            SELECT v.*, 
+                   o.nombre AS nombre_obra, o.precioObra, o.porcentajeGanancia,
+                   a.nombre AS nombre_artista, a.apellido AS apellido_artista,
+                   u.nombre AS nombre_comprador, u.apellido AS apellido_comprador,
+                   u.cedula, u.gmail
+            FROM venta v
+            JOIN obra o ON v.obra_id = o.id
+            JOIN artista a ON o.autor_id = a.id
+            JOIN usuario u ON v.comprador_id = u.id
+            WHERE v.id = ?
+            LIMIT 1
+        `;
+
+        const [rows] = await db.execute(sql, [id]);
+        return rows[0];
+    }
 }
 
 module.exports = VentaModel;
