@@ -12,6 +12,8 @@
         --at-orange: #f97316;      
         --at-orange-glow: rgba(249, 115, 22, 0.4);
         --at-border: rgba(255, 255, 255, 0.1);
+        --at-red-soft: rgba(248, 113, 113, 0.15);
+        --at-red-border: rgba(248, 113, 113, 0.4);
     }
 
     .admin-page-wrapper {
@@ -29,19 +31,19 @@
         letter-spacing: -1.5px;
     }
 
-    /* CARD DE FILTROS */
+    /* CARD DE FILTROS UNIFICADA EN UNA LÍNEA */
     .filter-card {
         background-color: var(--at-card-bg) !important;
         border: 1px solid var(--at-border) !important;
         border-radius: 16px;
-        padding: 30px;
+        padding: 25px;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
 
     .form-label-custom {
         display: block;
         color: #ffffff;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -54,9 +56,15 @@
         border: 1px solid var(--at-border) !important;
         color: white !important;
         border-radius: 10px !important;
-        padding: 12px !important;
+        padding: 11px !important;
         transition: all 0.3s;
-        color-scheme: dark; /* Hace que el calendario sea oscuro */
+        color-scheme: dark; 
+    }
+
+    /* MEJORA DE VISIBILIDAD DEL PLACEHOLDER - ACTUALIZADO */
+    .input-custom::placeholder {
+        color: #cbd5e1 !important; /* Gris azulado muy claro para mayor distinción */
+        opacity: 1; 
     }
 
     .input-custom:focus {
@@ -65,23 +73,31 @@
         outline: none;
     }
 
-    /* BOTÓN FILTRAR */
-    .btn-atrium-filter {
-        background-color: var(--at-orange) !important;
-        color: white !important;
-        border: none;
-        border-radius: 100px;
-        padding: 12px 30px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: 0.3s;
+    /* BOTÓN LIMPIAR */
+    .btn-reset-aesthetic {
+        display: block;
         width: 100%;
-        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+        padding: 11px;
+        background: var(--at-red-soft);
+        color: #f87171;
+        border: 1.5px dashed var(--at-red-border);
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+        transition: all 0.3s ease;
     }
-    .btn-atrium-filter:hover { transform: translateY(-3px); filter: brightness(1.1); }
 
-    /* ESTILO DE LA TABLA (ENCABEZADO NARANJA / LETRAS NEGRAS) */
+    .btn-reset-aesthetic:hover {
+        background: rgba(248, 113, 113, 0.25);
+        border-style: solid;
+        color: #fca5a5;
+    }
+
+    /* TABLA */
     .table-container-custom {
         background-color: var(--at-card-bg) !important;
         border: 1px solid var(--at-border) !important;
@@ -90,10 +106,7 @@
         box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
 
-    .table-atrium {
-        color: white !important;
-        margin-bottom: 0;
-    }
+    .table-atrium { color: white !important; margin-bottom: 0; }
 
     .table-atrium thead th {
         background-color: var(--at-orange) !important;
@@ -114,7 +127,6 @@
         text-align: center;
     }
 
-    /* Badge de Estatus Neón */
     .status-badge-active {
         display: inline-flex;
         align-items: center;
@@ -144,28 +156,40 @@
 </style>
 
 <div class="admin-page-wrapper">
-    <div class="container" style="max-width: 1000px;">
+    <div class="container" style="max-width: 1100px;">
         
         <h2 class="admin-title mb-5 text-start">💳 Usuarios con Membresía</h2>
 
-        <!-- FILTROS (RECUADRO AZULADO) -->
+        <!-- FILTROS EN UNA SOLA LÍNEA AUTOMÁTICOS -->
         <div class="filter-card mb-5">
-            <form action="/admin/reportes-membresia" method="GET" class="row g-4 align-items-end">
-                <div class="col-md-4 text-start">
-                    <label class="form-label-custom">Desde:</label>
-                    <input type="date" name="fechaInicio" class="form-control input-custom" value="<%= filtros?.fechaInicio %>">
-                </div>
-                <div class="col-md-4 text-start">
-                    <label class="form-label-custom">Hasta:</label>
-                    <input type="date" name="fechaFin" class="form-control input-custom" value="<%= filtros?.fechaFin %>">
-                </div>
+            <form action="/admin/reportes-membresia" method="GET" id="memberFilterForm" class="row g-3 align-items-end">
+                
+                <!-- BÚSQUEDA INTELIGENTE -->
                 <div class="col-md-4">
-                    <button type="submit" class="btn btn-atrium-filter">Filtrar Reporte</button>
+                    <label class="form-label-custom">Búsqueda de Comprador</label>
+                    <input type="text" id="memberSearch" class="form-control input-custom" placeholder="Nombre, apellido o cédula..." autocomplete="off">
+                </div>
+                
+                <!-- FECHA DESDE -->
+                <div class="col-md-3">
+                    <label class="form-label-custom">Desde:</label>
+                    <input type="date" name="fechaInicio" class="form-control input-custom" value="<%= filtros?.fechaInicio %>" onchange="this.form.submit()">
+                </div>
+
+                <!-- FECHA HASTA -->
+                <div class="col-md-3">
+                    <label class="form-label-custom">Hasta:</label>
+                    <input type="date" name="fechaFin" class="form-control input-custom" value="<%= filtros?.fechaFin %>" onchange="this.form.submit()">
+                </div>
+
+                <!-- LIMPIAR -->
+                <div class="col-md-2">
+                    <a href="/admin/reportes-membresia" class="btn-reset-aesthetic">✕ Limpiar</a>
                 </div>
             </form>
         </div>
 
-        <!-- LISTADO (TABLA ESTILO ATRIUM) -->
+        <!-- LISTADO -->
         <div class="table-container-custom">
             <div class="table-responsive">
                 <table class="table table-atrium align-middle">
@@ -177,14 +201,13 @@
                             <th>Estatus</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="membersTableBody">
                         <% if (typeof membresias !== 'undefined' && membresias.length > 0) { %>
                             <% membresias.forEach(m => { %>
-                                <tr>
+                                <tr class="member-row" data-search="<%= m.nombre.toLowerCase() %> <%= m.apellido.toLowerCase() %> <%= m.cedula.toLowerCase() %>">
                                     <td class="fw-bold text-white"><%= m.nombre %> <%= m.apellido %></td>
                                     <td style="color: #94a3b8;"><%= m.cedula %></td>
-                                    <!-- FECHA DE PAGO AHORA ES BLANCA -->
-                                    <td class="fw-bold text-white"><%= m.fechaPago ? new Date(m.fechaPago).toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'N/A' %></td>
+                                    <td class="fw-bold text-white"><%= m.fechaPago ? new Date(m.fechaPago).toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'N/N' %></td>
                                     <td>
                                         <div class="status-badge-active">
                                             <span style="width: 8px; height: 8px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 8px #4ade80;"></span>
@@ -194,8 +217,9 @@
                                 </tr>
                             <% }) %>
                         <% } else { %>
-                            <tr><td colspan="4" class="p-5 text-white-50">No se encontraron registros en este periodo.</td></tr>
+                            <tr id="emptyMsg"><td colspan="4" class="p-5 text-white-50 text-center">No se encontraron registros para este rango de fechas.</td></tr>
                         <% } %>
+                        <tr id="noResults" style="display: none;"><td colspan="4" class="p-5 text-warning opacity-75 text-center">No hay coincidencias en la vista actual.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -211,3 +235,39 @@
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('memberSearch');
+        const rows = document.querySelectorAll('.member-row');
+        const noResults = document.getElementById('noResults');
+        const emptyMsg = document.getElementById('emptyMsg');
+
+        searchInput.addEventListener('input', () => {
+            const term = searchInput.value.toLowerCase().trim();
+            let hasMatches = false;
+
+            rows.forEach(row => {
+                const searchData = row.getAttribute('data-search');
+                if (searchData.includes(term)) {
+                    row.style.display = '';
+                    hasMatches = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (term !== "") {
+                if (emptyMsg) emptyMsg.style.display = 'none';
+                noResults.style.display = hasMatches ? 'none' : '';
+            } else {
+                if (emptyMsg) emptyMsg.style.display = '';
+                noResults.style.display = 'none';
+            }
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') e.preventDefault();
+        });
+    });
+</script>

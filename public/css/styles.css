@@ -90,3 +90,14 @@ main {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
 }
+
+::placeholder {
+    color: #cbd5e1 !important; /* Gris claro/azulado de alta visibilidad */
+    opacity: 1 !important;      /* Quitar la transparencia por defecto */
+}
+
+/* Soporte para diferentes navegadores */
+::-webkit-input-placeholder { color: #cbd5e1 !important; opacity: 1 !important; }
+::-moz-placeholder { color: #cbd5e1 !important; opacity: 1 !important; }
+:-ms-input-placeholder { color: #cbd5e1 !important; opacity: 1 !important; }
+::-ms-input-placeholder { color: #cbd5e1 !important; opacity: 1 !important; }
