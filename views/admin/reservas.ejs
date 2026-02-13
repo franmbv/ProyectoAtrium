@@ -1,54 +1,244 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4" style="max-width: 1000px;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-white fw-bold">Reservas de Obras</h2>
-        <a href="/admin/inventario" class="btn btn-outline-light">Ver Inventario</a>
-    </div>
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <div class="table-responsive shadow-sm mb-4 bg-white rounded overflow-hidden">
-        <table class="table table-striped table-hover align-middle w-100 mb-0">
-            <thead class="table-dark">
-                <tr>
-                    <th style="width: 70px;">Imagen</th>
-                    <th>Obra</th>
-                    <th>Artista</th>
-                    <th>Genero</th>
-                    <th>Estatus</th>
-                    <th>Precio</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% if (obras.length > 0) { %>
-                    <% obras.forEach(o => { %>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     /* Azul Carbono */
+        --at-orange: #f97316;      
+        /* Verde Soft para Aceptar */
+        --at-green-soft: rgba(34, 197, 94, 0.12);
+        --at-green-text: #4ade80;
+        /* Rojo Soft para Rechazar */
+        --at-red-soft: rgba(239, 68, 68, 0.12);    
+        --at-red-text: #fca5a5;
+        --at-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    /* CARD DE LA TABLA */
+    .inventory-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        margin-bottom: 45px;
+    }
+
+    /* TABLA ATRIUM */
+    .table-atrium {
+        color: white !important;
+        margin-bottom: 0;
+    }
+
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #000000 !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 18px;
+        border: none;
+        text-align: center;
+    }
+
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+        padding: 18px;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    /* ESTILO DE ESTATUS (NEÓN) */
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .st-reserved { color: #fcd34d; }
+    .st-reserved .status-dot { background-color: #fcd34d; box-shadow: 0 0 8px #fcd34d; }
+
+    /* BOTONES DE ACCIÓN SOFT */
+    
+    /* Botón ACEPTAR (Verde Soft) */
+    .btn-accept-soft {
+        background-color: var(--at-green-soft) !important;
+        color: var(--at-green-text) !important;
+        border: 1px solid rgba(34, 197, 94, 0.2) !important;
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 6px 16px;
+        font-size: 0.75rem;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: 0.3s;
+    }
+    .btn-accept-soft:hover {
+        background-color: rgba(34, 197, 94, 0.25) !important;
+        transform: translateY(-2px);
+    }
+
+    /* Botón RECHAZAR (Rojo Soft) */
+    .btn-delete-soft {
+        background-color: var(--at-red-soft) !important;
+        color: var(--at-red-text) !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 6px 16px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        border: none;
+        transition: 0.3s;
+    }
+    .btn-delete-soft:hover {
+        background-color: rgba(239, 68, 68, 0.25) !important;
+        transform: translateY(-2px);
+    }
+
+    /* BOTÓN NAVEGACIÓN SUPERIOR */
+    .btn-top-nav {
+        color: #94a3b8;
+        border: 1px solid #30363d;
+        border-radius: 100px;
+        padding: 10px 25px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    .btn-top-nav:hover {
+        background-color: rgba(255,255,255,0.05);
+        color: white;
+        border-color: rgba(255,255,255,0.2);
+    }
+
+    /* BOTÓN REGRESO */
+    .btn-back-atrium {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    .btn-back-atrium:hover { color: white; border-color: white; background: rgba(255,255,255,0.03); }
+
+    /* IMAGEN RECTANGULAR REDONDEADA (No circular) */
+    .img-thumb {
+        width: 60px; 
+        height: 60px; 
+        object-fit: cover; 
+        border-radius: 8px; /* Rectángulo suave */
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1100px;">
+        
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h2 class="admin-title m-0">✅ Gestión de Reservas</h2>
+            <a href="/admin/inventario" class="btn-top-nav">
+                Ver Inventario Completo
+            </a>
+        </div>
+
+        <div class="inventory-card">
+            <div class="table-responsive">
+                <table class="table table-atrium align-middle text-center">
+                    <thead>
                         <tr>
-                            <td style="width: 70px;">
-                                <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" alt="<%= o.nombre %>" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
-                            </td>
-                            <td><%= o.nombre %></td>
-                            <td><%= o.nombre_artista %> <%= o.apellido_artista %></td>
-                            <td><%= o.nombre_genero %></td>
-                            <td><span class="badge bg-warning text-dark"><%= o.estatus %></span></td>
-                            <td>$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
-                            <td class="d-flex gap-2">
-                                <a href="/admin/facturar/<%= o.id %>" class="btn btn-sm btn-success">Aceptar</a>
-                                <form action="/admin/reservas/<%= o.id %>/rechazar" method="POST" onsubmit="return confirm('¿Rechazar la reserva y devolver la obra a Disponible?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Rechazar</button>
-                                </form>
-                            </td>
+                            <th style="width: 100px;">Vista</th>
+                            <th>Obra</th>
+                            <th>Artista</th>
+                            <th>Género</th>
+                            <th>Estatus</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
                         </tr>
-                    <% }) %>
-                <% } else { %>
-                    <tr><td colspan="7" class="text-center">No hay obras reservadas.</td></tr>
-                <% } %>
-            </tbody>
-        </table>
-    </div>
+                    </thead>
+                    <tbody>
+                        <% if (obras.length > 0) { %>
+                            <% obras.forEach(o => { %>
+                                <tr>
+                                    <td>
+                                        <!-- Imagen rectangular para mejor visualización -->
+                                        <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" alt="<%= o.nombre %>" class="img-thumb">
+                                    </td>
+                                    <td class="fw-bold text-white"><%= o.nombre %></td>
+                                    
+                                    <!-- Nombre del artista en gris/blanco -->
+                                    <td style="color: #cbd5e1; font-weight: 500;"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
+                                    
+                                    <!-- Género con el mismo color del artista -->
+                                    <td style="color: #cbd5e1; font-weight: 500;"><%= o.nombre_genero %></td>
+                                    
+                                    <td>
+                                        <div class="status-indicator st-reserved">
+                                            <span class="status-dot"></span>
+                                            <%= o.estatus %>
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <!-- BOTÓN ACEPTAR (Verde Soft) -->
+                                            <a href="/admin/facturar/<%= o.id %>" class="btn-accept-soft">Aceptar</a>
+                                            
+                                            <!-- BOTÓN RECHAZAR (Rojo Soft) -->
+                                            <form action="/admin/reservas/<%= o.id %>/rechazar" method="POST" onsubmit="return confirm('¿Rechazar la reserva y devolver la obra a Disponible?');">
+                                                <button type="submit" class="btn-delete-soft">Rechazar</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="7" class="p-5 text-white-50 small">No hay reservas pendientes por procesar.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <div class="text-center mt-5 mb-5">
-        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
+        <!-- REGRESO -->
+        <div class="text-start mt-5 mb-5">
+            <a href="/admin/dashboard" class="btn btn-back-atrium shadow-sm">
+                ← Volver al Panel Administrativo
+            </a>
+        </div>
     </div>
 </div>
 
