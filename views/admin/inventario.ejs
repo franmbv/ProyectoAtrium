@@ -1,100 +1,316 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4" style="max-width: 1000px;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-white fw-bold">🖼️ Inventario de Obras</h2>
-        <a href="/admin/gestion-obras" class="btn btn-primary">+ Nueva Obra</a>
-    </div>
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <% const disponibles = obras.filter(o => o.estatus === 'Disponible'); %>
-    <% const reservadas = obras.filter(o => o.estatus === 'Reservada'); %>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     /* Azul Carbono */
+        --at-orange: #f97316;      
+        --at-yellow-soft: rgba(251, 191, 36, 0.12); /* Amarillo traslúcido */
+        --at-yellow-text: #fcd34d;
+        --at-red-soft: rgba(239, 68, 68, 0.12);    /* Rojo traslúcido */
+        --at-red-text: #fca5a5;
+        /* Verde traslúcido para Facturar */
+        --at-green-soft: rgba(34, 197, 94, 0.12);
+        --at-green-text: #4ade80;
+        --at-border: rgba(255, 255, 255, 0.08);
+    }
 
-    <h5 class="text-white fw-bold mb-3">Disponibles</h5>
-    <div class="table-responsive shadow-sm mb-4 bg-white rounded overflow-hidden">
-        <table class="table table-striped table-hover align-middle w-100 mb-0">
-            <thead class="table-dark">
-                <tr>
-                    <th style="width: 70px;">Imagen</th>
-                    <th>Obra</th>
-                    <th>Artista</th>
-                    <th>Género</th>
-                    <th>Estatus</th>
-                    <th>Precio</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% if (disponibles.length > 0) { %>
-                    <% disponibles.forEach(o => { %>
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    /* PANELES DE TABLA */
+    .inventory-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        margin-bottom: 45px;
+    }
+
+    .section-subtitle {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #64748b;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    /* TABLA ATRIUM */
+    .table-atrium {
+        color: white !important;
+        margin-bottom: 0;
+    }
+
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #000000 !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 18px;
+        border: none;
+        text-align: center;
+    }
+
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+        padding: 18px;
+        color: #e2e8f0;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    /* ESTILO DE ESTATUS TIPO INDICADOR NEÓN */
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .st-available { color: #4ade80; }
+    .st-available .status-dot { 
+        background-color: #4ade80; 
+        box-shadow: 0 0 8px #4ade80; 
+    }
+
+    .st-reserved { color: #fcd34d; }
+    .st-reserved .status-dot { 
+        background-color: #fcd34d; 
+        box-shadow: 0 0 8px #fcd34d; 
+    }
+
+    /* BOTÓN NUEVA OBRA (NARANJA SÓLIDO) */
+    .btn-new-atrium {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        font-weight: 800;
+        border-radius: 100px;
+        padding: 12px 28px;
+        border: none;
+        transition: 0.3s ease;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        text-decoration: none;
+    }
+    .btn-new-atrium:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4); }
+
+    /* BOTONES ACCIÓN (SUAVES / TRANSPARENTES) */
+    .btn-edit-soft {
+        background-color: var(--at-yellow-soft) !important;
+        color: var(--at-yellow-text) !important;
+        border: 1px solid rgba(251, 191, 36, 0.2) !important;
+        font-weight: 700;
+        border-radius: 10px;
+        padding: 6px 16px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+    .btn-edit-soft:hover {
+        background-color: rgba(251, 191, 36, 0.25) !important;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete-soft {
+        background-color: var(--at-red-soft) !important;
+        color: var(--at-red-text) !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
+        font-weight: 700;
+        border-radius: 10px;
+        padding: 6px 16px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        transition: all 0.3s;
+        text-decoration: none;
+        border: none;
+    }
+    .btn-delete-soft:hover {
+        background-color: rgba(239, 68, 68, 0.25) !important;
+        transform: translateY(-2px);
+    }
+
+    .btn-facturar-soft {
+        background-color: var(--at-green-soft) !important;
+        color: var(--at-green-text) !important;
+        border: 1px solid rgba(34, 197, 94, 0.2) !important;
+        font-weight: 700;
+        border-radius: 10px;
+        padding: 6px 16px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+    .btn-facturar-soft:hover {
+        background-color: rgba(34, 197, 94, 0.25) !important;
+        transform: translateY(-2px);
+    }
+
+    .btn-back-link {
+        background: rgba(255, 255, 255, 0.03);
+        color: #94a3b8;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    .btn-back-link:hover { border-color: white; color: white; background: rgba(255, 255, 255, 0.06); }
+
+    .img-thumb {
+        width: 50px; height: 50px; 
+        object-fit: cover; 
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1100px;">
+        
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h2 class="admin-title">🖼️ Inventario General</h2>
+            <a href="/admin/gestion-obras" class="btn btn-new-atrium shadow">
+                + Nueva Obra
+            </a>
+        </div>
+
+        <% const disponibles = obras.filter(o => o.estatus === 'Disponible'); %>
+        <% const reservadas = obras.filter(o => o.estatus === 'Reservada'); %>
+
+        <!-- DISPONIBLES -->
+        <h6 class="section-subtitle">OBRAS DISPONIBLES</h6>
+        <div class="inventory-card">
+            <div class="table-responsive">
+                <table class="table table-atrium align-middle">
+                    <thead>
                         <tr>
-                            <td style="width: 70px;">
-                                <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" alt="<%= o.nombre %>" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
-                            </td>
-                            <td><%= o.nombre %></td>
-                            <td><%= o.nombre_artista %> <%= o.apellido_artista %></td>
-                            <td><%= o.nombre_genero %></td>
-                            <td><span class="badge bg-secondary"><%= o.estatus %></span></td>
-                            <td>$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
-                            <td class="d-flex gap-2">
-                                <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-sm btn-outline-primary">Editar</a>
-                                <form action="/admin/obras/<%= o.id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar esta obra de forma permanente?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
-                                </form>
-                            </td>
+                            <th>Vista</th>
+                            <th>Título de la Obra</th>
+                            <th>Autor / Maestro</th>
+                            <th>Estatus</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
                         </tr>
-                    <% }) %>
-                <% } else { %>
-                    <tr><td colspan="7" class="text-center">No hay obras disponibles.</td></tr>
-                <% } %>
-            </tbody>
-        </table>
-    </div>
+                    </thead>
+                    <tbody>
+                        <% if (disponibles.length > 0) { %>
+                            <% disponibles.forEach(o => { %>
+                                <tr>
+                                    <td><img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" class="img-thumb"></td>
+                                    <td class="fw-bold text-white"><%= o.nombre %></td>
+                                    <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
+                                    <td>
+                                        <div class="status-indicator st-available">
+                                            <span class="status-dot"></span>
+                                            <%= o.estatus %>
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString() %></td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-edit-soft">Editar</a>
+                                            <form action="/admin/obras/<%= o.id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar obra?');">
+                                                <button type="submit" class="btn btn-delete-soft">Borrar</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="6" class="p-5 opacity-50 small text-center">No hay piezas disponibles en exhibición.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <h5 class="text-white fw-bold mb-3">Reservadas</h5>
-    <div class="table-responsive shadow-sm mb-4 bg-white rounded overflow-hidden">
-        <table class="table table-striped table-hover align-middle w-100 mb-0">
-            <thead class="table-dark">
-                <tr>
-                    <th style="width: 70px;">Imagen</th>
-                    <th>Obra</th>
-                    <th>Artista</th>
-                    <th>Género</th>
-                    <th>Estatus</th>
-                    <th>Precio</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% if (reservadas.length > 0) { %>
-                    <% reservadas.forEach(o => { %>
+        <!-- RESERVADAS -->
+        <h6 class="section-subtitle">OBRAS RESERVADAS/PENDIENTES</h6>
+        <div class="inventory-card">
+            <div class="table-responsive">
+                <table class="table table-atrium align-middle">
+                    <thead>
                         <tr>
-                            <td style="width: 70px;">
-                                <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" alt="<%= o.nombre %>" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
-                            </td>
-                            <td><%= o.nombre %></td>
-                            <td><%= o.nombre_artista %> <%= o.apellido_artista %></td>
-                            <td><%= o.nombre_genero %></td>
-                            <td><span class="badge bg-secondary"><%= o.estatus %></span></td>
-                            <td>$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
-                            <td class="d-flex gap-2">
-                                <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-sm btn-outline-primary">Editar</a>
-                                <form action="/admin/obras/<%= o.id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar esta obra de forma permanente?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
-                                </form>
-                            </td>
+                            <th>Vista</th>
+                            <th>Título de la Obra</th>
+                            <th>Autor / Maestro</th>
+                            <th>Estatus</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
                         </tr>
-                    <% }) %>
-                <% } else { %>
-                    <tr><td colspan="7" class="text-center">No hay obras reservadas.</td></tr>
-                <% } %>
-            </tbody>
-        </table>
-    </div>
+                    </thead>
+                    <tbody>
+                        <% if (reservadas.length > 0) { %>
+                            <% reservadas.forEach(o => { %>
+                                <tr>
+                                    <td><img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" class="img-thumb"></td>
+                                    <td class="fw-bold text-white"><%= o.nombre %></td>
+                                    <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
+                                    <td>
+                                        <div class="status-indicator st-reserved">
+                                            <span class="status-dot"></span>
+                                            <%= o.estatus %>
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString() %></td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <!-- CAMBIO DE ORDEN: EDITAR PRIMERO, FACTURAR DESPUÉS -->
+                                            <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-edit-soft">Editar</a>
+                                            <a href="/admin/facturar/<%= o.id %>" class="btn btn-facturar-soft">Facturar</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="6" class="p-5 opacity-50 small text-center">No hay obras reservadas actualmente.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-
-    <div class="text-center mt-5 mb-5">
-        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
+        <!-- REGRESO -->
+        <div class="text-start mt-5 mb-5">
+            <a href="/admin/dashboard" class="btn btn-back-link shadow-sm">
+                ← Volver al Panel de Control
+            </a>
+        </div>
     </div>
 </div>
 
