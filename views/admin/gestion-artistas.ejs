@@ -8,7 +8,7 @@
     :root {
         --at-navy-deep: #0f172a;   
         --at-navy-darkest: #020617; 
-        --at-card-bg: #161b22;     /* Azul Carbono */
+        --at-card-bg: #161b22;     
         --at-orange: #f97316;      
         --at-orange-glow: rgba(249, 115, 22, 0.4);
         --at-yellow-soft: rgba(251, 191, 36, 0.12); 
@@ -33,7 +33,16 @@
         letter-spacing: -1.5px;
     }
 
-    /* CARD DE FORMULARIO Y TABLA */
+    /* BARRA DE FILTRO INTELIGENTE */
+    .smart-filter-bar {
+        background-color: var(--at-card-bg);
+        border: 1px solid var(--at-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
     .admin-card {
         background-color: var(--at-card-bg) !important;
         border: 1px solid var(--at-border) !important;
@@ -42,17 +51,6 @@
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
 
-    .form-label-custom {
-        display: block;
-        color: #ffffff;
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
-    }
-
-    /* INPUTS ESTILO DARK */
     .input-custom {
         background-color: #0d1117 !important;
         border: 1px solid var(--at-border) !important;
@@ -68,11 +66,6 @@
         outline: none;
     }
 
-    .input-custom::placeholder {
-        color: #64748b !important;
-    }
-
-    /* BOTONES ESTILIZADOS */
     .btn-atrium-orange {
         background-color: var(--at-orange) !important;
         color: white !important;
@@ -82,22 +75,28 @@
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 1px;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+        transition: 0.3s;
     }
-    
-    .btn-atrium-orange:hover { 
-        transform: translateY(-3px); 
-        filter: brightness(1.1);
-        box-shadow: 0 15px 30px var(--at-orange-glow); /* Efecto Glow añadido */
+    .btn-atrium-orange:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 15px 30px var(--at-orange-glow); }
+
+    .btn-clear-filters {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: #94a3b8 !important;
+        border: 1.5px dashed var(--at-border) !important;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 10px 20px;
+        transition: all 0.3s;
+    }
+    .btn-clear-filters:hover {
+        background-color: rgba(239, 68, 68, 0.1) !important;
+        color: #fca5a5 !important;
+        border-color: #ef4444 !important;
+        border-style: solid;
     }
 
-    /* ESTILO DE LA TABLA */
-    .table-atrium {
-        color: white !important;
-        margin-bottom: 0;
-    }
-
+    /* TABLA */
+    .table-atrium { color: white !important; margin-bottom: 0; }
     .table-atrium thead th {
         background-color: var(--at-orange) !important;
         color: #000000 !important; 
@@ -107,7 +106,6 @@
         padding: 18px;
         border: none;
     }
-
     .table-atrium tbody td {
         background-color: transparent !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -115,7 +113,6 @@
         vertical-align: middle;
     }
 
-    /* BOTONES DE ACCIÓN SOFT */
     .btn-edit-soft {
         background-color: var(--at-yellow-soft) !important;
         color: var(--at-yellow-text) !important;
@@ -125,13 +122,7 @@
         padding: 6px 14px;
         font-size: 0.75rem;
         text-decoration: none;
-        transition: 0.3s;
     }
-    .btn-edit-soft:hover {
-        background-color: rgba(251, 191, 36, 0.25) !important;
-        transform: translateY(-2px);
-    }
-
     .btn-delete-soft {
         background-color: var(--at-red-soft) !important;
         color: var(--at-red-text) !important;
@@ -140,12 +131,6 @@
         border-radius: 8px;
         padding: 6px 14px;
         font-size: 0.75rem;
-        border: none;
-        transition: 0.3s;
-    }
-    .btn-delete-soft:hover {
-        background-color: rgba(239, 68, 68, 0.25) !important;
-        transform: translateY(-2px);
     }
 
     .btn-back-atrium {
@@ -158,7 +143,7 @@
         text-decoration: none;
         transition: 0.3s;
     }
-    .btn-back-atrium:hover { color: white; border-color: white; background: rgba(255,255,255,0.03); }
+    .btn-back-atrium:hover { color: white; border-color: white; }
 
     .img-artist-thumb {
         width: 50px; height: 50px; object-fit: cover; border-radius: 50%;
@@ -180,42 +165,32 @@
         <!-- FORMULARIO DE REGISTRO COLAPSABLE -->
         <div class="collapse mb-5" id="formArtista">
             <div class="admin-card">
-                <h4 class="text-white mb-4 fw-bold" style="letter-spacing: -1px;">Registrar Nuevo Artista</h4>
+                <h4 class="text-white mb-4 fw-bold">Registrar Nuevo Maestro</h4>
                 <form action="/admin/guardar-artista" method="POST" enctype="multipart/form-data" class="row g-4">
-                    <div class="col-md-6">
-                        <label class="form-label-custom">Nombre</label>
-                        <input type="text" name="nombre" class="form-control input-custom" required placeholder="Nombre del autor">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label-custom">Apellido</label>
-                        <input type="text" name="apellido" class="form-control input-custom" placeholder="Apellido del autor">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label-custom">Nacionalidad</label>
-                        <input type="text" name="nacionalidad" class="form-control input-custom" required placeholder="Ej: Venezolano">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label-custom">Nacimiento</label>
-                        <input type="date" name="fechaNac" class="form-control input-custom">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label-custom">Fallecimiento</label>
-                        <input type="date" name="fechaFal" class="form-control input-custom">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label-custom">Biografía</label>
-                        <textarea name="biografia" class="form-control input-custom" rows="3" placeholder="Reseña histórica del artista..."></textarea>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label-custom">Fotografía del Autor</label>
-                        <input type="file" name="foto" class="form-control input-custom" accept="image/*" style="padding: 8px !important;">
-                    </div>
-                    
-                    <!-- BOTÓN DE GUARDAR CON EFECTO GLOW -->
-                    <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-atrium-orange px-5">Guardar Artista</button>
-                    </div>
+                    <div class="col-md-6"><label class="form-label-custom">Nombre</label><input type="text" name="nombre" class="form-control input-custom" required></div>
+                    <div class="col-md-6"><label class="form-label-custom">Apellido</label><input type="text" name="apellido" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label-custom">Nacionalidad</label><input type="text" name="nacionalidad" class="form-control" required></div>
+                    <div class="col-md-4"><label class="form-label-custom">Nacimiento</label><input type="date" name="fechaNac" class="form-control input-custom"></div>
+                    <div class="col-md-4"><label class="form-label-custom">Fallecimiento</label><input type="date" name="fechaFal" class="form-control input-custom"></div>
+                    <div class="col-12"><label class="form-label-custom">Biografía</label><textarea name="biografia" class="form-control input-custom" rows="3"></textarea></div>
+                    <div class="col-md-12"><label class="form-label-custom">Fotografía</label><input type="file" name="foto" class="form-control input-custom" accept="image/*" style="padding: 8px !important;"></div>
+                    <div class="col-12 text-end"><button type="submit" class="btn btn-atrium-orange px-5">Guardar Artista</button></div>
                 </form>
+            </div>
+        </div>
+
+        <!-- BARRA DE BÚSQUEDA INTELIGENTE -->
+        <div class="smart-filter-bar">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label class="small fw-bold text-white-50 mb-2 d-block">BÚSQUEDA DE MAESTROS</label>
+                    <input type="text" id="artistSearch" class="form-control input-custom" placeholder="Buscar por nombre o nacionalidad...">
+                </div>
+                <div class="col-md-4">
+                    <button type="button" id="btnClearArtistFilters" class="btn btn-clear-filters w-100">
+                        ✕ Limpiar Filtro
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -231,9 +206,12 @@
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="artistTableBody">
                         <% artistas.forEach(a => { %>
-                            <tr>
+                            <!-- Atributos de búsqueda para el JS -->
+                            <tr class="artist-row" 
+                                data-name="<%= a.nombre.toLowerCase() %> <%= a.apellido.toLowerCase() %>"
+                                data-nat="<%= a.nacionalidad.toLowerCase() %>">
                                 <td>
                                     <% if(a.fotografia) { %>
                                         <img src="/uploads/<%= a.fotografia %>" class="img-artist-thumb" alt="Foto">
@@ -251,14 +229,11 @@
                                 <td>
                                     <div class="d-flex gap-2 justify-content-center">
                                         <a href="/admin/editar-artista/<%= a.id %>" class="btn-edit-soft">Editar</a>
-                                        <a href="/admin/eliminar-artista/<%= a.id %>" class="btn-delete-soft" onclick="return confirm('¿Eliminar este artista de forma permanente?')">Borrar</a>
+                                        <a href="/admin/eliminar-artista/<%= a.id %>" class="btn-delete-soft" onclick="return confirm('¿Borrar artista?')">Borrar</a>
                                     </div>
                                 </td>
                             </tr>
                         <% }) %>
-                        <% if (artistas.length === 0) { %>
-                            <tr><td colspan="4" class="p-5 text-white-50">No hay artistas registrados en el sistema.</td></tr>
-                        <% } %>
                     </tbody>
                 </table>
             </div>
@@ -274,3 +249,33 @@
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('artistSearch');
+        const btnClear = document.getElementById('btnClearArtistFilters');
+        const rows = document.querySelectorAll('.artist-row');
+
+        function filterArtists() {
+            const term = searchInput.value.toLowerCase().trim();
+            
+            rows.forEach(row => {
+                const name = row.getAttribute('data-name');
+                const nat = row.getAttribute('data-nat');
+                
+                if (name.includes(term) || nat.includes(term)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', filterArtists);
+
+        btnClear.addEventListener('click', () => {
+            searchInput.value = '';
+            filterArtists();
+        });
+    });
+</script>

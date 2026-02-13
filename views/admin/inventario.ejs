@@ -8,13 +8,12 @@
     :root {
         --at-navy-deep: #0f172a;   
         --at-navy-darkest: #020617; 
-        --at-card-bg: #161b22;     /* Azul Carbono */
+        --at-card-bg: #161b22;     
         --at-orange: #f97316;      
-        --at-yellow-soft: rgba(251, 191, 36, 0.12); /* Amarillo traslúcido */
+        --at-yellow-soft: rgba(251, 191, 36, 0.12); 
         --at-yellow-text: #fcd34d;
-        --at-red-soft: rgba(239, 68, 68, 0.12);    /* Rojo traslúcido */
+        --at-red-soft: rgba(239, 68, 68, 0.12);    
         --at-red-text: #fca5a5;
-        /* Verde traslúcido para Facturar */
         --at-green-soft: rgba(34, 197, 94, 0.12);
         --at-green-text: #4ade80;
         --at-border: rgba(255, 255, 255, 0.08);
@@ -35,7 +34,16 @@
         letter-spacing: -1.5px;
     }
 
-    /* PANELES DE TABLA */
+    /* BARRA DE BÚSQUEDA Y FILTRO INTELIGENTE */
+    .smart-filter-bar {
+        background-color: var(--at-card-bg);
+        border: 1px solid var(--at-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
     .inventory-card {
         background-color: var(--at-card-bg) !important;
         border: 1px solid var(--at-border) !important;
@@ -53,12 +61,7 @@
         letter-spacing: 1px;
     }
 
-    /* TABLA ATRIUM */
-    .table-atrium {
-        color: white !important;
-        margin-bottom: 0;
-    }
-
+    .table-atrium { color: white !important; margin-bottom: 0; }
     .table-atrium thead th {
         background-color: var(--at-orange) !important;
         color: #000000 !important; 
@@ -80,7 +83,6 @@
         text-align: center;
     }
 
-    /* ESTILO DE ESTATUS TIPO INDICADOR NEÓN */
     .status-indicator {
         display: inline-flex;
         align-items: center;
@@ -90,26 +92,13 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-    }
-
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
     .st-available { color: #4ade80; }
-    .st-available .status-dot { 
-        background-color: #4ade80; 
-        box-shadow: 0 0 8px #4ade80; 
-    }
-
+    .st-available .status-dot { background-color: #4ade80; box-shadow: 0 0 8px #4ade80; }
     .st-reserved { color: #fcd34d; }
-    .st-reserved .status-dot { 
-        background-color: #fcd34d; 
-        box-shadow: 0 0 8px #fcd34d; 
-    }
+    .st-reserved .status-dot { background-color: #fcd34d; box-shadow: 0 0 8px #fcd34d; }
 
-    /* BOTÓN NUEVA OBRA (NARANJA SÓLIDO) */
+    /* BOTONES */
     .btn-new-atrium {
         background-color: var(--at-orange) !important;
         color: white !important;
@@ -120,12 +109,8 @@
         transition: 0.3s ease;
         text-transform: uppercase;
         font-size: 0.85rem;
-        letter-spacing: 1px;
         text-decoration: none;
     }
-    .btn-new-atrium:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4); }
-
-    /* BOTONES ACCIÓN (SUAVES / TRANSPARENTES) */
     .btn-edit-soft {
         background-color: var(--at-yellow-soft) !important;
         color: var(--at-yellow-text) !important;
@@ -135,14 +120,8 @@
         padding: 6px 16px;
         font-size: 0.8rem;
         text-transform: uppercase;
-        transition: all 0.3s;
         text-decoration: none;
     }
-    .btn-edit-soft:hover {
-        background-color: rgba(251, 191, 36, 0.25) !important;
-        transform: translateY(-2px);
-    }
-
     .btn-delete-soft {
         background-color: var(--at-red-soft) !important;
         color: var(--at-red-text) !important;
@@ -152,15 +131,8 @@
         padding: 6px 16px;
         font-size: 0.8rem;
         text-transform: uppercase;
-        transition: all 0.3s;
-        text-decoration: none;
         border: none;
     }
-    .btn-delete-soft:hover {
-        background-color: rgba(239, 68, 68, 0.25) !important;
-        transform: translateY(-2px);
-    }
-
     .btn-facturar-soft {
         background-color: var(--at-green-soft) !important;
         color: var(--at-green-text) !important;
@@ -170,25 +142,32 @@
         padding: 6px 16px;
         font-size: 0.8rem;
         text-transform: uppercase;
-        transition: all 0.3s;
         text-decoration: none;
-    }
-    .btn-facturar-soft:hover {
-        background-color: rgba(34, 197, 94, 0.25) !important;
-        transform: translateY(-2px);
     }
 
-    .btn-back-link {
-        background: rgba(255, 255, 255, 0.03);
-        color: #94a3b8;
-        border: 1px solid #334155;
-        border-radius: 100px;
-        padding: 12px 30px;
+    /* BOTÓN LIMPIAR FILTRO SOFT */
+    .btn-clear-soft {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: #94a3b8 !important;
+        border: 1px solid var(--at-border) !important;
         font-weight: 600;
-        text-decoration: none;
-        transition: 0.3s;
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-size: 0.85rem;
+        transition: all 0.3s;
     }
-    .btn-back-link:hover { border-color: white; color: white; background: rgba(255, 255, 255, 0.06); }
+    .btn-clear-soft:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border-color: #64748b !important;
+    }
+
+    .input-dark {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px;
+    }
 
     .img-thumb {
         width: 50px; height: 50px; 
@@ -209,105 +188,123 @@
             </a>
         </div>
 
-        <% const disponibles = obras.filter(o => o.estatus === 'Disponible'); %>
-        <% const reservadas = obras.filter(o => o.estatus === 'Reservada'); %>
-
-        <!-- DISPONIBLES -->
-        <h6 class="section-subtitle">OBRAS DISPONIBLES</h6>
-        <div class="inventory-card">
-            <div class="table-responsive">
-                <table class="table table-atrium align-middle">
-                    <thead>
-                        <tr>
-                            <th>Vista</th>
-                            <th>Título de la Obra</th>
-                            <th>Autor / Maestro</th>
-                            <th>Estatus</th>
-                            <th>Precio</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% if (disponibles.length > 0) { %>
-                            <% disponibles.forEach(o => { %>
-                                <tr>
-                                    <td><img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" class="img-thumb"></td>
-                                    <td class="fw-bold text-white"><%= o.nombre %></td>
-                                    <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
-                                    <td>
-                                        <div class="status-indicator st-available">
-                                            <span class="status-dot"></span>
-                                            <%= o.estatus %>
-                                        </div>
-                                    </td>
-                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString() %></td>
-                                    <td>
-                                        <div class="d-flex gap-2 justify-content-center">
-                                            <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-edit-soft">Editar</a>
-                                            <form action="/admin/obras/<%= o.id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar obra?');">
-                                                <button type="submit" class="btn btn-delete-soft">Borrar</button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <% }) %>
-                        <% } else { %>
-                            <tr><td colspan="6" class="p-5 opacity-50 small text-center">No hay piezas disponibles en exhibición.</td></tr>
-                        <% } %>
-                    </tbody>
-                </table>
+        <!-- FILTROS INTELIGENTES -->
+        <div class="smart-filter-bar">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="section-subtitle mb-2 d-block">Búsqueda rápida</label>
+                    <input type="text" id="inventorySearch" class="form-control input-dark" placeholder="Buscar por obra o artista...">
+                </div>
+                <div class="col-md-3">
+                    <label class="section-subtitle mb-2 d-block">Ordenar precio</label>
+                    <select id="priceSort" class="form-select input-dark">
+                        <option value="default">Orden original</option>
+                        <option value="asc">Menor a Mayor</option>
+                        <option value="desc">Mayor a Menor</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="button" id="btnClearFilters" class="btn btn-clear-soft w-100">
+                        ✕ Limpiar filtros
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- RESERVADAS -->
-        <h6 class="section-subtitle">OBRAS RESERVADAS/PENDIENTES</h6>
-        <div class="inventory-card">
-            <div class="table-responsive">
-                <table class="table table-atrium align-middle">
-                    <thead>
-                        <tr>
-                            <th>Vista</th>
-                            <th>Título de la Obra</th>
-                            <th>Autor / Maestro</th>
-                            <th>Estatus</th>
-                            <th>Precio</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% if (reservadas.length > 0) { %>
-                            <% reservadas.forEach(o => { %>
-                                <tr>
-                                    <td><img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" class="img-thumb"></td>
-                                    <td class="fw-bold text-white"><%= o.nombre %></td>
-                                    <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
-                                    <td>
-                                        <div class="status-indicator st-reserved">
-                                            <span class="status-dot"></span>
-                                            <%= o.estatus %>
-                                        </div>
-                                    </td>
-                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString() %></td>
-                                    <td>
-                                        <div class="d-flex gap-2 justify-content-center">
-                                            <!-- CAMBIO DE ORDEN: EDITAR PRIMERO, FACTURAR DESPUÉS -->
-                                            <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-edit-soft">Editar</a>
-                                            <a href="/admin/facturar/<%= o.id %>" class="btn btn-facturar-soft">Facturar</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <% }) %>
-                        <% } else { %>
-                            <tr><td colspan="6" class="p-5 opacity-50 small text-center">No hay obras reservadas actualmente.</td></tr>
-                        <% } %>
-                    </tbody>
-                </table>
+        <% const disponibles = obras.filter(o => o.estatus === 'Disponible'); %>
+        <% const reservadas = obras.filter(o => o.estatus === 'Reservada'); %>
+
+        <!-- SECCIÓN DISPONIBLES -->
+        <div id="sectionDisponibles">
+            <h6 class="section-subtitle">OBRAS DISPONIBLES</h6>
+            <div class="inventory-card">
+                <div class="table-responsive">
+                    <table class="table table-atrium align-middle">
+                        <thead>
+                            <tr>
+                                <th>Vista</th>
+                                <th>Título de la Obra</th>
+                                <th>Autor / Maestro</th>
+                                <th>Estatus</th>
+                                <th>Precio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="inventory-body" id="bodyDisp">
+                            <% if (disponibles.length > 0) { %>
+                                <% disponibles.forEach(o => { %>
+                                    <tr class="obra-row" 
+                                        data-nombre="<%= o.nombre.toLowerCase() %>" 
+                                        data-artista="<%= o.nombre_artista.toLowerCase() %> <%= o.apellido_artista.toLowerCase() %>"
+                                        data-price="<%= o.precioObra %>">
+                                        <td><img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" class="img-thumb"></td>
+                                        <td class="fw-bold text-white"><%= o.nombre %></td>
+                                        <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
+                                        <td><div class="status-indicator st-available"><span class="status-dot"></span><%= o.estatus %></div></td>
+                                        <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString() %></td>
+                                        <td>
+                                            <div class="d-flex gap-2 justify-content-center">
+                                                <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-edit-soft">Editar</a>
+                                                <form action="/admin/obras/<%= o.id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar obra?');">
+                                                    <button type="submit" class="btn btn-delete-soft">Borrar</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN RESERVADAS -->
+        <div id="sectionReservadas">
+            <h6 class="section-subtitle">OBRAS RESERVADAS/PENDIENTES</h6>
+            <div class="inventory-card">
+                <div class="table-responsive">
+                    <table class="table table-atrium align-middle">
+                        <thead>
+                            <tr>
+                                <th>Vista</th>
+                                <th>Título de la Obra</th>
+                                <th>Autor / Maestro</th>
+                                <th>Estatus</th>
+                                <th>Precio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="inventory-body" id="bodyRes">
+                            <% if (reservadas.length > 0) { %>
+                                <% reservadas.forEach(o => { %>
+                                    <tr class="obra-row" 
+                                        data-nombre="<%= o.nombre.toLowerCase() %>" 
+                                        data-artista="<%= o.nombre_artista.toLowerCase() %> <%= o.apellido_artista.toLowerCase() %>"
+                                        data-price="<%= o.precioObra %>">
+                                        <td><img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" class="img-thumb"></td>
+                                        <td class="fw-bold text-white"><%= o.nombre %></td>
+                                        <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
+                                        <td><div class="status-indicator st-reserved"><span class="status-dot"></span><%= o.estatus %></div></td>
+                                        <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString() %></td>
+                                        <td>
+                                            <div class="d-flex gap-2 justify-content-center">
+                                                <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-edit-soft">Editar</a>
+                                                <a href="/admin/facturar/<%= o.id %>" class="btn btn-facturar-soft">Facturar</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- REGRESO -->
         <div class="text-start mt-5 mb-5">
-            <a href="/admin/dashboard" class="btn btn-back-link shadow-sm">
+            <a href="/admin/dashboard" class="btn-back-link shadow-sm" style="text-decoration:none; display:inline-block; border: 1px solid #334155; padding: 12px 30px; border-radius: 100px; color: #94a3b8;">
                 ← Volver al Panel de Control
             </a>
         </div>
@@ -315,3 +312,63 @@
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('inventorySearch');
+        const sortSelect = document.getElementById('priceSort');
+        const btnClear = document.getElementById('btnClearFilters');
+        const bodies = document.querySelectorAll('.inventory-body');
+
+        // Guardar el orden original de las filas al cargar
+        const originalOrders = new Map();
+        bodies.forEach(body => {
+            originalOrders.set(body.id, Array.from(body.querySelectorAll('.obra-row')));
+        });
+
+        function updateInventory() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const sortMode = sortSelect.value;
+
+            bodies.forEach(body => {
+                const rows = Array.from(body.querySelectorAll('.obra-row'));
+                if (rows.length === 0) return;
+
+                // 1. Filtrar
+                rows.forEach(row => {
+                    const nombre = row.getAttribute('data-nombre');
+                    const artista = row.getAttribute('data-artista');
+                    const isMatch = nombre.includes(searchTerm) || artista.includes(searchTerm);
+                    row.style.display = isMatch ? '' : 'none';
+                });
+
+                // 2. Determinar qué array usar para ordenar
+                let rowsToSort = [...rows];
+
+                // 3. Ordenar
+                if (sortMode === 'default') {
+                    rowsToSort = originalOrders.get(body.id);
+                } else {
+                    rowsToSort.sort((a, b) => {
+                        const priceA = parseFloat(a.getAttribute('data-price'));
+                        const priceB = parseFloat(b.getAttribute('data-price'));
+                        return sortMode === 'asc' ? priceA - priceB : priceB - priceA;
+                    });
+                }
+
+                // 4. Re-inyectar en el DOM
+                rowsToSort.forEach(el => body.appendChild(el));
+            });
+        }
+
+        // Lógica del botón limpiar
+        btnClear.addEventListener('click', () => {
+            searchInput.value = '';
+            sortSelect.value = 'default';
+            updateInventory();
+        });
+
+        searchInput.addEventListener('input', updateInventory);
+        sortSelect.addEventListener('change', updateInventory);
+    });
+</script>
