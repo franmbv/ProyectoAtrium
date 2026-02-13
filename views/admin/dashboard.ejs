@@ -2,103 +2,219 @@
 <%- include('../partials/navbar') %>
 
 <style>
+    /* VARIABLES DE COLOR PARA ARMONÍA TOTAL */
     :root {
-        --admin-bg: #eaeff0;
-        --admin-surface: #bfc9d1;
-        --admin-ink: #25343f;
-        --admin-accent: #ff9b51;
+        --dash-bg: #161b22;      /* Azulado oscuro de tus paneles */
+        --dash-border: #30363d;   /* Borde sutil */
+        --atrium-orange: #f97316; /* Naranja principal */
+        --atrium-ink: #0d1117;    /* Negro profundo para contraste */
+        
+        /* Colores de los cuadros (KPIs) basados en tu imagen */
+        --kpi-gray: #bfc9d1;
+        --kpi-dark: #25343f;
+        --kpi-orange: #ff9b51;
     }
-    .admin-dashboard {
-        background: var(--admin-bg);
-        border-radius: 16px;
-        padding: 36px;
+
+    .admin-dashboard-wrapper {
+        padding: 40px 20px;
+        max-width: 1100px;
         margin: 0 auto;
         width: 100%;
-        max-width: 1100px;
     }
+
+    /* CONTENEDOR PRINCIPAL - INTEGRADO AL DISEÑO OSCURO */
+    .dashboard-panel {
+        background-color: var(--dash-bg) !important;
+        border: 1px solid var(--dash-border);
+        border-radius: 20px;
+        padding: 45px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .dashboard-title {
+        color: #ffffff !important;
+        text-align: left !important;
+        font-weight: 800;
+        margin-bottom: 35px;
+        letter-spacing: -1px;
+        font-size: 2.2rem;
+    }
+
+    /* ESTILO DE LOS 4 CONTADORES (KPIs) - RELLENO SÓLIDO PREMIUM */
     .admin-kpi {
         border: 0;
-        border-radius: 14px;
-        color: var(--admin-ink);
-        box-shadow: 0 10px 20px rgba(37, 52, 63, 0.12);
+        border-radius: 16px;
         height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 30px 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
     }
-    .admin-kpi--inventory { background: var(--admin-surface); }
-    .admin-kpi--revenue { background: var(--admin-ink); color: #eaeff0; }
-    .admin-kpi--memberships { background: var(--admin-accent); color: #25343f; }
-    .admin-kpi--profit { background: var(--admin-surface); color: var(--admin-ink); }
-    .admin-kpi h5 { letter-spacing: 0.02em; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 12px; }
-    .admin-kpi .display-6 { font-weight: 700; }
+    
+    .admin-kpi:hover { 
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .admin-kpi h5 {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+        text-align: center !important;
+    }
+
+    .admin-kpi .display-value {
+        font-size: 2.5rem;
+        font-weight: 900;
+        margin: 0;
+        text-align: center !important;
+    }
+
+    /* COLORES DE LOS CUADROS - CONTRASTE GARANTIZADO */
+    .kpi-gray { background-color: var(--kpi-gray) !important; }
+    .kpi-gray h5, .kpi-gray .display-value { color: #161b22 !important; } /* Texto oscuro en fondo gris */
+
+    .kpi-dark { background-color: var(--kpi-dark) !important; border: 1px solid var(--dash-border) !important; }
+    .kpi-dark h5, .kpi-dark .display-value { color: #ffffff !important; } /* Texto blanco en fondo oscuro */
+
+    .kpi-orange { background-color: var(--kpi-orange) !important; }
+    .kpi-orange h5, .kpi-orange .display-value { color: #000000 !important; } /* Texto negro en fondo naranja */
+
+    /* LISTA DE ACCIONES MODERNA (GLASS STYLE) */
+    .list-group {
+        border-radius: 12px;
+        overflow: hidden;
+        margin-top: 50px;
+        border: 1px solid var(--dash-border);
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* ENCABEZADO NARANJA ESTÁTICO */
+    .list-header {
+        background-color: var(--atrium-orange) !important;
+        color: #000000 !important;
+        font-weight: 800;
+        padding: 20px 25px !important;
+        border: none !important;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 0.9rem;
+    }
+
+    /* BOTONES OSCUROS CON ANIMACIÓN DE DESLIZAMIENTO */
+    .list-group-item-action {
+        background-color: transparent !important;
+        color: #e2e8f0 !important; /* Blanco hueso para lectura suave */
+        padding: 22px 25px !important;
+        font-weight: 600;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1.05rem;
+    }
+
+    .list-group-item-action:hover {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        padding-left: 45px !important; /* Tu animación solicitada */
+        color: var(--atrium-orange) !important;
+    }
+
+    /* Flecha de la animación */
+    .list-group-item-action .arrow {
+        transition: all 0.4s ease;
+        opacity: 0;
+        transform: translateX(-10px);
+        color: var(--atrium-orange);
+        font-weight: 900;
+    }
+
+    .list-group-item-action:hover .arrow {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .list-group-item-action:last-child { border-bottom: none !important; }
 </style>
 
-<div class="container mt-4">
-    <div class="admin-dashboard shadow-sm">
-        <h1 class="mb-4 text-dark fw-bold">Panel Administrativo</h1>
-        
+<div class="admin-dashboard-wrapper">
+    <div class="dashboard-panel shadow-2xl">
+        <h1 class="dashboard-title">Panel Administrativo</h1>
+
         <% if (typeof errorMsg !== 'undefined' && errorMsg) { %>
-            <div class="alert alert-warning"><%= errorMsg %></div>
+            <div class="alert alert-danger bg-danger bg-opacity-10 border-0 text-danger mb-4"><%= errorMsg %></div>
         <% } %>
 
+        <!-- BLOQUES DE CONTADORES CON RELLENO SÓLIDO -->
         <div class="row g-4">
             <div class="col-md-3">
-                <div class="card admin-kpi admin-kpi--inventory">
-                    <div class="card-body text-center">
-                        <h5>Obras en Inventario</h5>
-                        <p class="display-6"><%= stats.totalObras %></p>
-                    </div>
+                <div class="card admin-kpi kpi-gray">
+                    <h5>Obras Activas</h5>
+                    <p class="display-value"><%= stats.totalObras %></p>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card admin-kpi admin-kpi--revenue">
-                    <div class="card-body text-center">
-                        <h5>Total Recaudado</h5>
-                        <p class="display-6">$<%= stats.recaudado %></p>
-                    </div>
+                <div class="card admin-kpi kpi-dark">
+                    <h5>Total Recaudado</h5>
+                    <p class="display-value">$<%= stats.recaudado %></p>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card admin-kpi admin-kpi--profit">
-                    <div class="card-body text-center">
-                        <h5>Ganancia del Museo</h5>
-                        <p class="display-6">$<%= stats.gananciaMuseo %></p>
-                    </div>
+                <div class="card admin-kpi kpi-gray">
+                    <h5>Ganancia Museo</h5>
+                    <p class="display-value">$<%= stats.gananciaMuseo %></p>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card admin-kpi admin-kpi--memberships">
-                    <div class="card-body text-center">
-                        <h5>Nuevas Membresías</h5>
-                        <p class="display-6"><%= stats.membresias %></p>
-                    </div>
+                <div class="card admin-kpi kpi-orange">
+                    <h5>Nuevas Membresías</h5>
+                    <p class="display-value"><%= stats.membresias %></p>
                 </div>
             </div>
         </div>
-        
-        <div class="list-group mt-5 shadow-sm">
-            <div class="list-group-item bg-dark text-white fw-bold py-3">Acciones de Control</div>
-            <a href="/admin/inventario" class="list-group-item list-group-item-action py-3">
-                🖼️ Ver Inventario de Obras
+
+        <!-- MENÚ DE OPCIONES ESTÉTICO -->
+        <div class="list-group shadow-xl">
+            <div class="list-group-item list-header">Menú de Operaciones Gerenciales</div>
+            
+            <a href="/admin/inventario" class="list-group-item list-group-item-action">
+                <span>🖼️ Ver Inventario General</span>
+                <span class="arrow">→</span>
             </a>
-            <a href="/admin/gestion-obras" class="list-group-item list-group-item-action py-3">
-                🎨 Registrar Obra
+            <a href="/admin/gestion-obras" class="list-group-item list-group-item-action">
+                <span>🎨 Registrar Nueva Obra</span>
+                <span class="arrow">→</span>
             </a>
-            <a href="/admin/gestion-artistas" class="list-group-item list-group-item-action py-3">
-                👨‍🎨 Gestión de Artistas
+            <a href="/admin/gestion-artistas" class="list-group-item list-group-item-action">
+                <span>👨‍🎨 Gestión de Artistas</span>
+                <span class="arrow">→</span>
             </a>
-            <a href="/admin/reservas" class="list-group-item list-group-item-action py-3">
-                ✅ Gestion de Reservas
+            <a href="/admin/reservas" class="list-group-item list-group-item-action">
+                <span>✅ Gestión de Reservas</span>
+                <span class="arrow">→</span>
             </a>
-            <a href="/admin/reportes-ventas" class="list-group-item list-group-item-action py-3">
-                📊 Reporte de Ventas
+            <a href="/admin/reportes-ventas" class="list-group-item list-group-item-action">
+                <span>📊 Reportes de Ventas</span>
+                <span class="arrow">→</span>
             </a>
-            <a href="/admin/obras-vendidas" class="list-group-item list-group-item-action py-3">
-                🧾 Ver Obras Vendidas 
+            <a href="/admin/obras-vendidas" class="list-group-item list-group-item-action">
+                <span>🧾 Historial de Ventas</span>
+                <span class="arrow">→</span>
             </a>
-            <a href="/admin/facturas" class="list-group-item list-group-item-action py-3">
-                📄 Ver Facturas por Comprador
+            <a href="/admin/facturas" class="list-group-item list-group-item-action">
+                <span>📄 Facturas por Comprador</span>
+                <span class="arrow">→</span>
             </a>
-            <a href="/admin/reportes-membresia" class="list-group-item list-group-item-action py-3 border-0">
-                💳 Usuarios con Membresía
+            <a href="/admin/reportes-membresia" class="list-group-item list-group-item-action border-0">
+                <span>💳 Usuarios con Membresía</span>
+                <span class="arrow">→</span>
             </a>
         </div>
     </div>

@@ -1,122 +1,92 @@
-:root{
-    --bg:#f5f7fb;
-    --card:#ffffff;
-    --primary:#2b6ef6;
-    --primary-600:#2356d1;
-    --success:#28a745;
-    --danger:#d9534f;
-    --muted:#6b7280;
-    --radius:10px;
-    --shadow: 0 6px 18px rgba(13,38,76,0.08);
-    --maxw:680px;
+:root {
+    --at-navy-bg: #0d1117;       /* Fondo base oscuro */
+    --at-panel-carbon: #161b22;  /* El azul oscuro para paneles y tablas */
+    --at-orange: #f97316;        /* Naranja Atrium */
+    --at-orange-glow: rgba(249, 115, 22, 0.4);
+    --at-border: rgba(255, 255, 255, 0.1);
 }
-*{box-sizing:border-box}
 
 body {
     margin: 0;
-    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: #131418; 
-    background: linear-gradient(180deg, #131418 20%, var(--bg) 120%);
-    color: #111827;
-    -webkit-font-smoothing: antialiased;
-    /* Configuración para el footer pegado abajo */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    /* Degradado Marino a Negro sin interrupciones */
+    background: linear-gradient(180deg, #111827 0%, #05070a 100%) !important;
+    color: #ffffff !important;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
 }
 
-main {
-    flex: 1; /* Esto empuja el footer hacia abajo */
+main { flex: 1; display: flex; flex-direction: column; width: 100%; }
+
+/* ELIMINAR BORDES Y SOMBRAS GENÉRICAS */
+.navbar, footer { border: none !important; box-shadow: none !important; }
+
+/* PANELES AZUL CARBONO (IGUAL A LAS TABLAS) */
+.card, .admin-panel-dark, .filter-sidebar {
+    background-color: var(--at-panel-carbon) !important;
+    border: 1px solid var(--at-border) !important;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
+
+/* TABLAS ESTÉTICAS */
+.table { color: #ffffff !important; margin-bottom: 0; border-collapse: separate; border-spacing: 0; }
+.table thead th {
+    background-color: var(--at-orange) !important;
+    color: #000000 !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 15px;
+    border: none !important;
+}
+.table td { 
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important; 
+    padding: 15px;
+}
+
+/* TÍTULOS */
+h1, h2, h3, h4, h5, .h2 {
+    color: #ffffff !important;
+    text-align: left !important;
+    font-weight: 700;
+}
+
+/* BOTÓN PÍLDORA NARANJA */
+.btn-atrium-pill {
+    background-color: var(--at-orange) !important;
+    color: white !important;
+    font-weight: 800;
+    border-radius: 100px;
+    text-transform: uppercase;
+    padding: 14px 25px;
+    border: none;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.btn-atrium-pill:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 25px var(--at-orange-glow);
+}
+
+/* --- BUSCA O AGREGA ESTO EN TU CSS --- */
 
 footer {
-    margin-top: auto; 
+    /* Color Gris Carbón idéntico al de tus paneles para total armonía */
+    background-color: #161b22 !important; 
+    
+    /* ELIMINAMOS LA RAYA NEGRA: Quitamos bordes y sombras */
+    border: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.03) !important; /* Una línea casi invisible para dar profundidad */
+    box-shadow: none !important;
+    
+    margin-top: auto; /* Mantiene el footer abajo */
     width: 100%;
 }
 
-.card{
-    background: var(--card);
-    width:100%;
-    max-width:var(--maxw);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    padding:28px;
-    border:1px solid rgba(15, 23, 42, 0.932);
-}
-
-header.h{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-bottom:14px;
-}
-h1{
-    margin:0;
-    font-size:20px;
-    letter-spacing:-.2px;
-}
-
-p.lead{
-    margin:6px 0 18px 0;
-    color:var(--muted);
-    font-size:14px;
-}
-
-form.grid{
-    display:grid;
-    grid-template-columns: 1fr;
-    gap:12px;
-    align-items:end;
-}
-
-.field{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-}
-label{
-    font-size:13px;
-    color:#000000;
-    font-weight:600;
-}
-
-input[type="text"], input[type="number"], input[type="date"], select, textarea {
-    height:44px;
-    padding:10px 12px;
-    border-radius:8px;
-    border:1px solid #e6e9ef;
-    background: #fff;
-    font-size:15px;
-    outline:none;
-    width:100%;
-}
-textarea { height: auto; }
-
-input:focus, select:focus, textarea:focus {
-    border-color: var(--primary);
-    box-shadow: 0 4px 14px rgba(43, 110, 246, 0.15);
-}
-
-button.primary{
-    background:var(--primary);
-    color:#fff;
-    border:none;
-    padding:10px 16px;
-    border-radius:8px;
-    font-weight:600;
-    cursor:pointer;
-}
-
-.mensaje{
-    margin:16px 0 6px 0;
-    padding:12px;
-    border-radius:8px;
-    font-weight:600;
-    font-size:14px;
-}
-.mensaje.success{ background: rgba(40,167,69,0.08); color:var(--success); border:1px solid rgba(40,167,69,0.12); }
-.mensaje.error{ background: rgba(217,83,79,0.06); color:var(--danger); border:1px solid rgba(217,83,79,0.08); }
-
-@media (min-width:640px){
-    form.grid{ grid-template-columns: 1fr 1fr; }
+/* Aseguramos que no haya un margen extraño en el main que deje ver el fondo */
+main {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
 }

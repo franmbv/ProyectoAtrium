@@ -1,42 +1,59 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top py-3" 
+     style="background-color: rgba(22, 27, 34, 0.95) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05) !important;">
   <div class="container">
-    <a class="navbar-brand" href="/galeria">🏛️ ATRIUM</a>
+    <!-- Logo -->
+    <a class="navbar-brand fw-bold fs-3 d-flex align-items-center" href="/" style="letter-spacing: -1.5px;">
+        <span style="color: #f97316; margin-right: 10px;">🏛️</span> 
+        <span style="color: #ffffff;">ATRIUM</span>
+    </a>
     
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border: none; outline: none !important; box-shadow: none !important;">
       <span class="navbar-toggler-icon"></span>
     </button>
     
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="/galeria">Galería</a></li>
+        <li class="nav-item">
+            <a class="nav-link px-3" href="/galeria" style="font-weight: 500; transition: color 0.3s;">Explorar Galería</a>
+        </li>
       </ul>
 
-      <ul class="navbar-nav ms-auto">
-        <% if (usuario) { %>
+      <ul class="navbar-nav ms-auto align-items-center">
+        <% if (locals.usuario) { %>
             <% if (usuario.rol === 1) { %> 
                 <li class="nav-item">
-                    <a class="nav-link text-warning fw-bold" href="/admin/dashboard">⚙️ Panel Admin</a>
+                    <a class="nav-link text-warning fw-bold px-3 me-2" href="/admin/dashboard" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+                        ⚙️ PANEL ADMIN
+                    </a>
                 </li>
             <% } %>
 
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
-                    👤 Hola, <%= usuario.nombre %>
+                <a class="nav-link dropdown-toggle active fw-bold px-3 border border-secondary border-opacity-25 rounded-pill" href="#" role="button" data-bs-toggle="dropdown" style="background: rgba(255,255,255,0.03);">
+                    👤 <%= usuario.nombre %>
                 </a>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item text-danger" href="/auth/logout">Cerrar Sesión</a></li>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2" style="background-color: #1f2937; border-radius: 12px;">
+                    <li><a class="dropdown-item text-danger fw-bold" href="/auth/logout">Cerrar Sesión</a></li>
                 </ul>
             </li>
 
         <% } else { %>
             <li class="nav-item">
-                <a class="nav-link" href="/auth/login">Iniciar Sesión</a>
+                <a class="nav-link px-3" href="/auth/login">Iniciar Sesión</a>
             </li>
-            <li class="nav-item ms-2">
-                <a class="btn btn-primary btn-sm mt-1" href="/auth/registro">Registrarse</a>
+            <li class="nav-item ms-lg-3">
+                <a class="btn px-4 py-2" href="/auth/registro" 
+                   style="background-color: #f97316; color: white; border-radius: 100px; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2); transition: all 0.3s;">
+                   REGISTRARSE
+                </a>
             </li>
         <% } %>
       </ul>
     </div>
   </div>
 </nav>
+
+<style>
+    .nav-link:hover { color: #f97316 !important; }
+    .dropdown-item:hover { background-color: rgba(255,255,255,0.05) !important; color: #f97316 !important; }
+</style>

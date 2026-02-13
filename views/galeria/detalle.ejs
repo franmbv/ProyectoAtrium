@@ -1,120 +1,291 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title><%= obra.nombre %> | Detalle</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
 
-    <%- include('../partials/navbar') %>
+<!-- Tipografías elegantes -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <div class="container py-5">
-        <div class="card shadow-lg">
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.1);
+    }
+
+    .detail-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 40px 0 80px 0;
+        font-family: 'Inter', sans-serif;
+        display: flex;
+        align-items: center;
+    }
+
+    /* PANEL MÁS ANCHO Y RECTANGULAR */
+    .detail-card-panoramic {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 12px; /* Bordes menos pronunciados */
+        overflow: hidden;
+        max-width: 1400px; /* Panel mucho más ancho hacia los lados */
+        width: 95%;
+        margin: 0 auto;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    }
+
+    /* CONTENEDOR DE IMAGEN CON EFECTO ZOOM */
+    .img-column-detail {
+        background: #000;
+        overflow: hidden; /* Importante para el efecto zoom */
+        position: relative;
+        min-height: 600px;
+    }
+
+    .img-detail-pano {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.9;
+        transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.5s ease;
+        cursor: zoom-in;
+    }
+
+    /* EFECTO HOVER: Mostrar imagen completa/detalles */
+    .img-column-detail:hover .img-detail-pano {
+        transform: scale(1.15); /* Zoom elegante */
+        opacity: 1;
+    }
+
+    /* CONTENIDO DE TEXTO */
+    .info-pane-wide {
+        padding: 60px 80px; /* Más espacio lateral interno */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .category-label-styled {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--at-orange);
+        margin-bottom: 20px;
+        padding: 5px 15px;
+        border: 1px solid var(--at-orange);
+        background: rgba(249, 115, 22, 0.05);
+        border-radius: 4px;
+        width: fit-content;
+    }
+
+    .obra-title-pano {
+        font-family: 'Playfair Display', serif;
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: white;
+        line-height: 1.1;
+        margin-bottom: 15px;
+        letter-spacing: -2px;
+    }
+
+    .artist-link-pano {
+        font-size: 1.1rem;
+        color: #94a3b8;
+        margin-bottom: 30px;
+    }
+
+    .artist-link-pano a {
+        color: var(--at-orange) !important;
+        text-decoration: none;
+        font-weight: 700;
+        transition: 0.3s;
+    }
+
+    .artist-link-pano a:hover { color: white !important; }
+
+    .price-value-pano {
+        font-size: 3rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 40px;
+    }
+
+    /* FICHA TÉCNICA */
+    .specs-box-modern {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid var(--at-border);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 40px;
+    }
+
+    .specs-header-label {
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 20px;
+        display: block;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 10px;
+    }
+
+    .spec-row-item {
+        background: transparent !important;
+        color: #e2e8f0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.03) !important;
+        padding: 12px 0 !important;
+        font-size: 0.95rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .spec-row-item:last-child { border: none !important; }
+    .spec-row-item strong { color: #94a3b8; font-weight: 500; }
+
+    /* BOTONES */
+    .btn-purchase {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 18px 0;
+        font-weight: 800;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 25px rgba(249, 115, 22, 0.2);
+    }
+
+    .btn-purchase:hover { transform: translateY(-3px); filter: brightness(1.1); }
+
+    .btn-back-outline {
+        background: transparent;
+        color: #cbd5e1;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 14px 0;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        transition: 0.3s;
+        margin-top: 15px;
+    }
+
+    .btn-back-outline:hover { border-color: white; color: white; background: rgba(255,255,255,0.03); }
+
+    @media (max-width: 992px) {
+        .img-column-detail { min-height: 400px; }
+        .info-pane-wide { padding: 40px; }
+        .obra-title-pano { font-size: 2.8rem; }
+    }
+</style>
+
+<div class="detail-wrapper">
+    <div class="container-fluid">
+        <div class="detail-card-panoramic shadow-2xl">
             <div class="row g-0">
-                <!-- Columna Imagen -->
-                <div class="col-md-6">
-                    <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" class="img-fluid rounded-start w-100 h-100 object-fit-cover" alt="<%= obra.nombre %>">
+                <!-- Columna Imagen (Aumentada para lucir la obra) -->
+                <div class="col-lg-7 img-column-detail">
+                    <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" 
+                         class="img-detail-pano" 
+                         alt="<%= obra.nombre %>">
                 </div>
                 
                 <!-- Columna Datos -->
-                <div class="col-md-6">
-                    <div class="card-body p-4">
-                        <span class="badge bg-info text-dark mb-2"><%= obra.nombre_genero %></span>
-                        <h2 class="card-title fw-bold"><%= obra.nombre %></h2>
-                        
-                        <h4 class="text-muted mb-3">
-                            Artista: <a href="/galeria/artista/<%= obra.autor_id %>"><%= obra.nombre_artista %> <%= obra.apellido_artista %></a>
-                        </h4>
-                        
-                        <h1 class="text-success fw-bold mb-4">$<%= parseFloat(obra.precioObra).toLocaleString('en-US') %></h1>
+                <div class="col-lg-5 info-pane-wide">
+                    <div class="category-label-styled"><%= obra.nombre_genero %></div>
+                    
+                    <h1 class="obra-title-pano"><%= obra.nombre %></h1>
+                    
+                    <p class="artist-link-pano">
+                        Obra certificada de: <a href="/galeria/artista/<%= obra.autor_id %>">
+                            <%= obra.nombre_artista %> <%= obra.apellido_artista %>
+                        </a>
+                    </p>
+                    
+                    <div class="price-value-pano">$<%= parseFloat(obra.precioObra).toLocaleString('en-US') %></div>
 
-                        <hr>
+                    <!-- FICHA TÉCNICA -->
+                    <div class="specs-box-modern">
+                        <span class="specs-header-label">Ficha Técnica</span>
+                        <div class="spec-row-item"><strong>Origen</strong><span><%= obra.nacionalidad %></span></div>
 
-                        <h5>Características Específicas</h5>
-                        <ul class="list-group list-group-flush mb-4">
-                            <!-- Datos Generales -->
-                            <li class="list-group-item"><strong>Nacionalidad Autor:</strong> <%= obra.nacionalidad %></li>
+                        <!-- LÓGICA DE HERENCIA VISUAL (MANTENIDA) -->
+                        <% if (obra.tecnica) { %>
+                            <div class="spec-row-item"><strong>Técnica</strong><span><%= obra.tecnica %></span></div>
+                            <div class="spec-row-item"><strong>Soporte</strong><span><%= obra.soporte %></span></div>
+                        <% } %>
 
-                            <!-- LÓGICA DE HERENCIA VISUAL (EJS) -->
-                            
-                            <!-- Si es PINTURA -->
-                            <% if (obra.tecnica) { %>
-                                <li class="list-group-item"><strong>Técnica:</strong> <%= obra.tecnica %></li>
-                                <li class="list-group-item"><strong>Soporte:</strong> <%= obra.soporte %></li>
-                            <% } %>
+                        <% if (obra.material) { %>
+                            <div class="spec-row-item"><strong>Material</strong><span><%= obra.material %></span></div>
+                            <div class="spec-row-item"><strong>Peso</strong><span><%= obra.peso %> Kg</span></div>
+                            <div class="spec-row-item"><strong>Dimensiones</strong><span><%= obra.largo %>x<%= obra.ancho %>x<%= obra.profundidad %> cm</span></div>
+                        <% } %>
 
-                            <!-- Si es ESCULTURA -->
-                            <% if (obra.material) { %>
-                                <li class="list-group-item"><strong>Material:</strong> <%= obra.material %></li>
-                                <li class="list-group-item"><strong>Peso:</strong> <%= obra.peso %> Kg</li>
-                                <li class="list-group-item"><strong>Dimensiones:</strong> <%= obra.largo %>x<%= obra.ancho %>x<%= obra.profundidad %> cm</li>
-                            <% } %>
+                        <% if (obra.tipo_foto) { %>
+                            <div class="spec-row-item"><strong>Tipo</strong><span><%= obra.tipo_foto %></span></div>
+                            <div class="spec-row-item"><strong>Papel</strong><span><%= obra.papel %></span></div>
+                            <div class="spec-row-item"><strong>Formato</strong><span><%= obra.formato %></span></div>
+                        <% } %>
 
-                            <!-- Si es FOTOGRAFÍA -->
-                            <% if (obra.tipo_foto) { %>
-                                <li class="list-group-item"><strong>Tipo:</strong> <%= obra.tipo_foto %></li>
-                                <li class="list-group-item"><strong>Papel:</strong> <%= obra.papel %></li>
-                                <li class="list-group-item"><strong>Formato:</strong> <%= obra.formato %></li>
-                            <% } %>
+                        <% if (obra.tipoArcilla) { %>
+                            <div class="spec-row-item"><strong>Arcilla</strong><span><%= obra.tipoArcilla %></span></div>
+                            <div class="spec-row-item"><strong>Temperatura</strong><span><%= obra.temperaturaCoccion %> °C</span></div>
+                        <% } %>
 
-                            <!-- Si es CERÁMICA -->
-                            <% if (obra.tipoArcilla) { %>
-                                <li class="list-group-item"><strong>Arcilla:</strong> <%= obra.tipoArcilla %></li>
-                                <li class="list-group-item"><strong>Temperatura:</strong> <%= obra.temperaturaCoccion %> °C</li>
-                            <% } %>
+                        <% if (obra.metal) { %>
+                            <div class="spec-row-item"><strong>Metal</strong><span><%= obra.metal %></span></div>
+                            <div class="spec-row-item"><strong>Pureza</strong><span><%= obra.pureza %></span></div>
+                            <div class="spec-row-item"><strong>Gemas</strong><span><%= obra.piedraPreciosa ? 'Sí' : 'No' %></span></div>
+                        <% } %>
+                    </div>
 
-                             <!-- Si es ORFEBRERÍA -->
-                             <% if (obra.metal) { %>
-                                <li class="list-group-item"><strong>Metal:</strong> <%= obra.metal %></li>
-                                <li class="list-group-item"><strong>Pureza:</strong> <%= obra.pureza %></li>
-                                <li class="list-group-item"><strong>Piedra Preciosa:</strong> <%= obra.piedraPreciosa ? 'Sí' : 'No' %></li>
-                            <% } %>
-                        </ul>
-
-                        <div class="d-grid gap-2">
-                            <!-- Botón de compra: Verificar disponibilidad antes de redirigir -->
-                            <button onclick="intentarComprar('<%= obra.id %>', '<%= obra.nombre %>')" class="btn btn-primary btn-lg">
-                                Comprar ahora
-                            </button>
-                            <a href="/galeria" class="btn btn-outline-secondary">Volver al catálogo</a>
-                        </div>
+                    <div class="d-grid gap-2">
+                        <button onclick="intentarComprar('<%= obra.id %>', '<%= obra.nombre %>')" class="btn btn-purchase">
+                            Comprar
+                        </button>
+                        <a href="/galeria" class="btn btn-back-outline">
+                            ← Volver al Catálogo
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <%- include('../partials/footer') %>
+<%- include('../partials/footer') %>
 
-    <script>
-        async function intentarComprar(idObra, nombreObra) {
-            try {
-                // 1. Verificar si hay sesión activa 
-                const sessionRes = await fetch('/auth/check-session');
-                const sessionData = await sessionRes.json();
+<script>
+    async function intentarComprar(idObra, nombreObra) {
+        try {
+            const sessionRes = await fetch('/auth/check-session');
+            const sessionData = await sessionRes.json();
 
-                if (!sessionData.loggedIn) {
-                    window.location.href = '/auth/login?mensaje=Debes iniciar sesión primero';
-                    return;
-                }
-
-                // 2. Verificar disponibilidad de la obra (AJAX)
-                const res = await fetch(`/galeria/api/verificar/${idObra}`);
-                const data = await res.json();
-
-                if (data.disponible) {
-                    window.location.href = `/pagos/confirmar-reserva?obraNombre=${encodeURIComponent(nombreObra)}`;
-                } else {
-                    alert(`Lo sentimos, la obra "${nombreObra}" ya no está disponible. Estatus actual: ${data.estatus}`);
-                    window.location.reload();
-                }
-
-            } catch (err) {
-                console.error(err);
-                alert('Ocurrió un error de conexión. Intente nuevamente.');
+            if (!sessionData.loggedIn) {
+                window.location.href = '/auth/login?mensaje=Debes iniciar sesión primero';
+                return;
             }
+
+            const res = await fetch(`/galeria/api/verificar/${idObra}`);
+            const data = await res.json();
+
+            if (data.disponible) {
+                window.location.href = `/pagos/confirmar-reserva?obraNombre=${encodeURIComponent(nombreObra)}`;
+            } else {
+                alert(`Lo sentimos, la obra "${nombreObra}" ya no está disponible. Estatus actual: ${data.estatus}`);
+                window.location.reload();
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert('Ocurrió un error de conexión. Intente nuevamente.');
         }
-    </script>
-</body>
-</html>
+    }
+</script>

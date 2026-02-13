@@ -1,120 +1,312 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Catálogo de Obras | Museo Atrium</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .card-img-top { height: 200px; object-fit: cover; }
-        .precio { font-size: 1.2rem; font-weight: bold; color: #333; }
-        .artista-link { text-decoration: none; color: #666; font-size: 0.9rem; }
-        .artista-link:hover { color: #000; text-decoration: underline; }
-    </style>
-</head>
-<body>
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
 
-    <%- include('../partials/navbar') %>
+<!-- Importamos Playfair Display para los títulos elegantes -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
 
-    <% if (message) { %>
-        <div class="alert alert-<%= message.type === 'success' ? 'success' : 'danger' %> alert-dismissible fade show" role="alert">
-            <%= message.text %>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <% } %>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.1);
+        --at-red-soft: rgba(248, 113, 113, 0.15);
+        --at-red-border: rgba(248, 113, 113, 0.4);
+    }
 
+    .gallery-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 40px 0 80px 0;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .gallery-title {
+        font-weight: 800;
+        color: white;
+        font-size: 2.8rem;
+        letter-spacing: -1.5px;
+        margin-bottom: 40px;
+    }
+
+    /* FILTROS (ESTILO CRISTAL CARBONO) */
+    .filter-sidebar {
+        background-color: var(--at-card-bg) !important;
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--at-border) !important;
+        border-radius: 20px;
+        padding: 25px;
+        position: sticky;
+        top: 110px; 
+        z-index: 90;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .filter-label {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 10px;
+    }
+
+    .custom-select {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 12px !important;
+        padding: 10px !important;
+        margin-bottom: 22px;
+        cursor: pointer;
+    }
+
+    .btn-reset-aesthetic {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background: var(--at-red-soft);
+        color: #f87171;
+        border: 1.5px dashed var(--at-red-border);
+        border-radius: 12px;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .btn-reset-aesthetic:hover {
+        background: rgba(248, 113, 113, 0.25);
+        border-style: solid;
+        color: #fca5a5;
+    }
+
+    /* ANIMACIÓN CASCADA */
+    .art-item {
+        opacity: 0;
+        transform: translateY(30px);
+        animation: revealIn 0.8s forwards ease-out;
+        animation-delay: var(--delay);
+    }
+
+    @keyframes revealIn {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* CARD DE OBRA (AZUL CARBONO CON ALUMBRADO) */
+    .obra-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 24px;
+        padding: 18px;
+        height: 100%;
+        transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .obra-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--at-orange) !important; 
+        box-shadow: 0 0 25px var(--at-orange-glow); 
+    }
+
+    .img-container {
+        width: 100%;
+        height: 280px;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 18px;
+        background: #000;
+    }
+
+    .obra-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.8s ease;
+        opacity: 0.95;
+    }
+
+    .obra-card:hover .obra-img {
+        transform: scale(1.08);
+        opacity: 1;
+    }
+
+    /* ETIQUETA DE CATEGORÍA */
+    .category-tag {
+        display: inline-block;
+        font-size: 0.6rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--at-orange);
+        border: 1px solid rgba(249, 115, 22, 0.3);
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        background: rgba(249, 115, 22, 0.05);
+    }
+
+    /* TÍTULO ELEGANTE */
+    .obra-title {
+        font-family: 'Playfair Display', serif; /* Fuente elegante */
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 6px;
+        line-height: 1.1;
+    }
+
+    .obra-artist {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-bottom: 12px;
+    }
+
+    .obra-artist a {
+        color: var(--at-orange) !important; 
+        font-weight: 700;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    
+    .obra-artist a:hover {
+        color: white !important;
+        text-shadow: 0 0 8px var(--at-orange);
+    }
+
+    .obra-price {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 20px;
+        letter-spacing: -1px;
+    }
+
+    .btn-atrium-pill {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 12px 0;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        width: 100%;
+        display: block;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        margin-top: auto;
+    }
+
+    .btn-atrium-pill:hover {
+        transform: scale(1.02);
+        filter: brightness(1.1);
+    }
+</style>
+
+<div class="gallery-wrapper">
     <div class="container">
-        <div class="row">
-            
-            <!-- SIDEBAR DE FILTROS -->
-            <div class="col-md-3 mb-4">
-                <div class="card p-3 shadow-sm">
-                    <h5>Filtrar Obras</h5>
+        
+        <div class="text-start mb-5">
+            <h1 class="gallery-title m-0">Galería <span style="color: var(--at-orange)">Atrium</span></h1>
+        </div>
+
+        <div class="row g-4">
+            <!-- FILTROS -->
+            <div class="col-lg-3">
+                <aside class="filter-sidebar">
                     <form action="/galeria" method="GET">
-                        
-                        <!-- Filtro Genero -->
-                        <div class="mb-3">
-                            <label class="form-label">Género</label>
-                            <select name="genero" class="form-select" onchange="this.form.submit()">
-                                <option value="">Todos</option>
+                        <span class="filter-label">Categoría</span>
+                        <select name="genero" class="form-select custom-select" onchange="this.form.submit()">
+                            <option value="">Todas</option>
+                            <% if (locals.generos) { %>
                                 <% generos.forEach(g => { %>
-                                    <option value="<%= g.Id %>" <%= filtros.genero == g.Id ? 'selected' : '' %>>
-                                        <%= g.nombre %>
-                                    </option>
+                                    <option value="<%= g.Id %>" <%= filtros.genero == g.Id ? 'selected' : '' %>><%= g.nombre %></option>
                                 <% }) %>
-                            </select>
-                        </div>
+                            <% } %>
+                        </select>
 
-                        <!-- Filtro Artista -->
-                        <div class="mb-3">
-                            <label class="form-label">Artista</label>
-                            <select name="artista" class="form-select" onchange="this.form.submit()">
-                                <option value="">Todos</option>
+                        <span class="filter-label">Artista</span>
+                        <select name="artista" class="form-select custom-select" onchange="this.form.submit()">
+                            <option value="">Todos los artistas</option>
+                            <% if (locals.artistas) { %>
                                 <% artistas.forEach(a => { %>
-                                    <option value="<%= a.id %>" <%= filtros.artista == a.id ? 'selected' : '' %>>
-                                        <%= a.nombre %> <%= a.apellido %>
-                                    </option>
+                                    <option value="<%= a.id %>" <%= filtros.artista == a.id ? 'selected' : '' %>><%= a.nombre %> <%= a.apellido %></option>
                                 <% }) %>
-                            </select>
-                        </div>
+                            <% } %>
+                        </select>
 
-                        <!-- Filtro Precio -->
-                        <div class="mb-3">
-                            <label class="form-label">Precio</label>
-                            <select name="precio" class="form-select" onchange="this.form.submit()">
-                                <option value="">Relevancia</option>
-                                <option value="menor" <%= filtros.precio == 'menor' ? 'selected' : '' %>>Menor Precio</option>
-                                <option value="mayor" <%= filtros.precio == 'mayor' ? 'selected' : '' %>>Mayor Precio</option>
-                            </select>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <a href="/galeria" class="btn btn-outline-secondary btn-sm">Limpiar Filtros</a>
+                        <span class="filter-label">Precio</span>
+                        <select name="precio" class="form-select custom-select" onchange="this.form.submit()">
+                            <option value="">Cualquier precio</option>
+                            <option value="menor" <%= filtros.precio == 'menor' ? 'selected' : '' %>>Menor a Mayor</option>
+                            <option value="mayor" <%= filtros.precio == 'mayor' ? 'selected' : '' %>>Mayor a Menor</option>
+                        </select>
+
+                        <div class="pt-2">
+                            <a href="/galeria" class="btn-reset-aesthetic">
+                                ✕ Limpiar filtros
+                            </a>
                         </div>
                     </form>
-                </div>
+                </aside>
             </div>
 
-            <!-- GRID DE PRODUCTOS (OBRAS) -->
-            <div class="col-md-9">
-                <h3 class="mb-3">Obras Disponibles</h3>
-                
-                <% if(obras.length === 0) { %>
-                    <div class="alert alert-warning">No se encontraron obras con estos criterios.</div>
-                <% } %>
-
-                <div class="row row-cols-1 row-cols-md-3 g-4">
-                    <% obras.forEach(obra => { %>
-                        <div class="col">
-                            <div class="card h-100 shadow-sm border-0">
-                                <!-- Imagen (Si no hay, usa una por defecto) -->
-                                <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" class="card-img-top" alt="<%= obra.nombre %>">
-                                
-                                <div class="card-body">
-                                    <h5 class="card-title text-truncate"><%= obra.nombre %></h5>
+            <!-- GRILLA DE OBRAS -->
+            <div class="col-lg-9">
+                <div class="row g-4">
+                    <% if (locals.obras && obras.length > 0) { %>
+                        <% obras.forEach((obra, index) => { %>
+                            <div class="col-md-6 col-xl-4 art-item" style="--delay: <%= index * 100 %>ms">
+                                <article class="obra-card shadow-lg">
+                                    <div class="img-container">
+                                        <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" class="obra-img" alt="<%= obra.nombre %>">
+                                    </div>
                                     
-                                    <!-- Link al Artista -->
-                                    <p class="mb-1">
-                                        Por: <a href="/galeria/artista/<%= obra.autor_id %>" class="artista-link">
-                                            <%= obra.nombre_artista %> <%= obra.apellido_artista %>
+                                    <div class="obra-info">
+                                        <!-- ETIQUETA DE CATEGORÍA AGREGADA -->
+                                        <div class="category-tag"><%= obra.nombre_genero %></div>
+                                        
+                                        <!-- TÍTULO CON FUENTE ELEGANTE -->
+                                        <h3 class="obra-title text-truncate text-start"><%= obra.nombre %></h3>
+                                        
+                                        <p class="obra-artist text-truncate text-start">
+                                            Por: <a href="/galeria/artista/<%= obra.autor_id %>">
+                                                <%= obra.nombre_artista %> <%= obra.apellido_artista %>
+                                            </a>
+                                        </p>
+                                        <div class="obra-price text-start">$<%= parseFloat(obra.precioObra || 0).toLocaleString() %></div>
+                                        
+                                        <a href="/galeria/detalle/<%= obra.id %>" class="btn-atrium-pill">
+                                            Ver Detalles
                                         </a>
-                                    </p>
-
-                                    <p class="precio mb-2">$<%= parseFloat(obra.precioObra).toLocaleString('en-US') %></p>
-                                    
-                                    <span class="badge bg-secondary mb-2"><%= obra.nombre_genero %></span>
-                                </div>
-                                <div class="card-footer bg-white border-0">
-                                    <a href="/galeria/detalle/<%= obra.id %>" class="btn btn-primary w-100">Ver Detalles</a>
-                                </div>
+                                    </div>
+                                </article>
                             </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="col-12 text-center py-5">
+                            <h4 class="text-white-50 fw-light">No hay resultados.</h4>
+                            <a href="/galeria" style="color: var(--at-orange)">Ver todo el catálogo</a>
                         </div>
-                    <% }) %>
+                    <% } %>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <%- include('../partials/footer') %>
-</body>
-</html>
+<%- include('../partials/footer') %>
+
+<style>
+    @keyframes revealIn { to { opacity: 1; transform: translateY(0); } }
+</style>
