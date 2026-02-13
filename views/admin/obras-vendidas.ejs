@@ -1,60 +1,220 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4" style="max-width: 1000px;">
-    <h2 class="text-white fw-bold mb-4">🧾 Obras Vendidas</h2>
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <form action="/admin/obras-vendidas" method="GET" class="row g-3 mb-4 bg-white p-3 rounded shadow-sm">
-        <div class="col-md-4">
-            <label class="form-label small fw-bold">Desde</label>
-            <input type="date" name="fechaInicio" class="form-control" value="<%= filtros.fechaInicio %>">
-        </div>
-        <div class="col-md-4">
-            <label class="form-label small fw-bold">Hasta</label>
-            <input type="date" name="fechaFin" class="form-control" value="<%= filtros.fechaFin %>">
-        </div>
-        <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">Filtrar Periodo</button>
-        </div>
-    </form>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     /* Azul Carbono */
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.08);
+        --at-green-text: #4ade80;
+    }
 
-    <div class="table-responsive shadow-sm bg-white rounded overflow-hidden">
-        <table class="table table-striped table-hover align-middle w-100 mb-0">
-            <thead class="table-dark">
-                <tr>
-                    <th style="width: 70px;">Imagen</th>
-                    <th>Obra</th>
-                    <th>Artista</th>
-                    <th>Género</th>
-                    <th>Fecha de Venta</th>
-                    <th>Factura</th>
-                    <th>Precio</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% if (obras.length > 0) { %>
-                    <% obras.forEach(o => { %>
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    /* CARD DE FILTROS */
+    .admin-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 20px;
+        padding: 35px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-label-custom {
+        display: block;
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    /* INPUTS ESTILO DARK */
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        transition: all 0.3s;
+        color-scheme: dark; 
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 12px var(--at-orange-glow) !important;
+        outline: none;
+    }
+
+    /* BOTONES */
+    .btn-atrium-orange {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 12px 30px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: 0.3s;
+        width: 100%;
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+    }
+    .btn-atrium-orange:hover { transform: translateY(-3px); filter: brightness(1.1); }
+
+    /* CARD DE TABLA */
+    .inventory-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    /* ESTILO DE LA TABLA */
+    .table-atrium {
+        color: white !important;
+        margin-bottom: 0;
+    }
+
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #000000 !important; /* Letras negras en naranja */
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        padding: 18px;
+        border: none;
+        text-align: center;
+    }
+
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        padding: 18px;
+        vertical-align: middle;
+    }
+
+    .btn-back-atrium {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    .btn-back-atrium:hover { color: white; border-color: white; background: rgba(255,255,255,0.03); }
+
+    /* IMAGEN RECTANGULAR REDONDEADA */
+    .img-thumb {
+        width: 50px; height: 50px; 
+        object-fit: cover; 
+        border-radius: 8px; /* Rectángulo suave */
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1000px;">
+        
+        <!-- HEADER -->
+        <h2 class="admin-title mb-5">🧾 Historial de Ventas</h2>
+
+        <!-- FILTROS -->
+        <div class="admin-card mb-5">
+            <form action="/admin/obras-vendidas" method="GET" class="row g-4 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label-custom">Desde</label>
+                    <input type="date" name="fechaInicio" class="form-control input-custom" value="<%= filtros.fechaInicio %>">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label-custom">Hasta</label>
+                    <input type="date" name="fechaFin" class="form-control input-custom" value="<%= filtros.fechaFin %>">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-atrium-orange">Filtrar Periodo</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABLA DE OBRAS VENDIDAS -->
+        <div class="inventory-card">
+            <div class="table-responsive">
+                <table class="table table-atrium align-middle text-center">
+                    <thead>
                         <tr>
-                            <td style="width: 70px;">
-                                <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" alt="<%= o.nombre %>" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
-                            </td>
-                            <td><%= o.nombre %></td>
-                            <td><%= o.nombre_artista %> <%= o.apellido_artista %></td>
-                            <td><%= o.nombre_genero %></td>
-                            <td><%= new Date(o.fechaDeVenta).toLocaleDateString() %></td>
-                            <td class="small fw-bold"><%= o.codigoDeFactura %></td>
-                            <td>$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
+                            <th style="width: 80px;">Foto</th>
+                            <th>Obra</th>
+                            <th>Artista</th>
+                            <th>Género</th>
+                            <th>Fecha Venta</th>
+                            <th>Factura</th>
+                            <th>Precio Final</th>
                         </tr>
-                    <% }) %>
-                <% } else { %>
-                    <tr><td colspan="7" class="text-center">No hay obras vendidas en este periodo.</td></tr>
-                <% } %>
-            </tbody>
-        </table>
-    </div>
+                    </thead>
+                    <tbody>
+                        <% if (obras.length > 0) { %>
+                            <% obras.forEach(o => { %>
+                                <tr>
+                                    <td>
+                                        <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" alt="<%= o.nombre %>" class="img-thumb">
+                                    </td>
+                                    
+                                    <!-- Obra en Blanco Fuerte -->
+                                    <td class="fw-bold text-white"><%= o.nombre %></td>
+                                    
+                                    <!-- Artista en Gris/Azulado (Igual que en inventario) -->
+                                    <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
+                                    
+                                    <!-- Género (Igual que artista) -->
+                                    <td style="color: #cbd5e1"><%= o.nombre_genero %></td>
+                                    
+                                    <!-- Fecha en Blanco -->
+                                    <td class="text-white"><%= new Date(o.fechaDeVenta).toLocaleDateString() %></td>
+                                    
+                                    <!-- Código Factura -->
+                                    <td class="text-warning small font-monospace"><%= o.codigoDeFactura %></td>
+                                    
+                                    <!-- Precio Blanco (como pediste) -->
+                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="7" class="p-5 text-white-50 small">No hay obras vendidas en este periodo.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <div class="text-center mt-5 mb-5">
-        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
+        <!-- REGRESO -->
+        <div class="text-start mt-5 mb-5">
+            <a href="/admin/dashboard" class="btn btn-back-atrium shadow-sm">
+                ← Volver al Panel Administrativo
+            </a>
+        </div>
     </div>
 </div>
 
