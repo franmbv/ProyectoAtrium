@@ -3,41 +3,45 @@ const db = require('../config/db');
 class ObraModel {
 
     // 1. Obtener Obras para la Galería (con Filtros)
-    static async obtenerFiltradas(filtros) {
-        let query = `
-            SELECT o.*, a.nombre as nombre_artista, a.apellido as apellido_artista, g.nombre as nombre_genero 
-            FROM obra o
-            INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN genero g ON o.genero_id = g.Id
-            WHERE 1=1 
-        `;
-        
-        const params = [];
+  static async obtenerFiltradas(filtros) {
+    let query = `
+        SELECT o.*, a.nombre as nombre_artista, a.apellido as apellido_artista, g.nombre as nombre_genero 
+        FROM obra o
+        INNER JOIN artista a ON o.autor_id = a.id
+        INNER JOIN genero g ON o.genero_id = g.Id
+        WHERE o.estatus = 'Disponible'
+    `;
+    
+    const params = [];
 
-        // Filtro por Genero
-        if (filtros.genero && filtros.genero !== '') {
-            query += ' AND o.genero_id = ?';
-            params.push(filtros.genero);
-        }
-
-        // Filtro por Artista
-        if (filtros.artista && filtros.artista !== '') {
-            query += ' AND o.autor_id = ?';
-            params.push(filtros.artista);
-        }
-
-        // Ordenamiento por Precio
-        if (filtros.precio === 'menor') {
-            query += ' ORDER BY o.precioObra ASC';
-        } else if (filtros.precio === 'mayor') {
-            query += ' ORDER BY o.precioObra DESC';
-        } else {
-            query += ' ORDER BY o.id DESC';
-        }
-
-        const [rows] = await db.execute(query, params);
-        return rows;
+    // --- NUEVO: Filtro de búsqueda por texto ---
+    if (filtros.busqueda && filtros.busqueda !== '') {
+        query += ' AND (o.nombre LIKE ? OR a.nombre LIKE ? OR a.apellido LIKE ?)';
+        const term = `%${filtros.busqueda}%`;
+        params.push(term, term, term);
     }
+
+    if (filtros.genero && filtros.genero !== '') {
+        query += ' AND o.genero_id = ?';
+        params.push(filtros.genero);
+    }
+
+    if (filtros.artista && filtros.artista !== '') {
+        query += ' AND o.autor_id = ?';
+        params.push(filtros.artista);
+    }
+
+    if (filtros.precio === 'menor') {
+        query += ' ORDER BY o.precioObra ASC';
+    } else if (filtros.precio === 'mayor') {
+        query += ' ORDER BY o.precioObra DESC';
+    } else {
+        query += ' ORDER BY o.id DESC';
+    }
+
+    const [rows] = await db.execute(query, params);
+    return rows;
+}
 
     // 2. Obtener una Obra por ID con TODOS sus detalles
     static async obtenerPorId(id) {
@@ -102,6 +106,13 @@ class ObraModel {
         return rows[0].total;
     }
 
+    // DASHBOARD: Contar inventario activo (Disponible + Reservada)
+    static async contarInventarioActivo() {
+        const sql = "SELECT COUNT(*) AS total FROM obra WHERE estatus IN ('Disponible', 'Reservada')";
+        const [rows] = await db.execute(sql);
+        return rows[0].total;
+    }
+
     // INVENTARIO: Listar todas con joins
     static async obtenerInventario() {
         const sql = `
@@ -111,6 +122,21 @@ class ObraModel {
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
             INNER JOIN genero g ON o.genero_id = g.id
+            ORDER BY o.id DESC
+        `;
+        const [rows] = await db.execute(sql);
+        return rows;
+    }
+
+    static async obtenerReservadas() {
+        const sql = `
+            SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto,
+                   a.nombre AS nombre_artista, a.apellido AS apellido_artista,
+                   g.nombre AS nombre_genero
+            FROM obra o
+            INNER JOIN artista a ON o.autor_id = a.id
+            INNER JOIN genero g ON o.genero_id = g.id
+            WHERE o.estatus = 'Reservada'
             ORDER BY o.id DESC
         `;
         const [rows] = await db.execute(sql);
@@ -267,6 +293,14 @@ class ObraModel {
 
     static async marcarComoVendida(id) {
         await db.execute("UPDATE obra SET estatus = 'Vendida' WHERE id = ?", [id]);
+    }
+
+    static async marcarComoDisponible(id) {
+        const [result] = await db.execute(
+            "UPDATE obra SET estatus = 'Disponible' WHERE id = ? AND estatus = 'Reservada'",
+            [id]
+        );
+        return result.affectedRows > 0;
     }
 
     // --- NUEVO: OBTENER OBRAS POR AUTOR (Para Biografia) ---

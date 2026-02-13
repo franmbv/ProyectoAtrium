@@ -1,95 +1,252 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8" />
-    <title>CONFIRMAR RESERVA</title>
-    <link rel="stylesheet" href="/css/styles.css" />
-    <style>
-        /* Estilos rápidos para mensajes (por si no cargan los tuyos) */
-        .mensaje { padding: 15px; margin-bottom: 20px; border-radius: 4px; font-weight: bold; }
-        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .hidden { display: none; }
-    </style>
-</head>
-<body>
-    <% // Helper para evitar caracteres raros %>
-    <% const esc = s => String((s === null || typeof s === 'undefined') ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); %>
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
 
-    <div class="card" role="main">
-        <header class="h">
-            <h1 id="titulo">CONFIRMAR RESERVA</h1>
-        </header>
+<!-- Tipografías elegantes -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-        <p class="lead">Ingrese su código de seguridad para finalizar la compra.</p>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.1);
+    }
 
-        <% if (locals.message) { %>
-            <div class="mensaje <%= locals.success ? 'success' : 'error' %>">
+    /* Fondo unificado y centrado absoluto */
+    .auth-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: calc(100vh - 70px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Card centrada con simetría total */
+    .confirm-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 24px;
+        padding: 50px 40px;
+        width: 100%;
+        max-width: 500px; /* Un poco más estrecho para mayor verticalidad */
+        box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Centra hijos horizontalmente */
+        text-align: center;  /* Centra todos los textos */
+    }
+
+    .confirm-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: white;
+        margin: 15px 0 10px 0;
+        letter-spacing: -1px;
+    }
+
+    .confirm-subtitle {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        margin-bottom: 35px;
+        line-height: 1.5;
+    }
+
+    /* FORMULARIO CENTRADO */
+    form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .pin-field {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .pin-label {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--at-orange);
+        margin-bottom: 20px;
+    }
+
+    .pin-input {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: var(--at-orange) !important;
+        font-size: 2.2rem !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        /* Compensamos el letter-spacing para que el texto esté centrado real */
+        letter-spacing: 15px;
+        padding: 15px 0 15px 15px !important; 
+        border-radius: 16px !important;
+        width: 100%;
+        max-width: 280px; /* Ancho controlado */
+        transition: all 0.3s;
+    }
+
+    .pin-input:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 20px var(--at-orange-glow) !important;
+        outline: none;
+    }
+
+    /* RECUADRO DE OBRA NIVELADO */
+    .obra-preview-box {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px dashed rgba(249, 115, 22, 0.4);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 35px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .obra-preview-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
+    }
+
+    .obra-preview-name {
+        font-family: 'Playfair Display', serif;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    /* BOTÓN PÍLDORA */
+    .btn-atrium-confirm {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 16px 0;
+        font-weight: 800;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        width: 100%;
+        max-width: 320px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .btn-atrium-confirm:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.1);
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+    }
+
+    .link-recover {
+        color: #ef4444 !important;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-decoration: none;
+        margin-top: 15px;
+        display: block;
+    }
+
+    .link-back-gallery {
+        display: block;
+        margin-top: 30px;
+        color: #475569;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    .link-back-gallery:hover { color: white; }
+
+    /* Ajuste de alertas */
+    .alert-confirm {
+        width: 100%;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        background: rgba(239, 68, 68, 0.1);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .alert-success-confirm {
+        background: rgba(34, 197, 94, 0.1);
+        color: #bbf7d0;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+</style>
+
+<div class="auth-page-wrapper">
+    <div class="confirm-card shadow-2xl">
+        <div style="font-size: 45px; margin-bottom: 5px;">🛡️</div>
+        <h1 class="confirm-title">Confirmar Reserva</h1>
+        <p class="confirm-subtitle">Su seguridad es nuestra prioridad. Por favor, valide su código de membresía.</p>
+
+        <!-- Mensajes de Error/Éxito Centrados -->
+        <% if (locals.message) { %> 
+            <div class="alert alert-confirm <%= locals.success ? 'alert-success-confirm' : '' %> mb-4 py-3">
                 <%= message %>
-            </div>
+            </div> 
         <% } %>
 
-        <form class="grid" method="POST" action="/pagos/confirmar-reserva" novalidate>
-            
-            <div class="field">
-                <label for="codigoSeguridad">Código de seguridad (PIN)</label>
+        <form action="/pagos/confirmar-reserva" method="POST" novalidate>
+            <!-- CAMPO PIN -->
+            <div class="pin-field">
+                <label for="inputPIN" class="pin-label">PIN de 3 Dígitos</label>
                 <input 
-                    id="codigoSeguridad" 
-                    name="codigoSeguridad" 
                     type="text" 
-                    inputmode="numeric" 
-                    pattern="\d*" 
-                    required 
+                    name="codigoSeguridad" 
+                    id="inputPIN" 
                     maxlength="3" 
-                    placeholder="Ej: 007" 
+                    class="pin-input" 
+                    placeholder="000" 
+                    required 
                     autofocus
-                    class="form-control"
-                    value="<%= esc((typeof form !== 'undefined' && form.codigoSeguridad) ? form.codigoSeguridad : '') %>" 
-                />
-                <div class="help">Ingrese los 3 dígitos de su membresía.</div>
-                <div class="mt-2">
-            <a href="/pagos/recuperar" class="text-danger small text-decoration-none fw-bold">
-                ¿Olvidaste tu código? Recupéralo aquí.
-            </a>
-        </div>
+                    autocomplete="off"
+                >
+                <a href="/pagos/recuperar" class="link-recover">¿Problemas con el código? Recupéralo aquí</a>
             </div>
 
-            <div class="field" style="margin-top: 20px;">
-                <label>Obra a Reservar:</label>
-                
-                <% if (typeof form !== 'undefined' && form.obraNombre) { %>
-                    <div class="h1 obra-box">
-                        <strong><%= esc(form.obraNombre) %></strong>
-                    </div>
-                    <input type="hidden" name="obraNombre" value="<%= esc(form.obraNombre) %>" />
-                <% } else { %>
-                    <div class="alert alert-warning">
-                        ⚠️ No se especificó ninguna obra. Vuelva a la galería.
-                    </div>
-                <% } %>
+            <!-- OBRA -->
+            <div class="obra-preview-box">
+                <span class="obra-preview-label">Pieza Seleccionada</span>
+                <h5 class="obra-preview-name">"<%= form.obraNombre %>"</h5>
+                <input type="hidden" name="obraNombre" value="<%= form.obraNombre %>" />
             </div>
 
-            <div class="actions" style="margin-top: 20px;">
-                <button type="submit" class="primary" <%= (typeof form !== 'undefined' && form.obraNombre) ? '' : 'disabled' %>>
-                    Confirmar Compra
-                </button>
-            </div>
+            <!-- BOTÓN -->
+            <button type="submit" class="btn btn-atrium-confirm" <%= (typeof form !== 'undefined' && form.obraNombre) ? '' : 'disabled' %>>
+                Confirmar y Finalizar
+            </button>
         </form>
 
-        <div style="margin-top: 30px;">
-            <a href="/galeria">Volver a la Galería</a>
-        </div>
+        <a href="/galeria" class="link-back-gallery">
+            ← Volver a la galería
+        </a>
     </div>
+</div>
 
-    <script>
-        // ÚNICO SCRIPT: Validar que solo escriban números (Mejora UX)
-        // Ya no hay fetch ni llamadas al servidor aquí.
-        const inputCodigo = document.getElementById('codigoSeguridad');
-        if (inputCodigo) {
-            inputCodigo.addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            });
-        }
-    </script>
-</body>
-</html>
+<%- include('../partials/footer') %>
+
+<script>
+    // Asegurar que el PIN sea solo números
+    document.getElementById('inputPIN').addEventListener('input', function(e){ 
+        this.value = this.value.replace(/[^0-9]/g, ''); 
+    });
+</script>

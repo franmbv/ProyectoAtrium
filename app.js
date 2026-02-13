@@ -32,7 +32,8 @@ app.use((req, res, next) => {
 
 // --- RUTA RAÍZ ---
 app.get('/', (req, res) => {
-    res.redirect('/galeria'); 
+    //res.redirect('/galeria'); 
+    res.render('landing'); // Renderiza la nueva portada
 });
 
 // --- 3. IMPORTACIÓN DE RUTAS ---

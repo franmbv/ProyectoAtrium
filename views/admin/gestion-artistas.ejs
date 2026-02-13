@@ -1,69 +1,288 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4" style="max-width: 1000px;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-white fw-bold">👨‍🎨 Gestión de Artistas</h2>
-        <button class="btn btn-primary shadow" type="button" data-bs-toggle="collapse" data-bs-target="#formArtista">
-            + Agregar Nuevo Artista
-        </button>
-    </div>
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <div class="collapse mb-5" id="formArtista">
-        <div class="card shadow-sm" style="max-width: 100%;">
-            <div class="card-header bg-dark text-white fw-bold">Registrar Artista</div>
-            <div class="card-body">
-                <form action="/admin/guardar-artista" method="POST" enctype="multipart/form-data" class="row g-3">
-                    <div class="col-md-6"><label class="form-label">Nombre</label><input type="text" name="nombre" class="form-control" required></div>
-                    <div class="col-md-6"><label class="form-label">Apellido</label><input type="text" name="apellido" class="form-control"></div>
-                    <div class="col-md-4"><label class="form-label">Nacionalidad</label><input type="text" name="nacionalidad" class="form-control" required></div>
-                    <div class="col-md-4"><label class="form-label">Nacimiento</label><input type="date" name="fechaNac" class="form-control"></div>
-                    <div class="col-md-4"><label class="form-label">Fallecimiento</label><input type="date" name="fechaFal" class="form-control"></div>
-                    <div class="col-12"><label class="form-label">Biografía</label><textarea name="biografia" class="form-control" rows="3"></textarea></div>
-                    <div class="col-md-12"><label class="form-label">Foto</label><input type="file" name="foto" class="form-control" accept="image/*"></div>
-                    <div class="col-12 text-end"><button type="submit" class="btn btn-success px-4">Guardar Artista</button></div>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-yellow-soft: rgba(251, 191, 36, 0.12); 
+        --at-yellow-text: #fcd34d;
+        --at-red-soft: rgba(239, 68, 68, 0.12);    
+        --at-red-text: #fca5a5;
+        --at-border: rgba(255, 255, 255, 0.1);
+    }
+
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    /* BARRA DE FILTRO INTELIGENTE */
+    .smart-filter-bar {
+        background-color: var(--at-card-bg);
+        border: 1px solid var(--at-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    .admin-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 20px;
+        padding: 35px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        transition: all 0.3s;
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 12px var(--at-orange-glow) !important;
+        outline: none;
+    }
+
+    .btn-atrium-orange {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 12px 30px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: 0.3s;
+    }
+    .btn-atrium-orange:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 15px 30px var(--at-orange-glow); }
+
+    .btn-clear-filters {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: #94a3b8 !important;
+        border: 1.5px dashed var(--at-border) !important;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 10px 20px;
+        transition: all 0.3s;
+    }
+    .btn-clear-filters:hover {
+        background-color: rgba(239, 68, 68, 0.1) !important;
+        color: #fca5a5 !important;
+        border-color: #ef4444 !important;
+        border-style: solid;
+    }
+
+    /* TABLA */
+    .table-atrium { color: white !important; margin-bottom: 0; }
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #000000 !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        padding: 18px;
+        border: none;
+    }
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        padding: 18px;
+        vertical-align: middle;
+    }
+
+    .btn-edit-soft {
+        background-color: var(--at-yellow-soft) !important;
+        color: var(--at-yellow-text) !important;
+        border: 1px solid rgba(251, 191, 36, 0.2) !important;
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 0.75rem;
+        text-decoration: none;
+    }
+    .btn-delete-soft {
+        background-color: var(--at-red-soft) !important;
+        color: var(--at-red-text) !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 0.75rem;
+    }
+
+    .btn-back-atrium {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    .btn-back-atrium:hover { color: white; border-color: white; }
+
+    .img-artist-thumb {
+        width: 50px; height: 50px; object-fit: cover; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.1);
+    }
+
+      .input-custom::placeholder {
+        color: #cbd5e1 !important;
+        opacity: 1;
+    }
+
+
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1000px;">
+        
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h2 class="admin-title m-0">👨‍🎨 Gestión de Artistas</h2>
+            <button class="btn btn-atrium-orange shadow-lg" type="button" data-bs-toggle="collapse" data-bs-target="#formArtista">
+                + AGREGAR ARTISTA
+            </button>
+        </div>
+
+        <!-- FORMULARIO DE REGISTRO COLAPSABLE -->
+        <div class="collapse mb-5" id="formArtista">
+            <div class="admin-card">
+                <h4 class="text-white mb-4 fw-bold">Registrar Nuevo Maestro</h4>
+                <form action="/admin/guardar-artista" method="POST" enctype="multipart/form-data" class="row g-4">
+                    <div class="col-md-6"><label class="form-label-custom">Nombre</label><input type="text" name="nombre" class="form-control input-custom" required></div>
+                    <div class="col-md-6"><label class="form-label-custom">Apellido</label><input type="text" name="apellido" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label-custom">Nacionalidad</label><input type="text" name="nacionalidad" class="form-control" required></div>
+                    <div class="col-md-4"><label class="form-label-custom">Nacimiento</label><input type="date" name="fechaNac" class="form-control input-custom"></div>
+                    <div class="col-md-4"><label class="form-label-custom">Fallecimiento</label><input type="date" name="fechaFal" class="form-control input-custom"></div>
+                    <div class="col-12"><label class="form-label-custom">Biografía</label><textarea name="biografia" class="form-control input-custom" rows="3"></textarea></div>
+                    <div class="col-md-12"><label class="form-label-custom">Fotografía</label><input type="file" name="foto" class="form-control input-custom" accept="image/*" style="padding: 8px !important;"></div>
+                    <div class="col-12 text-end"><button type="submit" class="btn btn-atrium-orange px-5">Guardar Artista</button></div>
                 </form>
             </div>
         </div>
-    </div>
 
-    <div class="card shadow border-0 overflow-hidden" style="max-width: 100%;">
-        <div class="table-responsive bg-white">
-            <table class="table table-hover align-middle mb-0 text-center">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Foto</th>
-                        <th>Nombre</th>
-                        <th>Nacionalidad</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% artistas.forEach(a => { %>
-                        <tr>
-                            <td>
-                                <% if(a.fotografia) { %>
-                                    <img src="/uploads/<%= a.fotografia %>" class="rounded-circle border" width="45" height="45" style="object-fit: cover;">
-                                <% } else { %>
-                                    <div class="rounded-circle bg-light border d-inline-flex align-items-center justify-content-center" style="width:45px; height:45px">👤</div>
-                                <% } %>
-                            </td>
-                            <td class="fw-bold text-primary"><%= a.nombre %> <%= a.apellido %></td>
-                            <td><span class="badge bg-light text-dark border"><%= a.nacionalidad %></span></td>
-                            <td>
-                                <a href="/admin/editar-artista/<%= a.id %>" class="btn btn-sm btn-outline-warning">Editar</a>
-                                <a href="/admin/eliminar-artista/<%= a.id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Borrar?')">Borrar</a>
-                            </td>
-                        </tr>
-                    <% }) %>
-                </tbody>
-            </table>
+        <!-- BARRA DE BÚSQUEDA INTELIGENTE -->
+        <div class="smart-filter-bar">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label class="small fw-bold text-white-50 mb-2 d-block">BÚSQUEDA DE MAESTROS</label>
+                    <input type="text" id="artistSearch" class="form-control input-custom" placeholder="Buscar por nombre o nacionalidad...">
+                </div>
+                <div class="col-md-4">
+                    <button type="button" id="btnClearArtistFilters" class="btn btn-clear-filters w-100">
+                        ✕ Limpiar Filtro
+                    </button>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="text-center mt-5 mb-5">
-        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
+        <!-- LISTADO DE ARTISTAS -->
+        <div class="admin-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-atrium align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">Perfil</th>
+                            <th>Nombre Completo</th>
+                            <th>Nacionalidad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="artistTableBody">
+                        <% artistas.forEach(a => { %>
+                            <!-- Atributos de búsqueda para el JS -->
+                            <tr class="artist-row" 
+                                data-name="<%= a.nombre.toLowerCase() %> <%= a.apellido.toLowerCase() %>"
+                                data-nat="<%= a.nacionalidad.toLowerCase() %>">
+                                <td>
+                                    <% if(a.fotografia) { %>
+                                        <img src="/uploads/<%= a.fotografia %>" class="img-artist-thumb" alt="Foto">
+                                    <% } else { %>
+                                        <div class="rounded-circle bg-dark border border-secondary d-inline-flex align-items-center justify-content-center" style="width:50px; height:50px">👤</div>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-white"><%= a.nombre %> <%= a.apellido %></div>
+                                    <small class="text-white-50">ID: #<%= a.id %></small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark border border-secondary text-white-50 px-3 py-2"><%= a.nacionalidad %></span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <a href="/admin/editar-artista/<%= a.id %>" class="btn-edit-soft">Editar</a>
+                                        <a href="/admin/eliminar-artista/<%= a.id %>" class="btn-delete-soft" onclick="return confirm('¿Borrar artista?')">Borrar</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- REGRESO -->
+        <div class="text-start mt-5 mb-5">
+            <a href="/admin/dashboard" class="btn btn-back-atrium shadow-sm">
+                ← Volver al Panel Administrativo
+            </a>
+        </div>
     </div>
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('artistSearch');
+        const btnClear = document.getElementById('btnClearArtistFilters');
+        const rows = document.querySelectorAll('.artist-row');
+
+        function filterArtists() {
+            const term = searchInput.value.toLowerCase().trim();
+            
+            rows.forEach(row => {
+                const name = row.getAttribute('data-name');
+                const nat = row.getAttribute('data-nat');
+                
+                if (name.includes(term) || nat.includes(term)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', filterArtists);
+
+        btnClear.addEventListener('click', () => {
+            searchInput.value = '';
+            filterArtists();
+        });
+    });
+</script>

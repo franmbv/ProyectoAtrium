@@ -9,20 +9,21 @@ const AdminController = {
     // 1. DASHBOARD PRINCIPAL
     dashboard: async (req, res) => {
         try {
-            const [totalObras, recaudado, membresias] = await Promise.all([
-                ObraModel.contarTotal(),
+            const [totalObras, recaudado, gananciaMuseo, membresias] = await Promise.all([
+                ObraModel.contarInventarioActivo(),
                 VentaModel.totalRecaudado(),
+                VentaModel.totalGananciaMuseo(),
                 InfoCompradorModel.contarActivas()
             ]);
 
             res.render('admin/dashboard', {
-                stats: { totalObras, recaudado, membresias },
+                stats: { totalObras, recaudado, gananciaMuseo, membresias },
                 errorMsg: null
             });
         } catch (error) {
             console.error('Error en Dashboard:', error);
             res.render('admin/dashboard', {
-                stats: { totalObras: 0, recaudado: 0, membresias: 0 },
+                stats: { totalObras: 0, recaudado: 0, gananciaMuseo: 0, membresias: 0 },
                 errorMsg: 'Error de conexión con la base de datos.'
             });
         }
@@ -66,6 +67,30 @@ const AdminController = {
         } catch (error) {
             console.error(error);
             res.status(500).send('Error al cargar inventario');
+        }
+    },
+
+    reservasObras: async (req, res) => {
+        try {
+            const reservadas = await ObraModel.obtenerReservadas();
+            res.render('admin/reservas', { obras: reservadas || [] });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar reservas');
+        }
+    },
+
+    rechazarReserva: async (req, res) => {
+        try {
+            const actualizado = await ObraModel.marcarComoDisponible(req.params.id);
+            if (!actualizado) {
+                return res.status(404).send('Obra no encontrada o no reservada');
+            }
+
+            res.redirect('/admin/reservas');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al rechazar la reserva');
         }
     },
 
@@ -240,6 +265,70 @@ const AdminController = {
         } catch (error) {
             console.error(error);
             res.status(500).send("Error al generar reporte de ventas");
+        }
+    },
+
+    obrasVendidas: async (req, res) => {
+        try {
+            const { fechaInicio, fechaFin } = req.query;
+            const obrasVendidas = await VentaModel.obtenerObrasVendidasPorPeriodo(fechaInicio, fechaFin);
+
+            res.render('admin/obras-vendidas', {
+                obras: obrasVendidas || [],
+                filtros: { fechaInicio: fechaInicio || '', fechaFin: fechaFin || '' }
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar obras vendidas');
+        }
+    },
+
+    facturasListado: async (req, res) => {
+        try {
+            const { fechaInicio, fechaFin, nombre } = req.query;
+            const facturas = await VentaModel.listarFacturas({ fechaInicio, fechaFin, nombre });
+            const agrupadas = new Map();
+
+            (facturas || []).forEach((factura) => {
+                const idKey = factura.comprador_id ? String(factura.comprador_id) : null;
+                const nameKey = `${factura.nombre_comprador || ''}-${factura.apellido_comprador || ''}`;
+                const groupKey = idKey || nameKey;
+
+                if (!agrupadas.has(groupKey)) {
+                    agrupadas.set(groupKey, {
+                        comprador: `${factura.nombre_comprador || ''} ${factura.apellido_comprador || ''}`.trim(),
+                        facturas: []
+                    });
+                }
+
+                agrupadas.get(groupKey).facturas.push(factura);
+            });
+
+            res.render('admin/facturas', {
+                grupos: Array.from(agrupadas.values()),
+                filtros: {
+                    fechaInicio: fechaInicio || '',
+                    fechaFin: fechaFin || '',
+                    nombre: nombre || ''
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar facturas');
+        }
+    },
+
+    facturaDetalle: async (req, res) => {
+        try {
+            const factura = await VentaModel.obtenerFacturaPorId(req.params.id);
+            if (!factura) {
+                return res.status(404).send('Factura no encontrada');
+            }
+
+            res.render('admin/factura-detalle', { factura });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al cargar la factura');
         }
     },
 

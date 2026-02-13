@@ -1,158 +1,305 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
-    <div class="card p-4 shadow-sm mb-5" style="max-width: 1000px; margin: 0 auto;">
-        <h2 class="mb-4">🎨 Registro de Nueva Obra</h2>
-        <form action="/admin/guardar-obra" method="POST" enctype="multipart/form-data">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Nombre de la Obra</label>
-                    <input type="text" name="nombre" class="form-control" required>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Género</label>
-                    <select name="genero_id" class="form-select" id="genero_id" required>
-                        <option value="">Seleccionar</option>
-                        <% generos.forEach(g => { %>
-                            <option value="<%= g.Id %>"><%= g.nombre %></option>
-                        <% }) %>
-                    </select>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Artista</label>
-                    <select name="autor_id" class="form-select" required>
-                        <option value="">Seleccionar</option>
-                        <% artistas.forEach(a => { %>
-                            <option value="<%= a.id %>"><%= a.nombre %> <%= a.apellido %></option>
-                        <% }) %>
-                    </select>
-                </div>
-            </div>
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Precio Base ($)</label>
-                    <input type="number" name="precioObra" class="form-control" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">% Ganancia Museo</label>
-                    <input type="number" name="porcentajeGanancia" min="5" max="10" class="form-control" required>
-                </div>
-            </div>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     /* Azul Carbono */
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4); /* Resplandor naranja */
+        --at-border: rgba(255, 255, 255, 0.1);
+    }
+
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    /* CARD PRINCIPAL ESTILO CARBONO */
+    .form-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 20px;
+        padding: 45px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-label-custom {
+        display: block;
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        transition: all 0.3s;
+    }
+
+    /* ESTILIZACIÓN DEL BOTÓN EXAMINAR (FILE INPUT) */
+    .input-custom[type="file"] {
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        line-height: 1;
+    }
+
+    .input-custom::file-selector-button {
+        background-color: #334155; 
+        color: white;
+        border: none;
+        border-right: 1px solid var(--at-border);
+        padding: 0 20px;
+        margin-right: 15px;
+        height: 46px; 
+        border-radius: 9px 0 0 9px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .input-custom::file-selector-button:hover {
+        background-color: var(--at-orange);
+    }
+
+    .input-custom::placeholder {
+        color: #94a3b8 !important; 
+        opacity: 1;
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 10px var(--at-orange-glow) !important;
+        outline: none;
+    }
+
+    /* RECUADRO DE DETALLES TÉCNICOS (PUNTEADO NARANJA) */
+    #wrapper-detalles-tecnicos {
+        border: 1px dashed var(--at-orange);
+        background: rgba(249, 115, 22, 0.03);
+        border-radius: 12px;
+        padding: 25px;
+        margin: 30px 0;
+    }
+
+    .tech-header {
+        color: var(--at-orange) !important;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    /* BOTONES ILUMINADOS */
+    .btn-atrium-publish {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 14px 40px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2); /* Sombra base */
+        cursor: pointer;
+    }
+
+    .btn-atrium-publish:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.1);
+        /* Efecto de iluminado neón igual a los otros componentes */
+        box-shadow: 0 0 25px var(--at-orange-glow) !important;
+    }
+
+    .btn-atrium-back {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 10px 25px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .btn-atrium-back:hover {
+        color: white;
+        border-color: white;
+    }
+
+    select option {
+        background-color: #0d1117;
+        color: white;
+    }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1000px;">
+        
+        <div class="form-card">
+            <h2 class="admin-title mb-5">🎨 Registro de Nueva Obra</h2>
             
-            <div class="mb-4">
-                <label class="form-label">Foto de la Obra</label>
-                <input type="file" name="foto" class="form-control" accept="image/*" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label">Detalles por género</label>
-
-                <div class="row g-3" data-genero="1" style="display: none;">
+            <form action="/admin/guardar-obra" method="POST" enctype="multipart/form-data">
+                <!-- Fila 1: Nombre, Género, Artista -->
+                <div class="row g-4 mb-4">
                     <div class="col-md-6">
-                        <label class="form-label">Técnica</label>
-                        <input type="text" name="tecnica" class="form-control" placeholder="Óleo, acrílico, acuarela">
+                        <label class="form-label-custom">Nombre de la Obra</label>
+                        <input type="text" name="nombre" class="form-control input-custom" required placeholder="Ej: Las Meninas">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label-custom">Género</label>
+                        <select name="genero_id" class="form-select input-custom" id="genero_id" required>
+                            <option value="">Seleccionar</option>
+                            <% generos.forEach(g => { %>
+                                <option value="<%= g.Id %>"><%= g.nombre %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label-custom">Artista</label>
+                        <select name="autor_id" class="form-select input-custom" required>
+                            <option value="">Seleccionar</option>
+                            <% artistas.forEach(a => { %>
+                                <option value="<%= a.id %>"><%= a.nombre %> <%= a.apellido %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Fila 2: Precio y Ganancia -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Precio Base ($)</label>
+                        <input type="number" name="precioObra" class="form-control input-custom" required placeholder="0.00">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Soporte</label>
-                        <input type="text" name="soporte" class="form-control" placeholder="Lienzo, madera, papel">
+                        <label class="form-label-custom">% Ganancia Museo</label>
+                        <input type="number" name="porcentajeGanancia" min="5" max="10" class="form-control input-custom" placeholder="Min 5% - Max 10%" required>
+                    </div>
+                </div>
+                
+                <!-- Fila 3: Foto -->
+                <div class="mb-5">
+                    <label class="form-label-custom">Fotografía de la Obra</label>
+                    <input type="file" name="foto" class="form-control input-custom" accept="image/*" required>
+                </div>
+
+                <!-- RECUADRO DE DETALLES TÉCNICOS DINÁMICOS -->
+                <div id="wrapper-detalles-tecnicos" style="display: none;">
+                    <span class="tech-header">Detalles Técnicos</span>
+
+                    <!-- Pintura (1) -->
+                    <div class="row g-3" data-genero="1" style="display: none;">
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Técnica</label>
+                            <input type="text" name="tecnica" class="form-control input-custom" placeholder="Ej: Óleo">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Soporte</label>
+                            <input type="text" name="soporte" class="form-control input-custom" placeholder="Ej: Lienzo">
+                        </div>
+                    </div>
+
+                    <!-- Escultura (2) -->
+                    <div class="row g-3" data-genero="2" style="display: none;">
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Material</label>
+                            <input type="text" name="material" class="form-control input-custom" placeholder="Ej: Bronce">
+                        </div>
+                        <div class="col-md-2"><label class="form-label-custom">Peso (kg)</label><input type="number" step="0.01" name="peso" class="form-control input-custom" placeholder="0.00"></div>
+                        <div class="col-md-2"><label class="form-label-custom">Largo</label><input type="number" step="0.01" name="largo" class="form-control input-custom" placeholder="cm"></div>
+                        <div class="col-md-2"><label class="form-label-custom">Ancho</label><input type="number" step="0.01" name="ancho" class="form-control input-custom" placeholder="cm"></div>
+                        <div class="col-md-2"><label class="form-label-custom">Prof.</label><input type="number" step="0.01" name="profundidad" class="form-control input-custom" placeholder="cm"></div>
+                    </div>
+
+                    <!-- Fotografía (3) -->
+                    <div class="row g-3" data-genero="3" style="display: none;">
+                        <div class="col-md-4"><label class="form-label-custom">Tipo</label><input type="text" name="tipo_foto" class="form-control input-custom" placeholder="Ej: Digital"></div>
+                        <div class="col-md-4"><label class="form-label-custom">Papel</label><input type="text" name="papel" class="form-control input-custom" placeholder="Ej: Mate"></div>
+                        <div class="col-md-4"><label class="form-label-custom">Formato</label><input type="text" name="formato" class="form-control input-custom" placeholder="Ej: 20x30"></div>
+                    </div>
+
+                    <!-- Cerámica (4) -->
+                    <div class="row g-3" data-genero="4" style="display: none;">
+                        <div class="col-md-4"><label class="form-label-custom">Tipo de arcilla</label><input type="text" name="tipoArcilla" class="form-control input-custom" placeholder="Ej: Terracota"></div>
+                        <div class="col-md-4"><label class="form-label-custom">Temp. (°C)</label><input type="number" name="temperaturaCoccion" class="form-control input-custom" placeholder="900"></div>
+                        <div class="col-md-4"><label class="form-label-custom">Esmalte</label><input type="text" name="tipoEsmalte" class="form-control input-custom" placeholder="Ej: Vidriado"></div>
+                    </div>
+
+                    <!-- Orfebrería (5) -->
+                    <div class="row g-3" data-genero="5" style="display: none;">
+                        <div class="col-md-4"><label class="form-label-custom">Metal</label><input type="text" name="metal" class="form-control input-custom" placeholder="Ej: Oro 18k"></div>
+                        <div class="col-md-4"><label class="form-label-custom">Pureza</label><input type="text" name="pureza" class="form-control input-custom" placeholder="925"></div>
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Piedra preciosa</label>
+                            <select name="piedraPreciosa" class="form-select input-custom">
+                                <option value="0">No</option>
+                                <option value="1">Sí</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="row g-3" data-genero="2" style="display: none;">
-                    <div class="col-md-4">
-                        <label class="form-label">Material</label>
-                        <input type="text" name="material" class="form-control" placeholder="Bronce, mármol">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Peso (kg)</label>
-                        <input type="number" step="0.01" name="peso" class="form-control">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Largo (cm)</label>
-                        <input type="number" step="0.01" name="largo" class="form-control">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Ancho (cm)</label>
-                        <input type="number" step="0.01" name="ancho" class="form-control">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Profundidad (cm)</label>
-                        <input type="number" step="0.01" name="profundidad" class="form-control">
-                    </div>
+                <div class="text-end pt-3">
+                    <button type="submit" class="btn btn-atrium-publish">Publicar Obra</button>
                 </div>
+            </form>
+        </div>
 
-                <div class="row g-3" data-genero="3" style="display: none;">
-                    <div class="col-md-4">
-                        <label class="form-label">Tipo</label>
-                        <input type="text" name="tipo_foto" class="form-control" placeholder="Digital, analógica">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Papel</label>
-                        <input type="text" name="papel" class="form-control" placeholder="Mate, brillante">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Formato</label>
-                        <input type="text" name="formato" class="form-control" placeholder="A3, 20x30">
-                    </div>
-                </div>
-
-                <div class="row g-3" data-genero="4" style="display: none;">
-                    <div class="col-md-4">
-                        <label class="form-label">Tipo de arcilla</label>
-                        <input type="text" name="tipoArcilla" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Temperatura de cocción (°C)</label>
-                        <input type="number" step="1" name="temperaturaCoccion" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Tipo de esmalte</label>
-                        <input type="text" name="tipoEsmalte" class="form-control">
-                    </div>
-                </div>
-
-                <div class="row g-3" data-genero="5" style="display: none;">
-                    <div class="col-md-4">
-                        <label class="form-label">Metal</label>
-                        <input type="text" name="metal" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Pureza</label>
-                        <input type="text" name="pureza" class="form-control" placeholder="18K, 925">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Piedra preciosa</label>
-                        <input type="text" name="piedraPreciosa" class="form-control">
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-end">
-                <button type="submit" class="btn btn-success px-5">Publicar Obra</button>
-            </div>
-        </form>
-    </div>
-
-    <div class="text-center mb-5">
-        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
+        <div class="text-center mt-5 mb-5">
+            <a href="/admin/dashboard" class="btn btn-atrium-back shadow-sm">
+                ← Volver al Panel Administrativo
+            </a>
+        </div>
     </div>
 </div>
 
 <script>
     (function () {
         const generoSelect = document.getElementById('genero_id');
+        const wrapper = document.getElementById('wrapper-detalles-tecnicos');
         const bloques = Array.from(document.querySelectorAll('[data-genero]'));
 
         const setRequired = (block, isRequired) => {
-            block.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.required = isRequired;
+            block.querySelectorAll('input, select').forEach((field) => {
+                if(field.type !== 'hidden') field.required = isRequired;
             });
         };
 
         const toggleBloques = () => {
             const generoId = generoSelect.value;
+            
+            if (!generoId) {
+                wrapper.style.display = 'none';
+                bloques.forEach(b => setRequired(b, false));
+                return;
+            }
+
+            wrapper.style.display = 'block';
             bloques.forEach((block) => {
                 const active = block.getAttribute('data-genero') === generoId;
                 block.style.display = active ? 'flex' : 'none';

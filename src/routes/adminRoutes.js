@@ -16,6 +16,8 @@ router.get('/', (req, res) => {
 // Dashboard e Inventario
 router.get('/dashboard', adminController.dashboard);
 router.get('/inventario', adminController.inventarioObras);
+router.get('/reservas', adminController.reservasObras);
+router.post('/reservas/:id/rechazar', adminController.rechazarReserva);
 router.get('/obras/:id/editar', adminController.editarObraForm);
 router.post('/obras/:id/editar', upload, adminController.actualizarObra);
 router.post('/obras/:id/eliminar', adminController.eliminarObra);
@@ -37,6 +39,9 @@ router.post('/emitir-factura', adminController.emitirFactura);
 
 // Reportes
 router.get('/reportes-ventas', adminController.reporteVentas);
+router.get('/obras-vendidas', adminController.obrasVendidas);
+router.get('/facturas', adminController.facturasListado);
+router.get('/facturas/:id', adminController.facturaDetalle);
 router.get('/reportes-membresia', adminController.reporteMembresias);
 
 module.exports = router;

@@ -1,43 +1,57 @@
-</main>
-    <footer class="bg-dark text-white pt-4 pb-2 mt-5">
+</main> <!-- Cierre del contenedor principal -->
+
+    <footer class="text-white pt-5 pb-4">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <h5 class="text-uppercase text-warning fw-bold">🏛️ ATRIUM</h5>
-                    <p class="small text-white-50">
-                        La plataforma líder en gestión y venta de arte exclusivo. Conectamos artistas con coleccionistas de todo el mundo.
+            <div class="row g-4">
+                <!-- Columna 1: Logo y Eslogan -->
+                <div class="col-md-4">
+                    <h5 class="fw-bold mb-3" style="color: var(--at-orange); letter-spacing: 1px;">🏛️ ATRIUM</h5>
+                    <p class="small text-white-50" style="line-height: 1.6;">
+                        Portal oficial del Museo de Arte Contemporáneo. <br>
+                        Excelencia en gestión de arte y coleccionismo institucional.
                     </p>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <h5 class="text-uppercase">Enlaces</h5>
+
+                <!-- Columna 2: Links Rápidos -->
+                <div class="col-md-4">
+                    <h6 class="text-uppercase small fw-bold mb-3 opacity-50" style="letter-spacing: 1px;">Navegación</h6>
                     <ul class="list-unstyled">
-                        <li><a href="/galeria" class="text-white-50 text-decoration-none small">Galería</a></li>
-                        <% if (!usuario) { %>
-                            <li><a href="/auth/login" class="text-white-50 text-decoration-none small">Iniciar Sesión</a></li>
-                        <% } else { %>
-                            <li><a href="/auth/logout" class="text-white-50 text-decoration-none small">Cerrar Sesión</a></li>
+                        <li class="mb-2"><a href="/galeria" class="text-white-50 text-decoration-none small hover-orange">Colección General</a></li>
+                        <% if (locals.usuario) { %>
+                            <li><a href="/auth/logout" class="text-white-50 text-decoration-none small hover-orange">Cerrar Sesión</a></li>
                         <% } %>
                     </ul>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <h5 class="text-uppercase">Contacto</h5>
-                    <ul class="list-unstyled small text-white-50">
-                        <li>📍 Ciudad Guayana, Venezuela</li>
-                        <li>📧 contacto@atrium.com</li>
-                    </ul>
+
+                <!-- Columna 3: Localización -->
+                <div class="col-md-4">
+                    <h6 class="text-uppercase small fw-bold mb-3 opacity-50" style="letter-spacing: 1px;">Contacto</h6>
+                    <p class="small text-white-50 mb-1">📍 Ciudad Guayana, Venezuela</p>
+                    <p class="small text-white-50">📧 contacto@atrium.com</p>
                 </div>
             </div>
-            <hr class="border-secondary">
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="small text-white-50 mb-0">&copy; 2026 Proyecto Atrium. UNEG.</p>
-                </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <span class="text-white-50 small">Hecho con ❤️</span>
+
+            <!-- Línea de cierre muy sutil -->
+            <hr class="mt-4 mb-4" style="border-color: rgba(255,255,255,0.05);">
+
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="small text-white-50 mb-0">
+                        &copy; 2026 Proyecto Atrium. <span class="mx-2">|</span> UNEG - Ingeniería en Informática
+                    </p>
                 </div>
             </div>
         </div>
     </footer>
+
+    <style>
+        .hover-orange:hover {
+            color: var(--at-orange) !important;
+            transition: 0.3s;
+        }
+    </style>
+
+    <!-- Scripts de Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

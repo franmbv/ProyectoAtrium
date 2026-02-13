@@ -1,36 +1,212 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Museo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light d-flex align-items-center justify-content-center" style="height: 100vh;">
-    
-    <div class="card shadow p-4" style="width: 400px;">
-        <h3 class="text-center mb-3">🔐 Iniciar Sesión</h3>
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
 
-        <% if (error) { %>
-            <div class="alert alert-danger"><%= error %></div>
+<!-- Tipografías elegantes -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Fondo unificado y centrado de la tarjeta en pantalla */
+    .auth-page-container {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Card Azul Carbono con centrado interno total */
+    .login-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px; 
+        padding: 50px 45px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Centra hijos horizontalmente */
+        text-align: center;  /* Centra todos los textos */
+    }
+
+    .login-logo {
+        font-size: 50px;
+        margin-bottom: 15px;
+    }
+
+    .login-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: white;
+        margin: 0 0 10px 0;
+        letter-spacing: -1px;
+    }
+
+    /* Resalte de la marca */
+    .brand-highlight {
+        color: var(--at-orange) !important;
+        text-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
+    }
+
+    .login-subtitle {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        margin-bottom: 40px;
+        line-height: 1.5;
+    }
+
+    /* FORMULARIO SIMÉTRICO */
+    form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-group-custom {
+        width: 100%;
+        max-width: 320px; 
+        margin-bottom: 25px;
+    }
+
+    .form-label-custom {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        padding: 12px 16px !important;
+        border-radius: 10px !important;
+        text-align: center; 
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 15px var(--at-orange-glow) !important;
+        outline: none;
+    }
+
+    /* BOTÓN NARANJA NIVELADO */
+    .btn-atrium-login {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 16px 0;
+        font-weight: 800;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        width: 100%;
+        max-width: 320px; 
+        margin-top: 10px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+        cursor: pointer;
+    }
+
+    .btn-atrium-login:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.1);
+        box-shadow: 0 15px 30px rgba(249, 115, 22, 0.4);
+    }
+
+    /* ENLACE DE REGISTRO CENTRADO */
+    .register-footer {
+        width: 100%;
+        margin-top: 35px;
+        padding-top: 25px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .register-link {
+        color: #64748b;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .register-link strong {
+        color: var(--at-orange);
+        font-weight: 700;
+    }
+
+    .register-link:hover strong {
+        color: white;
+        text-shadow: 0 0 10px var(--at-orange);
+    }
+
+    /* ALERTAS CENTRADAS */
+    .alert-login {
+        width: 100%;
+        background: rgba(239, 68, 68, 0.1);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 10px;
+        font-size: 0.85rem;
+        padding: 12px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+</style>
+
+<div class="auth-page-container">
+    <div class="login-card shadow-2xl">
+        <div class="login-logo">🏛️</div>
+        <h1 class="login-title">Acceso <span class="brand-highlight">Atrium</span></h1>
+        <p class="login-subtitle">Ingrese sus credenciales para gestionar <br> su colección de arte contemporáneo.</p>
+
+        <% if (locals.error) { %>
+            <div class="alert alert-login" role="alert">
+                <%= error %>
+            </div>
         <% } %>
 
         <form action="/auth/login" method="POST">
-            <div class="mb-3">
-                <label>Usuario (Login):</label>
-                <input type="text" name="login" class="form-control" required placeholder="Ej: auditor">
+            <div class="form-group-custom">
+                <label class="form-label-custom">Usuario / Login</label>
+                <input type="text" name="login" class="input-custom" required placeholder="Identificador">
             </div>
-            <div class="mb-3">
-                <label>Contraseña:</label>
-                <input type="password" name="password" class="form-control" required>
+            
+            <div class="form-group-custom">
+                <label class="form-label-custom">Contraseña</label>
+                <input type="password" name="password" class="input-custom" required placeholder="••••••••">
             </div>
-            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+
+            <button type="submit" class="btn-atrium-login">
+                Entrar al Sistema
+            </button>
         </form>
         
-        <div class="mt-3 text-center">
-            <a href="/auth/registro">Crear cuenta nueva</a>
+        <div class="register-footer">
+            <a href="/auth/registro" class="register-link">
+                ¿No tiene una cuenta? <strong>Regístrese aquí</strong>
+            </a>
         </div>
     </div>
+</div>
 
-</body>
-</html>
+<%- include('../partials/footer') %>

@@ -1,56 +1,247 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Museo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light py-5">
-    <div class="container" style="max-width: 600px;">
-        <div class="card shadow">
-            <div class="card-header bg-success text-white">
-                <h4>📝 Registro de Usuario</h4>
-            </div>
-            <div class="card-body">
-                
-                <% if (error) { %>
-                    <div class="alert alert-danger"><%= error %></div>
-                <% } %>
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
 
-                <form action="/auth/registro" method="POST">
-                    <div class="mb-3">
-                        <label>Nombre:</label>
-                        <input type="text" name="nombre" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Apellido:</label>
-                        <input type="text" name="apellido" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Cédula:</label>
-                        <input type="text" name="cedula" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Correo (Gmail):</label>
-                        <input type="email" name="gmail" class="form-control" required>
-                    </div>
-                    <hr>
-                    <div class="mb-3">
-                        <label>Usuario (Login):</label>
-                        <input type="text" name="login" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Contraseña:</label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">Registrarse</button>
-                </form>
+<!-- Tipografías elegantes -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Fondo unificado y centrado absoluto */
+    .auth-page-container {
+        background: radial-gradient(circle at center, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Card Azul Carbono simétrica */
+    .register-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px; 
+        padding: 50px 45px;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .register-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: white;
+        margin: 0 0 10px 0;
+        letter-spacing: -1px;
+        text-align: center;
+    }
+
+    .brand-highlight {
+        color: var(--at-orange) !important;
+        text-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
+    }
+
+    .register-subtitle {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    /* FORMULARIO */
+    form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-group-custom {
+        width: 100%;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* ALINEACIÓN A LA IZQUIERDA PARA TÍTULOS */
+    .form-label-custom {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+        text-align: left; /* Alineado a la izquierda */
+    }
+
+    /* ALINEACIÓN A LA IZQUIERDA PARA CONTENIDO */
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        padding: 12px 16px !important;
+        border-radius: 10px !important;
+        text-align: left; /* Texto e inicio de cursor a la izquierda */
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 15px var(--at-orange-glow) !important;
+        outline: none;
+    }
+
+    /* BOTÓN NARANJA (CENTRADO) */
+    .btn-atrium-register {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 16px 0;
+        font-weight: 800;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        width: 100%;
+        max-width: 350px; 
+        margin-top: 20px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+        cursor: pointer;
+    }
+
+    .btn-atrium-register:hover {
+        transform: translateY(-3px);
+        filter: brightness(1.1);
+        box-shadow: 0 15px 30px rgba(249, 115, 22, 0.4);
+    }
+
+    .login-footer {
+        width: 100%;
+        margin-top: 35px;
+        padding-top: 25px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        text-align: center;
+    }
+
+    .login-link {
+        color: #64748b;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .login-link strong {
+        color: var(--at-orange);
+        font-weight: 700;
+    }
+
+    .login-link:hover strong {
+        color: white;
+    }
+
+    .alert-register {
+        width: 100%;
+        background: rgba(239, 68, 68, 0.1);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 10px;
+        font-size: 0.85rem;
+        padding: 12px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+</style>
+
+<div class="auth-page-container">
+    <div class="register-card shadow-2xl">
+        <div style="font-size: 45px; margin-bottom: 10px; text-align: center;">📝</div>
+        <h1 class="register-title">Registro <span class="brand-highlight">Atrium</span></h1>
+        <p class="register-subtitle">Únase a la comunidad de coleccionistas del museo.</p>
+
+        <% if (locals.error) { %>
+            <div class="alert alert-register" role="alert">
+                <%= error %>
             </div>
-            <div class="card-footer text-center">
-                <a href="/auth/login">Volver al login</a>
+        <% } %>
+
+        <form action="/auth/register" method="POST">
+            <!-- Fila: Nombre y Apellido -->
+            <div class="row w-100">
+                <div class="col-md-6">
+                    <div class="form-group-custom">
+                        <label class="form-label-custom">Nombre</label>
+                        <input type="text" name="nombre" class="form-control input-custom" required placeholder="Ej: Juan">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group-custom">
+                        <label class="form-label-custom">Apellido</label>
+                        <input type="text" name="apellido" class="form-control input-custom" required placeholder="Ej: Pérez">
+                    </div>
+                </div>
             </div>
+
+            <!-- Fila: Cédula y Correo -->
+            <div class="row w-100">
+                <div class="col-md-6">
+                    <div class="form-group-custom">
+                        <label class="form-label-custom">Cédula</label>
+                        <input type="text" name="cedula" class="form-control input-custom" required placeholder="V-00000000">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group-custom">
+                        <label class="form-label-custom">Correo (Gmail)</label>
+                        <input type="email" name="gmail" class="form-control input-custom" required placeholder="usuario@gmail.com">
+                    </div>
+                </div>
+            </div>
+
+            <hr class="w-100 border-secondary border-opacity-25 my-3">
+
+            <!-- Fila: Login y Password -->
+            <div class="row w-100">
+                <div class="col-md-6">
+                    <div class="form-group-custom">
+                        <label class="form-label-custom">Usuario / Login</label>
+                        <input type="text" name="login" class="form-control input-custom" required placeholder="Nombre de usuario">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group-custom">
+                        <label class="form-label-custom">Contraseña</label>
+                        <input type="password" name="password" class="form-control input-custom" required placeholder="••••••••">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-atrium-register">
+                Crear Cuenta Nueva
+            </button>
+        </form>
+        
+        <div class="login-footer">
+            <a href="/auth/login" class="login-link">
+                ¿Ya tiene cuenta? <strong>Inicie sesión aquí</strong>
+            </a>
         </div>
     </div>
-</body>
-</html>
+</div>
+
+<%- include('../partials/footer') %>

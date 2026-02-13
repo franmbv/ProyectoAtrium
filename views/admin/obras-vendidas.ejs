@@ -1,0 +1,300 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.1);
+        --at-red-soft: rgba(248, 113, 113, 0.15);
+        --at-red-border: rgba(248, 113, 113, 0.4);
+    }
+
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 40px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    /* BARRA DE FILTROS COMPACTA (UNA SOLA LÍNEA) */
+    .filter-card-inline {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        margin-bottom: 35px;
+    }
+
+    .form-label-mini {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+    }
+
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 8px 12px !important;
+        font-size: 0.85rem !important;
+        transition: all 0.3s;
+        color-scheme: dark; 
+    }
+
+    .input-custom::placeholder {
+        color: #cbd5e1 !important;
+        opacity: 1;
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 10px var(--at-orange-glow) !important;
+        outline: none;
+    }
+
+    /* BOTÓN LIMPIAR */
+    .btn-reset-aesthetic {
+        display: block;
+        width: 100%;
+        padding: 9px;
+        background: var(--at-red-soft);
+        color: #f87171;
+        border: 1.5px dashed var(--at-red-border);
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-align: center;
+        transition: 0.3s;
+    }
+    .btn-reset-aesthetic:hover {
+        background: rgba(248, 113, 113, 0.25);
+        color: #fca5a5;
+        border-style: solid;
+    }
+
+    /* TABLA */
+    .inventory-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .table-atrium { color: white !important; margin-bottom: 0; }
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #000000 !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        padding: 15px;
+        border: none;
+    }
+
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+        padding: 15px;
+    }
+
+    .img-thumb {
+        width: 50px; height: 50px; 
+        object-fit: cover; 
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .btn-back-atrium {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    .btn-back-atrium:hover { color: white; border-color: white; }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1200px;">
+        
+        <h2 class="admin-title mb-5">🧾 Historial de Ventas</h2>
+
+        <!-- FILTROS EN UNA SOLA LÍNEA -->
+        <div class="filter-card-inline">
+            <form action="/admin/obras-vendidas" method="GET" id="salesFilterForm" class="row g-2 align-items-end">
+                
+                <!-- Búsqueda Inteligente -->
+                <div class="col-md-3">
+                    <label class="form-label-mini">Búsqueda rápida</label>
+                    <input type="text" id="smartSearch" class="form-control input-custom" placeholder="Obra, Artista o Factura..." autocomplete="off">
+                </div>
+
+                <!-- Género -->
+                <div class="col-md-2">
+                    <label class="form-label-mini">Género</label>
+                    <select id="genreFilter" class="form-select input-custom">
+                        <option value="">Todas</option>
+                        <option value="Pintura">Pintura</option>
+                        <option value="Escultura">Escultura</option>
+                        <option value="Fotografía">Fotografía</option>
+                        <option value="Cerámica">Cerámica</option>
+                        <option value="Orfebrería">Orfebrería</option>
+                    </select>
+                </div>
+
+                <!-- Orden Precio -->
+                <div class="col-md-2">
+                    <label class="form-label-mini">Ordenar Precio</label>
+                    <select id="priceSort" class="form-select input-custom">
+                        <option value="default">Recientes</option>
+                        <option value="asc">Menor a Mayor</option>
+                        <option value="desc">Mayor a Menor</option>
+                    </select>
+                </div>
+
+                <!-- Fecha Desde -->
+                <div class="col-md-2">
+                    <label class="form-label-mini">Desde</label>
+                    <input type="date" name="fechaInicio" class="form-control input-custom" value="<%= filtros.fechaInicio %>" onchange="this.form.submit()">
+                </div>
+
+                <!-- Fecha Hasta -->
+                <div class="col-md-2">
+                    <label class="form-label-mini">Hasta</label>
+                    <input type="date" name="fechaFin" class="form-control input-custom" value="<%= filtros.fechaFin %>" onchange="this.form.submit()">
+                </div>
+
+                <!-- Limpiar -->
+                <div class="col-md-1">
+                    <a href="/admin/obras-vendidas" class="btn-reset-aesthetic" title="Limpiar todo">Limpiar</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABLA -->
+        <div class="inventory-card">
+            <div class="table-responsive">
+                <table class="table table-atrium align-middle text-center" id="soldTable">
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>Obra</th>
+                            <th>Artista</th>
+                            <th>Género</th>
+                            <th>Fecha Venta</th>
+                            <th>Factura</th>
+                            <th>Precio</th>
+                        </tr>
+                    </thead>
+                    <tbody id="soldTableBody">
+                        <% if (obras.length > 0) { %>
+                            <% obras.forEach(o => { %>
+                                <tr class="sold-row" 
+                                    data-search="<%= o.nombre.toLowerCase() %> <%= o.nombre_artista.toLowerCase() %> <%= o.apellido_artista.toLowerCase() %> <%= o.codigoDeFactura.toLowerCase() %>"
+                                    data-genre="<%= o.nombre_genero %>"
+                                    data-price="<%= o.precioObra %>">
+                                    <td><img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" class="img-thumb"></td>
+                                    <td class="fw-bold text-white"><%= o.nombre %></td>
+                                    <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
+                                    <td style="color: #ffffff"><%= o.nombre_genero %></td>
+                                    <td class="text-white"><%= new Date(o.fechaDeVenta).toLocaleDateString() %></td>
+                                    <td class="text-warning small font-monospace"><%= o.codigoDeFactura %></td>
+                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr class="empty-msg"><td colspan="7" class="p-5 text-white-50 small">No hay ventas en este periodo.</td></tr>
+                        <% } %>
+                        <tr id="noResults" style="display: none;"><td colspan="7" class="p-5 text-warning opacity-75">Sin coincidencias para los filtros aplicados.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- REGRESO -->
+        <div class="text-start mt-5 mb-5">
+            <a href="/admin/dashboard" class="btn btn-back-atrium shadow-sm">
+                ← Volver al Panel Administrativo
+            </a>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('smartSearch');
+        const genreSelect = document.getElementById('genreFilter');
+        const sortSelect = document.getElementById('priceSort');
+        const tableBody = document.getElementById('soldTableBody');
+        const rows = Array.from(document.querySelectorAll('.sold-row'));
+        const noResults = document.getElementById('noResults');
+
+        function updateTable() {
+            const term = searchInput.value.toLowerCase().trim();
+            const selectedGenre = genreSelect.value;
+            const sortMode = sortSelect.value;
+            let visibleCount = 0;
+
+            // 1. Filtrar
+            rows.forEach(row => {
+                const searchData = row.getAttribute('data-search');
+                const rowGenre = row.getAttribute('data-genre');
+                
+                const matchesSearch = searchData.includes(term);
+                const matchesGenre = selectedGenre === "" || rowGenre === selectedGenre;
+
+                if (matchesSearch && matchesGenre) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // 2. Ordenar
+            if (sortMode !== 'default') {
+                rows.sort((a, b) => {
+                    const priceA = parseFloat(a.getAttribute('data-price'));
+                    const priceB = parseFloat(b.getAttribute('data-price'));
+                    return sortMode === 'asc' ? priceA - priceB : priceB - priceA;
+                });
+                rows.forEach(row => tableBody.appendChild(row));
+            }
+
+            // 3. Mensaje
+            noResults.style.display = (visibleCount === 0 && (term !== "" || selectedGenre !== "")) ? '' : 'none';
+        }
+
+        searchInput.addEventListener('input', updateTable);
+        genreSelect.addEventListener('change', updateTable);
+        sortSelect.addEventListener('change', updateTable);
+    });
+</script>

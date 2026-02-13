@@ -1,57 +1,277 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4" style="max-width: 1000px;">
-    <h2 class="text-white fw-bold mb-4">📊 Reporte de Ventas</h2>
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <form action="/admin/reportes-ventas" method="GET" class="row g-3 mb-4 bg-white p-3 rounded shadow-sm">
-        <div class="col-md-4">
-            <label class="form-label small fw-bold">Desde</label>
-            <input type="date" name="fechaInicio" class="form-control" value="<%= filtros.fechaInicio %>">
-        </div>
-        <div class="col-md-4">
-            <label class="form-label small fw-bold">Hasta</label>
-            <input type="date" name="fechaFin" class="form-control" value="<%= filtros.fechaFin %>">
-        </div>
-        <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">Filtrar Periodo</button>
-        </div>
-    </form>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.1);
+        --at-red-soft: rgba(248, 113, 113, 0.15);
+        --at-red-border: rgba(248, 113, 113, 0.4);
+    }
 
-    <div class="card shadow border-0 overflow-hidden" style="max-width: 100%;">
-        <div class="table-responsive bg-white">
-            <table class="table table-hover align-middle mb-0 text-center">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Factura</th>
-                        <th>Fecha</th>
-                        <th>Obra</th>
-                        <th>Ganancia Museo</th>
-                        <th>Total Recaudado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (ventas.length > 0) { %>
-                        <% ventas.forEach(v => { %>
-                            <tr>
-                                <td class="small fw-bold"><%= v.codigoDeFactura %></td>
-                                <td><%= new Date(v.fechaDeVenta).toLocaleDateString() %></td>
-                                <td><%= v.nombre_obra %></td>
-                                <td class="text-primary">$<%= v.gananciaMuseoDolares %></td>
-                                <td class="fw-bold text-success">$<%= v.precioFinalVenta %></td>
-                            </tr>
-                        <% }) %>
-                    <% } else { %>
-                        <tr><td colspan="5" class="p-4">Sin datos en este periodo.</td></tr>
-                    <% } %>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
 
-    <div class="text-center mt-5 mb-5">
-        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    /* FILTROS EN UNA SOLA LÍNEA */
+    .filter-card-panoramic {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        margin-bottom: 40px;
+    }
+
+    .form-label-custom {
+        display: block;
+        color: #ffffff;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 10px !important;
+        transition: all 0.3s;
+        color-scheme: dark; 
+    }
+
+    /* PLACEHOLDER VISTOSO */
+    .input-custom::placeholder {
+        color: #cbd5e1 !important;
+        opacity: 1;
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 10px var(--at-orange-glow) !important;
+    }
+
+    /* BOTÓN LIMPIAR */
+    .btn-reset-aesthetic {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background: var(--at-red-soft);
+        color: #f87171;
+        border: 1.5px dashed var(--at-red-border);
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-align: center;
+        transition: 0.3s;
+    }
+    .btn-reset-aesthetic:hover {
+        background: rgba(248, 113, 113, 0.25);
+        color: #fca5a5;
+        border-style: solid;
+    }
+
+    /* TABLA */
+    .inventory-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .table-atrium { color: white !important; margin-bottom: 0; }
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #000000 !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        padding: 18px;
+        border: none;
+    }
+
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        padding: 18px;
+    }
+
+    .btn-back-atrium {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 12px 40px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+        display: inline-block;
+    }
+    .btn-back-atrium:hover { color: white; border-color: white; }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1200px;">
+        
+        <h2 class="admin-title mb-5">📊 Reporte de Ventas</h2>
+
+        <!-- FILTROS EN UNA SOLA LÍNEA -->
+        <div class="filter-card-panoramic">
+            <form action="/admin/reportes-ventas" method="GET" id="salesFilterForm" class="row g-3 align-items-end">
+                
+                <!-- BÚSQUEDA INTELIGENTE -->
+                <div class="col-md-3">
+                    <label class="form-label-custom">Búsqueda Inteligente</label>
+                    <input type="text" id="salesSearch" class="form-control input-custom" placeholder="Obra o Factura..." autocomplete="off">
+                </div>
+                
+                <!-- FECHAS (Automáticas) -->
+                <div class="col-md-2">
+                    <label class="form-label-custom">Desde</label>
+                    <input type="date" name="fechaInicio" class="form-control input-custom" value="<%= filtros.fechaInicio %>" onchange="this.form.submit()">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label-custom">Hasta</label>
+                    <input type="date" name="fechaFin" class="form-control input-custom" value="<%= filtros.fechaFin %>" onchange="this.form.submit()">
+                </div>
+
+                <!-- ORDENAMIENTO -->
+                <div class="col-md-3">
+                    <label class="form-label-custom">Ordenar por Valor</label>
+                    <select id="salesSort" class="form-select input-custom">
+                        <option value="default">Relevancia</option>
+                        <option value="total-desc">Total: Mayor a Menor</option>
+                        <option value="total-asc">Total: Menor a Mayor</option>
+                        <option value="profit-desc">Ganancia: Mayor a Menor</option>
+                        <option value="profit-asc">Ganancia: Menor a Mayor</option>
+                    </select>
+                </div>
+
+                <!-- LIMPIAR -->
+                <div class="col-md-2">
+                    <a href="/admin/reportes-ventas" class="btn-reset-aesthetic">✕ Limpiar</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABLA DE VENTAS -->
+        <div class="inventory-card">
+            <div class="table-responsive">
+                <table class="table table-atrium align-middle text-center" id="salesTable">
+                    <thead>
+                        <tr>
+                            <th>Factura</th>
+                            <th>Fecha</th>
+                            <th>Obra</th>
+                            <th>Ganancia Museo</th>
+                            <th>%</th>
+                            <th>Total Recaudado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody">
+                        <% if (ventas.length > 0) { %>
+                            <% ventas.forEach(v => { %>
+                                <!-- Atributos de datos para el JS -->
+                                <tr class="sale-row" 
+                                    data-search="<%= v.nombre_obra.toLowerCase() %> <%= v.codigoDeFactura.toLowerCase() %>"
+                                    data-total="<%= v.precioFinalVenta %>"
+                                    data-profit="<%= v.gananciaMuseoDolares %>">
+                                    <td class="text-warning small font-monospace"><%= v.codigoDeFactura %></td>
+                                    <td class="text-white"><%= new Date(v.fechaDeVenta).toLocaleDateString() %></td>
+                                    <td class="fw-bold text-white"><%= v.nombre_obra %></td>
+                                    <td style="color: #94a3b8">$<%= v.gananciaMuseoDolares %></td>
+                                    <td><span class="badge bg-dark border border-secondary text-white-50"><%= v.gananciaMuseoPorcentaje %>%</span></td>
+                                    <td class="fw-bold text-white">$<%= parseFloat(v.precioFinalVenta).toLocaleString() %></td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="6" class="p-5 text-white-50 small">No hay datos para este periodo.</td></tr>
+                        <% } %>
+                        <tr id="noResults" style="display: none;"><td colspan="6" class="p-5 text-warning opacity-75">No hay coincidencias en los resultados actuales.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- REGRESO -->
+        <div class="text-start mt-5 mb-5">
+            <a href="/admin/dashboard" class="btn btn-back-atrium shadow-sm">
+                ← Volver al Panel Administrativo
+            </a>
+        </div>
     </div>
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('salesSearch');
+        const sortSelect = document.getElementById('salesSort');
+        const tableBody = document.getElementById('salesTableBody');
+        const rows = Array.from(document.querySelectorAll('.sale-row'));
+        const noResults = document.getElementById('noResults');
+
+        function updateTable() {
+            const term = searchInput.value.toLowerCase().trim();
+            const sortMode = sortSelect.value;
+            let visibleCount = 0;
+
+            // 1. Filtrado
+            rows.forEach(row => {
+                const searchData = row.getAttribute('data-search');
+                const isMatch = searchData.includes(term);
+                row.style.display = isMatch ? '' : 'none';
+                if (isMatch) visibleCount++;
+            });
+
+            // 2. Ordenamiento
+            let sortedRows = [...rows];
+            if (sortMode !== 'default') {
+                sortedRows.sort((a, b) => {
+                    const valA = parseFloat(a.getAttribute(sortMode.includes('total') ? 'data-total' : 'data-profit'));
+                    const valB = parseFloat(b.getAttribute(sortMode.includes('total') ? 'data-total' : 'data-profit'));
+                    
+                    return sortMode.includes('desc') ? valB - valA : valA - valB;
+                });
+            }
+
+            // 3. Re-inyectar
+            sortedRows.forEach(row => tableBody.appendChild(row));
+
+            // Mensajes
+            noResults.style.display = (visibleCount === 0 && term !== "") ? '' : 'none';
+        }
+
+        searchInput.addEventListener('input', updateTable);
+        sortSelect.addEventListener('change', updateTable);
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') e.preventDefault();
+        });
+    });
+</script>
