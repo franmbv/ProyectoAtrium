@@ -8,15 +8,16 @@
     :root {
         --at-navy-deep: #0f172a;   
         --at-navy-darkest: #020617; 
-        --at-card-bg: #161b22;     /* Azul Carbono */
+        --at-card-bg: #161b22;     
         --at-orange: #f97316;      
-        /* Verde Soft para Aceptar */
         --at-green-soft: rgba(34, 197, 94, 0.12);
         --at-green-text: #4ade80;
-        /* Rojo Soft para Rechazar */
+        --at-yellow-soft: rgba(251, 191, 36, 0.12);
+        --at-yellow-text: #fcd34d;
         --at-red-soft: rgba(239, 68, 68, 0.12);    
         --at-red-text: #fca5a5;
         --at-border: rgba(255, 255, 255, 0.08);
+        --at-red-border: rgba(248, 113, 113, 0.4);
     }
 
     .admin-page-wrapper {
@@ -34,6 +35,69 @@
         letter-spacing: -1.5px;
     }
 
+    /* BARRA DE FILTROS COMPACTA */
+    .filter-card-inline {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        margin-bottom: 35px;
+    }
+
+    .form-label-mini {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+    }
+
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 8px 12px !important;
+        font-size: 0.85rem !important;
+        transition: all 0.3s;
+    }
+
+    .input-custom::placeholder {
+        color: #cbd5e1 !important;
+        opacity: 1;
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
+        outline: none;
+    }
+
+    .btn-reset-aesthetic {
+        display: block;
+        width: 100%;
+        padding: 9px;
+        background: rgba(248, 113, 113, 0.1);
+        color: #f87171;
+        border: 1.5px dashed var(--at-red-border);
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-align: center;
+        transition: 0.3s;
+    }
+
+    .btn-reset-aesthetic:hover {
+        background: rgba(248, 113, 113, 0.2);
+        color: #fca5a5;
+        border-style: solid;
+    }
+
     /* CARD DE LA TABLA */
     .inventory-card {
         background-color: var(--at-card-bg) !important;
@@ -41,10 +105,8 @@
         border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        margin-bottom: 45px;
     }
 
-    /* TABLA ATRIUM */
     .table-atrium {
         color: white !important;
         margin-bottom: 0;
@@ -56,7 +118,6 @@
         font-weight: 800;
         text-transform: uppercase;
         font-size: 0.75rem;
-        letter-spacing: 1px;
         padding: 18px;
         border: none;
         text-align: center;
@@ -70,7 +131,6 @@
         text-align: center;
     }
 
-    /* ESTILO DE ESTATUS (NEÓN) */
     .status-indicator {
         display: inline-flex;
         align-items: center;
@@ -78,70 +138,43 @@
         font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
 
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #fcd34d; box-shadow: 0 0 8px #fcd34d; }
 
-    .st-reserved { color: #fcd34d; }
-    .st-reserved .status-dot { background-color: #fcd34d; box-shadow: 0 0 8px #fcd34d; }
-
-    /* BOTONES DE ACCIÓN SOFT */
-    
-    /* Botón ACEPTAR (Verde Soft) */
+    /* BOTONES ACCIÓN SOFT */
     .btn-accept-soft {
         background-color: var(--at-green-soft) !important;
         color: var(--at-green-text) !important;
         border: 1px solid rgba(34, 197, 94, 0.2) !important;
         font-weight: 700;
         border-radius: 8px;
-        padding: 6px 16px;
+        padding: 6px 14px;
         font-size: 0.75rem;
         text-decoration: none;
         text-transform: uppercase;
         transition: 0.3s;
     }
-    .btn-accept-soft:hover {
-        background-color: rgba(34, 197, 94, 0.25) !important;
-        transform: translateY(-2px);
-    }
+    .btn-accept-soft:hover { background-color: rgba(34, 197, 94, 0.25) !important; transform: translateY(-2px); }
 
-    /* Botón RECHAZAR (Rojo Soft) */
     .btn-delete-soft {
         background-color: var(--at-red-soft) !important;
         color: var(--at-red-text) !important;
         border: 1px solid rgba(239, 68, 68, 0.2) !important;
         font-weight: 700;
         border-radius: 8px;
-        padding: 6px 16px;
+        padding: 6px 14px;
         font-size: 0.75rem;
-        text-transform: uppercase;
         border: none;
         transition: 0.3s;
     }
-    .btn-delete-soft:hover {
-        background-color: rgba(239, 68, 68, 0.25) !important;
-        transform: translateY(-2px);
+    .btn-delete-soft:hover { background-color: rgba(239, 68, 68, 0.25) !important; transform: translateY(-2px); }
+
+    .img-thumb {
+        width: 60px; height: 60px; object-fit: cover; border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
     }
 
-    /* BOTÓN NAVEGACIÓN SUPERIOR */
-    .btn-top-nav {
-        color: #94a3b8;
-        border: 1px solid #30363d;
-        border-radius: 100px;
-        padding: 10px 25px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-decoration: none;
-        transition: 0.3s;
-    }
-    .btn-top-nav:hover {
-        background-color: rgba(255,255,255,0.05);
-        color: white;
-        border-color: rgba(255,255,255,0.2);
-    }
-
-    /* BOTÓN REGRESO */
     .btn-back-atrium {
         background: transparent;
         color: #64748b;
@@ -152,32 +185,63 @@
         text-decoration: none;
         transition: 0.3s;
     }
-    .btn-back-atrium:hover { color: white; border-color: white; background: rgba(255,255,255,0.03); }
-
-    /* IMAGEN RECTANGULAR REDONDEADA (No circular) */
-    .img-thumb {
-        width: 60px; 
-        height: 60px; 
-        object-fit: cover; 
-        border-radius: 8px; /* Rectángulo suave */
-        border: 1px solid rgba(255,255,255,0.1);
-    }
+    .btn-back-atrium:hover { color: white; border-color: white; }
 </style>
 
 <div class="admin-page-wrapper">
     <div class="container" style="max-width: 1100px;">
         
-        <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-5">
             <h2 class="admin-title m-0">✅ Gestión de Reservas</h2>
-            <a href="/admin/inventario" class="btn-top-nav">
-                Ver Inventario Completo
+            <a href="/admin/inventario" style="color: #94a3b8; text-decoration: none; font-weight: 600; border: 1px solid #30363d; padding: 10px 20px; border-radius: 100px;">
+                Ver Inventario
             </a>
         </div>
 
+        <!-- BARRA DE FILTROS EN UNA SOLA LÍNEA -->
+        <div class="filter-card-inline">
+            <form action="#" method="GET" id="reserveFilterForm" class="row g-2 align-items-end">
+                
+                <!-- Búsqueda -->
+                <div class="col-md-4">
+                    <label class="form-label-mini">Búsqueda rápida</label>
+                    <input type="text" id="smartSearch" class="form-control input-custom" placeholder="Obra o Artista..." autocomplete="off">
+                </div>
+
+                <!-- Género -->
+                <div class="col-md-3">
+                    <label class="form-label-mini">Filtrar Género</label>
+                    <select id="genreFilter" class="form-select input-custom">
+                        <option value="">Todas</option>
+                        <option value="Pintura">Pintura</option>
+                        <option value="Escultura">Escultura</option>
+                        <option value="Fotografía">Fotografía</option>
+                        <option value="Cerámica">Cerámica</option>
+                        <option value="Orfebrería">Orfebrería</option>
+                    </select>
+                </div>
+
+                <!-- Orden Precio -->
+                <div class="col-md-3">
+                    <label class="form-label-mini">Ordenar Precio</label>
+                    <select id="priceSort" class="form-select input-custom">
+                        <option value="default">Recientes</option>
+                        <option value="asc">Menor a Mayor</option>
+                        <option value="desc">Mayor a Menor</option>
+                    </select>
+                </div>
+
+                <!-- Limpiar -->
+                <div class="col-md-2">
+                    <button type="button" id="btnClearFilters" class="btn-reset-aesthetic">Limpiar Filtros</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABLA -->
         <div class="inventory-card">
             <div class="table-responsive">
-                <table class="table table-atrium align-middle text-center">
+                <table class="table table-atrium align-middle text-center" id="reserveTable">
                     <thead>
                         <tr>
                             <th style="width: 100px;">Vista</th>
@@ -189,24 +253,19 @@
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="reserveTableBody">
                         <% if (obras.length > 0) { %>
                             <% obras.forEach(o => { %>
-                                <tr>
-                                    <td>
-                                        <!-- Imagen rectangular para mejor visualización -->
-                                        <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" alt="<%= o.nombre %>" class="img-thumb">
-                                    </td>
+                                <tr class="reserve-row" 
+                                    data-search="<%= o.nombre.toLowerCase() %> <%= o.nombre_artista.toLowerCase() %> <%= o.apellido_artista.toLowerCase() %>"
+                                    data-genre="<%= o.nombre_genero %>"
+                                    data-price="<%= o.precioObra %>">
+                                    <td><img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" class="img-thumb"></td>
                                     <td class="fw-bold text-white"><%= o.nombre %></td>
-                                    
-                                    <!-- Nombre del artista en gris/blanco -->
                                     <td style="color: #cbd5e1; font-weight: 500;"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
-                                    
-                                    <!-- Género con el mismo color del artista -->
                                     <td style="color: #cbd5e1; font-weight: 500;"><%= o.nombre_genero %></td>
-                                    
                                     <td>
-                                        <div class="status-indicator st-reserved">
+                                        <div class="status-indicator" style="color: #fcd34d;">
                                             <span class="status-dot"></span>
                                             <%= o.estatus %>
                                         </div>
@@ -214,11 +273,8 @@
                                     <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
                                     <td>
                                         <div class="d-flex gap-2 justify-content-center">
-                                            <!-- BOTÓN ACEPTAR (Verde Soft) -->
                                             <a href="/admin/facturar/<%= o.id %>" class="btn-accept-soft">Aceptar</a>
-                                            
-                                            <!-- BOTÓN RECHAZAR (Rojo Soft) -->
-                                            <form action="/admin/reservas/<%= o.id %>/rechazar" method="POST" onsubmit="return confirm('¿Rechazar la reserva y devolver la obra a Disponible?');">
+                                            <form action="/admin/reservas/<%= o.id %>/rechazar" method="POST" onsubmit="return confirm('¿Rechazar reserva?');">
                                                 <button type="submit" class="btn-delete-soft">Rechazar</button>
                                             </form>
                                         </div>
@@ -226,20 +282,76 @@
                                 </tr>
                             <% }) %>
                         <% } else { %>
-                            <tr><td colspan="7" class="p-5 text-white-50 small">No hay reservas pendientes por procesar.</td></tr>
+                            <tr class="empty-msg"><td colspan="7" class="p-5 text-white-50 small">No hay reservas pendientes por procesar.</td></tr>
                         <% } %>
+                        <tr id="noResults" style="display: none;"><td colspan="7" class="p-5 text-warning opacity-75">Sin coincidencias para los filtros aplicados.</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- REGRESO -->
         <div class="text-start mt-5 mb-5">
-            <a href="/admin/dashboard" class="btn btn-back-atrium shadow-sm">
-                ← Volver al Panel Administrativo
-            </a>
+            <a href="/admin/dashboard" class="btn btn-back-atrium shadow-sm">← Volver al Panel</a>
         </div>
     </div>
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('smartSearch');
+        const genreSelect = document.getElementById('genreFilter');
+        const sortSelect = document.getElementById('priceSort');
+        const btnClear = document.getElementById('btnClearFilters');
+        const tableBody = document.getElementById('reserveTableBody');
+        const rows = Array.from(document.querySelectorAll('.reserve-row'));
+        const noResults = document.getElementById('noResults');
+
+        function updateTable() {
+            const term = searchInput.value.toLowerCase().trim();
+            const selectedGenre = genreSelect.value;
+            const sortMode = sortSelect.value;
+            let visibleCount = 0;
+
+            // 1. Filtrar
+            rows.forEach(row => {
+                const searchData = row.getAttribute('data-search');
+                const rowGenre = row.getAttribute('data-genre');
+                
+                const matchesSearch = searchData.includes(term);
+                const matchesGenre = selectedGenre === "" || rowGenre === selectedGenre;
+
+                if (matchesSearch && matchesGenre) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // 2. Ordenar
+            if (sortMode !== 'default') {
+                rows.sort((a, b) => {
+                    const priceA = parseFloat(a.getAttribute('data-price'));
+                    const priceB = parseFloat(b.getAttribute('data-price'));
+                    return sortMode === 'asc' ? priceA - priceB : priceB - priceA;
+                });
+                rows.forEach(row => tableBody.appendChild(row));
+            }
+
+            // 3. Mensaje
+            noResults.style.display = (visibleCount === 0 && (term !== "" || selectedGenre !== "")) ? '' : 'none';
+        }
+
+        searchInput.addEventListener('input', updateTable);
+        genreSelect.addEventListener('change', updateTable);
+        sortSelect.addEventListener('change', updateTable);
+        btnClear.addEventListener('click', () => {
+            searchInput.value = '';
+            genreSelect.value = '';
+            sortSelect.value = 'default';
+            updateTable();
+        });
+    });
+</script>
