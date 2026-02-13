@@ -9,7 +9,8 @@ const GaleriaController = {
             const filtros = {
                 genero: req.query.genero || null,
                 artista: req.query.artista || null,
-                precio: req.query.precio || null
+                precio: req.query.precio || null,
+                busqueda: req.query.busqueda || null 
             };
 
             const obras = await ObraModel.obtenerFiltradas(filtros);

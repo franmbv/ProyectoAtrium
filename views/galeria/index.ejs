@@ -54,6 +54,37 @@
         margin-bottom: 10px;
     }
 
+    /* ESTILO BARRA DE BÚSQUEDA */
+    .search-container {
+        position: relative;
+        margin-bottom: 25px;
+    }
+
+    .search-input {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 12px !important;
+        padding: 12px 40px 12px 15px !important;
+        width: 100%;
+        font-size: 0.9rem;
+    }
+
+    .search-input:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 10px var(--at-orange-glow);
+        outline: none;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--at-orange);
+        pointer-events: none;
+    }
+
     .custom-select {
         background-color: #0d1117 !important;
         border: 1px solid var(--at-border) !important;
@@ -99,7 +130,7 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* CARD DE OBRA (AZUL CARBONO CON ALUMBRADO) */
+    /* CARD DE OBRA */
     .obra-card {
         background-color: var(--at-card-bg) !important;
         border: 1px solid var(--at-border) !important;
@@ -139,7 +170,6 @@
         opacity: 1;
     }
 
-    /* ETIQUETA DE CATEGORÍA */
     .category-tag {
         display: inline-block;
         font-size: 0.6rem;
@@ -154,9 +184,8 @@
         background: rgba(249, 115, 22, 0.05);
     }
 
-    /* TÍTULO ELEGANTE */
     .obra-title {
-        font-family: 'Playfair Display', serif; /* Fuente elegante */
+        font-family: 'Playfair Display', serif; 
         font-size: 1.6rem;
         font-weight: 700;
         color: white;
@@ -224,8 +253,17 @@
             <!-- FILTROS -->
             <div class="col-lg-3">
                 <aside class="filter-sidebar">
-                    <form action="/galeria" method="GET">
-                        <span class="filter-label">Categoría</span>
+                    <!-- Formulario unificado -->
+                    <form action="/galeria" method="GET" id="filterForm">
+                        
+                        <!-- BARRA DE BÚSQUEDA EN TIEMPO REAL -->
+                        <span class="filter-label">Búsqueda Inteligente</span>
+                        <div class="search-container">
+                            <input type="text" id="realTimeSearch" name="busqueda" class="search-input" placeholder="Nombre u artista..." value="<%= filtros.busqueda || '' %>" autocomplete="off">
+                            <span class="search-icon">🔍</span>
+                        </div>
+
+                        <span class="filter-label">Disciplina</span>
                         <select name="genero" class="form-select custom-select" onchange="this.form.submit()">
                             <option value="">Todas</option>
                             <% if (locals.generos) { %>
@@ -235,7 +273,7 @@
                             <% } %>
                         </select>
 
-                        <span class="filter-label">Artista</span>
+                        <span class="filter-label">Maestro</span>
                         <select name="artista" class="form-select custom-select" onchange="this.form.submit()">
                             <option value="">Todos los artistas</option>
                             <% if (locals.artistas) { %>
@@ -245,7 +283,7 @@
                             <% } %>
                         </select>
 
-                        <span class="filter-label">Precio</span>
+                        <span class="filter-label">Inversión</span>
                         <select name="precio" class="form-select custom-select" onchange="this.form.submit()">
                             <option value="">Cualquier precio</option>
                             <option value="menor" <%= filtros.precio == 'menor' ? 'selected' : '' %>>Menor a Mayor</option>
@@ -263,22 +301,21 @@
 
             <!-- GRILLA DE OBRAS -->
             <div class="col-lg-9">
-                <div class="row g-4">
+                <div class="row g-4" id="artGrid">
                     <% if (locals.obras && obras.length > 0) { %>
                         <% obras.forEach((obra, index) => { %>
-                            <div class="col-md-6 col-xl-4 art-item" style="--delay: <%= index * 100 %>ms">
+                            <!-- Añadimos data-search para que el JS sepa qué texto buscar -->
+                            <div class="col-md-6 col-xl-4 art-item" 
+                                 style="--delay: <%= index * 100 %>ms"
+                                 data-search="<%= obra.nombre %> <%= obra.nombre_artista %> <%= obra.apellido_artista %>">
                                 <article class="obra-card shadow-lg">
                                     <div class="img-container">
                                         <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" class="obra-img" alt="<%= obra.nombre %>">
                                     </div>
                                     
                                     <div class="obra-info">
-                                        <!-- ETIQUETA DE CATEGORÍA AGREGADA -->
                                         <div class="category-tag"><%= obra.nombre_genero %></div>
-                                        
-                                        <!-- TÍTULO CON FUENTE ELEGANTE -->
                                         <h3 class="obra-title text-truncate text-start"><%= obra.nombre %></h3>
-                                        
                                         <p class="obra-artist text-truncate text-start">
                                             Por: <a href="/galeria/artista/<%= obra.autor_id %>">
                                                 <%= obra.nombre_artista %> <%= obra.apellido_artista %>
@@ -299,6 +336,10 @@
                             <a href="/galeria" style="color: var(--at-orange)">Ver todo el catálogo</a>
                         </div>
                     <% } %>
+                    <!-- Contenedor para cuando no hay resultados en la búsqueda real -->
+                    <div id="noResults" class="col-12 text-center py-5 d-none">
+                        <h4 class="text-white-50 fw-light">No se encontraron coincidencias en esta vista.</h4>
+                    </div>
                 </div>
             </div>
         </div>
@@ -306,6 +347,45 @@
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('realTimeSearch');
+        const artItems = document.querySelectorAll('.art-item');
+        const noResults = document.getElementById('noResults');
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase().trim();
+            let hasVisibleItems = false;
+
+            artItems.forEach(item => {
+                const searchText = item.getAttribute('data-search').toLowerCase();
+                
+                if (searchText.includes(term)) {
+                    item.style.display = 'block';
+                    hasVisibleItems = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Mostrar mensaje si no hay resultados locales
+            if (!hasVisibleItems && term !== "") {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
+            }
+        });
+        
+        // Evitar que el formulario se envíe al presionar Enter en el buscador 
+        // (para que no recargue la página y pierda la fluidez)
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
 
 <style>
     @keyframes revealIn { to { opacity: 1; transform: translateY(0); } }
