@@ -1,81 +1,68 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
-    <h2 class="mb-4">Gestión de Maestros / Artistas</h2>
-    
-    <!-- Formulario de Creación -->
-    <div class="card mb-5 shadow-sm">
-        <div class="card-header bg-dark text-white">Registrar Nuevo Artista</div>
-        <div class="card-body">
-            <form action="/admin/guardar-artista" method="POST" enctype="multipart/form-data" class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Nombre</label>
-                    <input type="text" name="nombre" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Apellido</label>
-                    <input type="text" name="apellido" class="form-control">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Fecha Nacimiento</label>
-                    <input type="date" name="fechaNac" class="form-control">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Fecha Fallecimiento</label>
-                    <input type="date" name="fechaFal" class="form-control">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Nacionalidad</label>
-                    <input type="text" name="nacionalidad" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Foto</label>
-                    <input type="file" name="foto" class="form-control" accept="image/*">
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Biografía</label>
-                    <textarea name="biografia" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary">Guardar Artista</button>
-                </div>
-            </form>
+<div class="container mt-4" style="max-width: 1000px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white fw-bold">👨‍🎨 Gestión de Artistas</h2>
+        <button class="btn btn-primary shadow" type="button" data-bs-toggle="collapse" data-bs-target="#formArtista">
+            + Agregar Nuevo Artista
+        </button>
+    </div>
+
+    <div class="collapse mb-5" id="formArtista">
+        <div class="card shadow-sm" style="max-width: 100%;">
+            <div class="card-header bg-dark text-white fw-bold">Registrar Artista</div>
+            <div class="card-body">
+                <form action="/admin/guardar-artista" method="POST" enctype="multipart/form-data" class="row g-3">
+                    <div class="col-md-6"><label class="form-label">Nombre</label><input type="text" name="nombre" class="form-control" required></div>
+                    <div class="col-md-6"><label class="form-label">Apellido</label><input type="text" name="apellido" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label">Nacionalidad</label><input type="text" name="nacionalidad" class="form-control" required></div>
+                    <div class="col-md-4"><label class="form-label">Nacimiento</label><input type="date" name="fechaNac" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label">Fallecimiento</label><input type="date" name="fechaFal" class="form-control"></div>
+                    <div class="col-12"><label class="form-label">Biografía</label><textarea name="biografia" class="form-control" rows="3"></textarea></div>
+                    <div class="col-md-12"><label class="form-label">Foto</label><input type="file" name="foto" class="form-control" accept="image/*"></div>
+                    <div class="col-12 text-end"><button type="submit" class="btn btn-success px-4">Guardar Artista</button></div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Tabla de Listado CRUD -->
-    <h3 class="mb-3">Artistas Registrados</h3>
-    <div class="table-responsive bg-white p-3 shadow-sm rounded border">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Foto</th>
-                    <th>Nombre Completo</th>
-                    <th>Nacionalidad</th>
-                    <th class="text-end">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% artistas.forEach(a => { %>
+    <div class="card shadow border-0 overflow-hidden" style="max-width: 100%;">
+        <div class="table-responsive bg-white">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-dark">
                     <tr>
-                        <td>
-                            <% if(a.fotografia) { %>
-                                <img src="/uploads/<%= a.fotografia %>" alt="Foto" width="50" height="50" class="rounded-circle object-fit-cover">
-                            <% } else { %>
-                                <span class="text-muted small">Sin foto</span>
-                            <% } %>
-                        </td>
-                        <td><%= a.nombre %> <%= a.apellido %></td>
-                        <td><%= a.nacionalidad %></td>
-                        <td class="text-end">
-                            <a href="/admin/editar-artista/<%= a.id %>" class="btn btn-sm btn-warning">Editar</a>
-                            <a href="/admin/eliminar-artista/<%= a.id %>" class="btn btn-sm btn-danger" onclick="return confirm('¿Seguro que desea eliminar a este artista? Si tiene obras, dará error.')">Eliminar</a>
-                        </td>
+                        <th>Foto</th>
+                        <th>Nombre</th>
+                        <th>Nacionalidad</th>
+                        <th>Acciones</th>
                     </tr>
-                <% }) %>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <% artistas.forEach(a => { %>
+                        <tr>
+                            <td>
+                                <% if(a.fotografia) { %>
+                                    <img src="/uploads/<%= a.fotografia %>" class="rounded-circle border" width="45" height="45" style="object-fit: cover;">
+                                <% } else { %>
+                                    <div class="rounded-circle bg-light border d-inline-flex align-items-center justify-content-center" style="width:45px; height:45px">👤</div>
+                                <% } %>
+                            </td>
+                            <td class="fw-bold text-primary"><%= a.nombre %> <%= a.apellido %></td>
+                            <td><span class="badge bg-light text-dark border"><%= a.nacionalidad %></span></td>
+                            <td>
+                                <a href="/admin/editar-artista/<%= a.id %>" class="btn btn-sm btn-outline-warning">Editar</a>
+                                <a href="/admin/eliminar-artista/<%= a.id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Borrar?')">Borrar</a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center mt-5 mb-5">
+        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
     </div>
 </div>
 
