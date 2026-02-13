@@ -1,78 +1,400 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
-    <h2 class="text-white fw-bold mb-4 text-center">Facturas por comprador</h2>
+<!-- Tipografías de lujo -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <form action="/admin/facturas" method="GET" class="row g-3 mb-4 bg-white p-3 rounded shadow-sm">
-        <div class="col-md-4">
-            <label class="form-label small fw-bold">Nombre del comprador</label>
-            <input type="text" name="nombre" class="form-control" value="<%= filtros ? filtros.nombre : '' %>" placeholder="Ej: Ana Perez">
-        </div>
-        <div class="col-md-3">
-            <label class="form-label small fw-bold">Desde</label>
-            <input type="date" name="fechaInicio" class="form-control" value="<%= filtros ? filtros.fechaInicio : '' %>">
-        </div>
-        <div class="col-md-3">
-            <label class="form-label small fw-bold">Hasta</label>
-            <input type="date" name="fechaFin" class="form-control" value="<%= filtros ? filtros.fechaFin : '' %>">
-        </div>
-        <div class="col-md-2 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-        </div>
-    </form>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.1);
+        --at-blue-soft: rgba(56, 189, 248, 0.1);
+        --at-blue-text: #38bdf8;
+    }
 
-    <div class="row justify-content-center">
-        <div class="col-12" style="max-width: 1100px;">
-            <% if (grupos.length > 0) { %>
-                <% grupos.forEach(g => { %>
-                    <div class="card shadow border-0 overflow-hidden mb-4">
-                        <div class="card-header bg-dark text-white">
-                            <strong><%= g.comprador || 'Comprador' %></strong>
-                        </div>
-                        <div class="table-responsive bg-white">
-                            <table class="table table-hover align-middle mb-0 text-center">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Factura</th>
-                                        <th>Fecha</th>
-                                        <th>Obra</th>
-                                        <th>Total</th>
-                                        <th>Accion</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% if (g.facturas.length > 0) { %>
-                                        <% g.facturas.forEach(f => { %>
-                                            <tr>
-                                                <td class="small fw-bold"><%= f.codigoDeFactura %></td>
-                                                <td><%= new Date(f.fechaDeVenta).toLocaleDateString() %></td>
-                                                <td><%= f.nombre_obra %></td>
-                                                <td class="fw-bold text-success">$<%= parseFloat(f.precioFinalVenta).toLocaleString('en-US') %></td>
-                                                <td>
-                                                    <a href="/admin/facturas/<%= f.id %>" class="btn btn-outline-dark btn-sm">Ver detalle</a>
-                                                </td>
-                                            </tr>
-                                        <% }) %>
-                                    <% } else { %>
-                                        <tr><td colspan="5" class="p-4">No hay facturas registradas.</td></tr>
-                                    <% } %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                <% }) %>
-            <% } else { %>
-                <div class="card shadow border-0">
-                    <div class="card-body text-center">No hay facturas registradas.</div>
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0 80px 0;
+        font-family: 'Inter', sans-serif;
+        overflow-x: hidden; 
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    /* FILTROS COMPACTOS */
+    .filter-card-inline {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        margin-bottom: 40px;
+    }
+
+    .form-label-mini {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+    }
+
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 10px 12px !important;
+        font-size: 0.85rem !important;
+        color-scheme: dark;
+    }
+    .input-custom::placeholder { color: #cbd5e1 !important; opacity: 1; }
+    .input-custom:focus { border-color: var(--at-orange) !important; box-shadow: 0 0 10px var(--at-orange-glow); outline: none; }
+
+    /* --- ESTILOS DEL CARRUSEL --- */
+    .carousel-container {
+        position: relative;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .carousel-window {
+        flex: 1;
+        overflow: hidden;
+        padding: 10px 5px;
+    }
+
+    .carousel-track {
+        display: flex;
+        transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .carousel-slide {
+        min-width: 100%;
+        flex-shrink: 0;
+    }
+
+    .nav-arrow {
+        background: var(--at-card-bg);
+        color: var(--at-orange);
+        border: 1px solid var(--at-border);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: 0.3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 10;
+    }
+    .nav-arrow:hover:not(:disabled) { background: var(--at-orange); color: white; transform: scale(1.1); }
+    .nav-arrow:disabled { opacity: 0.1; cursor: not-allowed; }
+
+    /* ACORDEÓN DE COMPRADORES */
+    .comprador-group-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        margin-bottom: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .comprador-header {
+        padding: 18px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    }
+    .comprador-header:hover { background-color: rgba(255,255,255,0.02); }
+
+    .comprador-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: white;
+    }
+
+    .factura-count {
+        background: var(--at-orange);
+        color: black;
+        font-size: 0.65rem;
+        font-weight: 900;
+        padding: 3px 12px;
+        border-radius: 50px;
+        margin-left: 15px;
+        text-transform: uppercase;
+    }
+
+    /* TABLA INTERNA */
+    .table-atrium { color: white !important; margin-bottom: 0; font-size: 0.9rem; }
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #000000 !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        padding: 12px;
+        border: none;
+    }
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+        padding: 15px;
+    }
+
+    .btn-detail-soft {
+        background-color: var(--at-blue-soft) !important;
+        color: var(--at-blue-text) !important;
+        border: 1px solid rgba(56, 189, 248, 0.2) !important;
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 4px 12px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        text-decoration: none;
+    }
+
+    .indicator-dots {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 30px;
+    }
+    .dot { width: 8px; height: 8px; background: #334155; border-radius: 50%; transition: 0.3s; }
+    .dot.active { background: var(--at-orange); width: 24px; border-radius: 10px; }
+
+    .btn-back-atrium {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 12px 40px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+        display: inline-block;
+    }
+    .btn-back-atrium:hover { color: white; border-color: white; }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1150px;">
+        
+        <h2 class="admin-title mb-5">📄 Facturas por Comprador</h2>
+
+        <!-- FILTROS UNIFICADOS INTELIGENTES -->
+        <div class="filter-card-inline">
+            <form id="filterForm" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label-mini">Búsqueda Inteligente (Tiempo Real)</label>
+                    <input type="text" id="realTimeSearch" class="form-control input-custom" placeholder="Nombre, apellido o código FAC-XXXX...">
                 </div>
+                <!-- Las fechas siguen funcionando por URL para refrescar la DB si es necesario -->
+                <div class="col-md-2">
+                    <label class="form-label-mini">Desde</label>
+                    <input type="date" name="fechaInicio" class="form-control input-custom" value="<%= filtros.fechaInicio %>" onchange="this.parentElement.parentElement.parentElement.submit()">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label-mini">Hasta</label>
+                    <input type="date" name="fechaFin" class="form-control input-custom" value="<%= filtros.fechaFin %>" onchange="this.parentElement.parentElement.parentElement.submit()">
+                </div>
+                <div class="col-md-3">
+                    <a href="/admin/facturas" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px dashed rgba(239, 68, 68, 0.3); border-radius: 10px; text-decoration: none; display: block; text-align: center; padding: 10px; font-size: 0.75rem; font-weight: 700;">✕ LIMPIAR FILTROS</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- CONTENEDOR DEL CARRUSEL -->
+        <div class="carousel-container" id="carouselWrapper">
+            <% if (grupos.length > 0) { %>
+                <button class="nav-arrow" id="prevBtn" onclick="moveCarousel(-1)">❮</button>
+
+                <div class="carousel-window">
+                    <div class="carousel-track" id="track">
+                        
+                        <% 
+                           const itemsPerSlide = 10; 
+                           for (let i = 0; i < grupos.length; i += itemsPerSlide) { 
+                               const slideItems = grupos.slice(i, i + itemsPerSlide);
+                        %>
+                            <div class="carousel-slide">
+                                <% slideItems.forEach((g, subIndex) => { 
+                                   const uniqueId = 'fact-acc-' + i + '-' + subIndex;
+                                   // Recolectamos todos los codigos de facturas de este comprador para la busqueda
+                                   const codigosBusqueda = g.facturas.map(f => f.codigoDeFactura.toLowerCase()).join(' ');
+                                %>
+                                    <div class="comprador-group-card shadow-lg" 
+                                         data-search-term="<%= g.comprador.toLowerCase() %> <%= codigosBusqueda %>">
+                                        <div class="comprador-header" onclick="toggleAccordion('<%= uniqueId %>')">
+                                            <div class="d-flex align-items-center">
+                                                <span class="comprador-name"><%= g.comprador %></span>
+                                                <span class="factura-count"><%= g.facturas.length %> Facturas</span>
+                                            </div>
+                                            <span id="icon-<%= uniqueId %>" style="color: var(--at-orange); transition: 0.4s;">▼</span>
+                                        </div>
+
+                                        <div id="<%= uniqueId %>" style="display: none; background: rgba(0,0,0,0.2);">
+                                            <div class="table-responsive">
+                                                <table class="table table-atrium align-middle text-center">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Código</th>
+                                                            <th>Fecha</th>
+                                                            <th>Obra</th>
+                                                            <th>Total</th>
+                                                            <th>Acción</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% g.facturas.forEach(f => { %>
+                                                            <tr>
+                                                                <td class="text-warning small font-monospace fw-bold"><%= f.codigoDeFactura %></td>
+                                                                <td class="text-white-50"><%= new Date(f.fechaDeVenta).toLocaleDateString() %></td>
+                                                                <td class="text-white"><%= f.nombre_obra %></td>
+                                                                <td class="fw-bold text-success">$<%= parseFloat(f.precioFinalVenta).toLocaleString() %></td>
+                                                                <td><a href="/admin/facturas/<%= f.id %>" class="btn-detail-soft">Ver Detalle</a></td>
+                                                            </tr>
+                                                        <% }) %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } %>
+
+                    </div>
+                </div>
+
+                <button class="nav-arrow" id="nextBtn" onclick="moveCarousel(1)">❯</button>
+            <% } else { %>
+                <div class="card p-5 text-center w-100"><p class="m-0 opacity-50">No se encontraron facturas con los filtros seleccionados.</p></div>
             <% } %>
         </div>
-    </div>
 
-    <div class="text-center mt-5 mb-5">
-        <a href="/admin/dashboard" class="btn btn-secondary shadow-sm">← Volver al Panel Administrativo</a>
+        <div class="indicator-dots" id="dotsContainer"></div>
+
+        <!-- Mensaje de no resultados en tiempo real -->
+        <div id="realTimeNoResults" class="text-center mt-5 d-none">
+            <h4 class="text-white-50 fw-light">No hay resultados para la búsqueda actual en este periodo.</h4>
+        </div>
+
+        <div class="text-start mt-5">
+            <a href="/admin/dashboard" class="btn btn-back-atrium shadow-sm">← Volver al Panel</a>
+        </div>
     </div>
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+    function toggleAccordion(id) {
+        const content = document.getElementById(id);
+        const icon = document.getElementById('icon-' + id);
+        const isHidden = content.style.display === 'none';
+        content.style.display = isHidden ? 'block' : 'none';
+        icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    // --- LÓGICA DE CARRUSEL ---
+    let currentSlide = 0;
+    const track = document.getElementById('track');
+    const slides = document.querySelectorAll('.carousel-slide');
+    const totalSlides = slides.length;
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const dotsContainer = document.getElementById('dotsContainer');
+
+    function initDots() {
+        if(!dotsContainer) return;
+        dotsContainer.innerHTML = '';
+        if(totalSlides > 1) {
+            for(let i=0; i<totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = `dot ${i === 0 ? 'active' : ''}`;
+                dotsContainer.appendChild(dot);
+            }
+        }
+    }
+
+    function moveCarousel(dir) {
+        currentSlide += dir;
+        if (currentSlide < 0) currentSlide = 0;
+        if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+        track.style.transform = `translateX(-${currentSlide * 100}%)`;
+        updateControls();
+    }
+
+    function updateControls() {
+        if(prevBtn) prevBtn.disabled = (currentSlide === 0);
+        if(nextBtn) nextBtn.disabled = (currentSlide === totalSlides - 1);
+        const dots = document.querySelectorAll('.dot');
+        dots.forEach((d, idx) => d.classList.toggle('active', idx === currentSlide));
+    }
+
+    // --- LÓGICA DE BÚSQUEDA EN TIEMPO REAL ---
+    const searchInput = document.getElementById('realTimeSearch');
+    const cards = document.querySelectorAll('.comprador-group-card');
+    const noResultsMsg = document.getElementById('realTimeNoResults');
+
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase().trim();
+        let anyMatch = false;
+
+        if (term.length > 0) {
+            // Desactivar temporalmente el carrusel para mostrar resultados planos
+            track.style.transform = 'none';
+            if(prevBtn) prevBtn.style.display = 'none';
+            if(nextBtn) nextBtn.style.display = 'none';
+            if(dotsContainer) dotsContainer.style.display = 'none';
+
+            cards.forEach(card => {
+                const searchContent = card.getAttribute('data-search-term');
+                if (searchContent.includes(term)) {
+                    card.style.display = 'block';
+                    anyMatch = true;
+                    // Abrir acordeón si buscamos una factura específica
+                    if(term.includes('fac-')) {
+                        const collapseId = card.querySelector('div[id^="fact-acc-"]').id;
+                        document.getElementById(collapseId).style.display = 'block';
+                    }
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            noResultsMsg.classList.toggle('d-none', anyMatch);
+        } else {
+            // Restaurar carrusel
+            if(prevBtn) prevBtn.style.display = 'flex';
+            if(nextBtn) nextBtn.style.display = 'flex';
+            if(dotsContainer) dotsContainer.style.display = 'flex';
+            cards.forEach(card => card.style.display = 'block');
+            noResultsMsg.classList.add('d-none');
+            moveCarousel(0); // Reset a la posición actual
+        }
+    });
+
+    initDots();
+    updateControls();
+</script>

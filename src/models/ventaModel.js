@@ -130,9 +130,10 @@ class VentaModel {
         const fechaFin = filtros.fechaFin ? String(filtros.fechaFin).trim() : '';
 
         if (nombre) {
-            condiciones.push('(u.nombre LIKE ? OR u.apellido LIKE ? OR CONCAT(u.nombre, " ", u.apellido) LIKE ?)');
-            const likeNombre = `%${nombre}%`;
-            params.push(likeNombre, likeNombre, likeNombre);
+             // Buscamos por nombre, apellido, nombre completo O código de factura
+            condiciones.push('(u.nombre LIKE ? OR u.apellido LIKE ? OR CONCAT(u.nombre, " ", u.apellido) LIKE ? OR v.codigoDeFactura LIKE ?)');
+            const term = `%${nombre}%`;
+            params.push(term, term, term, term);
         }
 
         if (fechaInicio && fechaFin) {
