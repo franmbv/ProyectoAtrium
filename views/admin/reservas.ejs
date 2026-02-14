@@ -273,7 +273,9 @@
                                     <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
                                     <td>
                                         <div class="d-flex gap-2 justify-content-center">
-                                            <a href="/admin/facturar/<%= o.id %>" class="btn-accept-soft">Ver factura</a>
+                                            <form action="/admin/reservas/<%= o.id %>/aceptar" method="POST" onsubmit="return confirm('¿Aceptar reserva y generar factura?');">
+                                                <button type="submit" class="btn-accept-soft">Aceptar</button>
+                                            </form>
                                             <form action="/admin/reservas/<%= o.id %>/rechazar" method="POST" onsubmit="return confirm('¿Rechazar reserva?');">
                                                 <button type="submit" class="btn-delete-soft">Rechazar</button>
                                             </form>
