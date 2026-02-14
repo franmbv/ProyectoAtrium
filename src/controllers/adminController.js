@@ -157,6 +157,17 @@ const AdminController = {
 
     guardarArtista: async (req, res) => {
         try {
+            const { nombre, apellido } = req.body;
+            
+            // VALIDACIÓN DE DUPLICADOS
+            const duplicado = await ArtistaModel.existeNombreCompleto(nombre, apellido);
+            
+            if (duplicado) {
+                // Si existe, podrías enviar un mensaje de error. 
+                // Para no complicar la vista, redirigimos con un mensaje simple o alerta.
+                return res.send("<script>alert('Error: Ya existe un artista registrado con ese nombre y apellido.'); window.location.href='/admin/gestion-artistas';</script>");
+            }
+
             const foto = req.file ? req.file.filename : null;
             await ArtistaModel.crear(req.body, foto);
             res.redirect('/admin/gestion-artistas');
