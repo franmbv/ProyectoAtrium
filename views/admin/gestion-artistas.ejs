@@ -15,6 +15,8 @@
         --at-yellow-text: #fcd34d;
         --at-red-soft: rgba(239, 68, 68, 0.12);    
         --at-red-text: #fca5a5;
+        --at-green-soft: rgba(34, 197, 94, 0.12); /* Nuevo color verde */
+        --at-green-text: #4ade80; /* Texto verde */
         --at-border: rgba(255, 255, 255, 0.1);
     }
 
@@ -66,6 +68,27 @@
         outline: none;
     }
 
+    /* Botón examinar en Gris Original */
+    .input-custom::file-selector-button {
+        background-color: #6c757d; /* Gris estándar */
+        color: white;
+        border: none;
+        border-right: 1px solid var(--at-border);
+        padding: 0 20px;
+        margin-right: 15px;
+        height: 46px; 
+        border-radius: 9px 0 0 9px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .input-custom::file-selector-button:hover {
+        background-color: #5a6268; /* Gris más oscuro al hover */
+    }
+
     .btn-atrium-orange {
         background-color: var(--at-orange) !important;
         color: white !important;
@@ -113,6 +136,7 @@
         vertical-align: middle;
     }
 
+    /* ESTILOS DE BOTONES "SOFT" PARA ACCIONES */
     .btn-edit-soft {
         background-color: var(--at-yellow-soft) !important;
         color: var(--at-yellow-text) !important;
@@ -131,7 +155,39 @@
         border-radius: 8px;
         padding: 6px 14px;
         font-size: 0.75rem;
+        text-decoration: none; 
     }
+    .btn-activate-soft {
+        background-color: var(--at-green-soft) !important;
+        color: var(--at-green-text) !important;
+        border: 1px solid rgba(34, 197, 94, 0.2) !important;
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 0.75rem;
+        text-decoration: none;
+    }
+
+    /* NUEVO DISEÑO DE ESTADO (Punto + Texto) */
+    .status-indicator-text {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* Estado Activo (Verde Neón) */
+    .st-active { color: var(--at-green-text); }
+    .st-active .status-dot { background-color: var(--at-green-text); box-shadow: 0 0 8px var(--at-green-text); }
+
+    /* Estado Inactivo (Rojo Suave) */
+    .st-inactive { color: var(--at-red-text); }
+    .st-inactive .status-dot { background-color: var(--at-red-text); box-shadow: 0 0 8px var(--at-red-text); }
+
 
     .btn-back-atrium {
         background: transparent;
@@ -154,8 +210,6 @@
         color: #cbd5e1 !important;
         opacity: 1;
     }
-
-
 </style>
 
 <div class="admin-page-wrapper">
@@ -175,8 +229,12 @@
                 <h4 class="text-white mb-4 fw-bold">Registrar Nuevo Maestro</h4>
                 <form action="/admin/guardar-artista" method="POST" enctype="multipart/form-data" class="row g-4">
                     <div class="col-md-6"><label class="form-label-custom">Nombre</label><input type="text" name="nombre" class="form-control input-custom" required></div>
-                    <div class="col-md-6"><label class="form-label-custom">Apellido</label><input type="text" name="apellido" class="form-control"></div>
-                    <div class="col-md-4"><label class="form-label-custom">Nacionalidad</label><input type="text" name="nacionalidad" class="form-control" required></div>
+                    
+                    <!-- Inputs Homogéneos -->
+                    <div class="col-md-6"><label class="form-label-custom">Apellido</label><input type="text" name="apellido" class="form-control input-custom"></div>
+                    
+                    <div class="col-md-4"><label class="form-label-custom">Nacionalidad</label><input type="text" name="nacionalidad" class="form-control input-custom" required></div>
+                    
                     <div class="col-md-4"><label class="form-label-custom">Nacimiento</label><input type="date" name="fechaNac" class="form-control input-custom"></div>
                     <div class="col-md-4"><label class="form-label-custom">Fallecimiento</label><input type="date" name="fechaFal" class="form-control input-custom"></div>
                     <div class="col-12"><label class="form-label-custom">Biografía</label><textarea name="biografia" class="form-control input-custom" rows="3"></textarea></div>
@@ -210,6 +268,7 @@
                             <th style="width: 100px;">Perfil</th>
                             <th>Nombre Completo</th>
                             <th>Nacionalidad</th>
+                            <th>Estado</th> <!-- Columna Estado -->
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -233,10 +292,29 @@
                                 <td>
                                     <span class="badge bg-dark border border-secondary text-white-50 px-3 py-2"><%= a.nacionalidad %></span>
                                 </td>
+                                
+                                <!-- MODIFICADO: Estado con diseño de Punto + Texto -->
+                                <td> 
+                                    <% if (a.estado === 'Activo') { %>
+                                        <div class="status-indicator-text st-active">
+                                            <span class="status-dot"></span> Activo
+                                        </div>
+                                    <% } else { %>
+                                        <div class="status-indicator-text st-inactive">
+                                            <span class="status-dot"></span> Inactivo
+                                        </div>
+                                    <% } %>
+                                </td>
+
                                 <td>
                                     <div class="d-flex gap-2 justify-content-center">
                                         <a href="/admin/editar-artista/<%= a.id %>" class="btn-edit-soft">Editar</a>
-                                        <a href="/admin/eliminar-artista/<%= a.id %>" class="btn-delete-soft" onclick="return confirm('¿Borrar artista?')">Borrar</a>
+                                        
+                                        <% if (a.estado === 'Activo') { %>
+                                            <a href="/admin/eliminar-artista/<%= a.id %>" class="btn-delete-soft" onclick="return confirm('¿Inactivar artista?')">Inactivar</a>
+                                        <% } else { %>
+                                            <a href="/admin/activar-artista/<%= a.id %>" class="btn-activate-soft">Activar</a>
+                                        <% } %>
                                     </div>
                                 </td>
                             </tr>
