@@ -43,7 +43,7 @@ class InfoCompradorModel {
     // 3. REPORTE PARA EL ADMIN
     static async obtenerReportePorPeriodo(fechaInicio, fechaFin) {
         let sql = `
-            SELECT i.Id, i.codigoSeguridad, i.fechaGeneracion, i.estado,
+            SELECT i.comprador_id AS Id, i.codigoSeguridad, i.fechaGeneracion, i.estado,
                    m.fechaPago, m.montoPagado,
                    u.nombre, u.apellido, u.cedula, u.gmail
             FROM info_comprador i

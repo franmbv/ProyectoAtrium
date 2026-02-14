@@ -105,7 +105,7 @@ const AuthController = {
                 login: usuario.login
             };
 
-            if (usuario.rol_id === 1) {
+            if (usuario.rol_id === 1 || usuario.rol_id === 3) {
                 res.redirect('/admin/dashboard');
             } else {
                 res.redirect('/galeria');

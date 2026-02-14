@@ -1,0 +1,198 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+    :root {
+        --dash-bg: #161b22;      
+        --dash-border: #30363d;   
+        --atrium-orange: #f97316; 
+        --atrium-ink: #0d1117;    
+    }
+
+    .admin-dashboard-wrapper {
+        padding: 40px 20px;
+        max-width: 900px; /* Un poco más angosto para que el form no se vea estirado */
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .dashboard-panel {
+        background-color: var(--dash-bg) !important;
+        border: 1px solid var(--dash-border);
+        border-radius: 20px;
+        padding: 45px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .dashboard-title {
+        color: #ffffff !important;
+        text-align: left !important;
+        font-weight: 800;
+        margin-bottom: 5px;
+        letter-spacing: -1px;
+        font-size: 2.2rem;
+    }
+
+    .dashboard-subtitle {
+        color: var(--atrium-orange);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 0.85rem;
+        margin-bottom: 35px;
+        text-align: left;
+    }
+
+    /* ESTILOS DE FORMULARIO PREMIUM */
+    .form-label-custom {
+        display: block;
+        color: #94a3b8; /* Gris azulado suave */
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .input-custom {
+        background-color: var(--atrium-ink) !important;
+        border: 1px solid var(--dash-border) !important;
+        color: #ffffff !important;
+        padding: 14px 20px !important;
+        border-radius: 12px !important;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .input-custom::placeholder {
+        color: #4b5563;
+    }
+
+    .input-custom:focus {
+        border-color: var(--atrium-orange) !important;
+        box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15) !important;
+        outline: none;
+    }
+
+    /* BOTONES */
+    .btn-superadmin {
+        background-color: var(--atrium-orange) !important;
+        color: #000000 !important; /* Letras negras como en tu list-header */
+        border: none;
+        border-radius: 12px;
+        padding: 16px 24px;
+        font-weight: 800;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
+    }
+
+    .btn-superadmin:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 25px -5px rgba(249, 115, 22, 0.4);
+        filter: brightness(1.1);
+    }
+
+    .btn-cancel {
+        background-color: transparent;
+        color: #94a3b8;
+        border: 1px solid var(--dash-border);
+        border-radius: 12px;
+        padding: 16px 24px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        text-align: center;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .btn-cancel:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+        border-color: #ffffff;
+    }
+
+    /* ALERTA DE ERROR ESTILO GLASS */
+    .alert-superadmin {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        border-radius: 12px;
+        padding: 16px;
+        font-weight: 600;
+        margin-bottom: 30px;
+    }
+</style>
+
+<div class="admin-dashboard-wrapper">
+    <div class="dashboard-panel shadow-2xl">
+        
+        <h1 class="dashboard-title">Alta de Administrador</h1>
+        <div class="dashboard-subtitle">👑 Zona Exclusiva de Superadmin</div>
+
+        <% if (locals.error) { %>
+            <div class="alert alert-superadmin" role="alert">
+                ⚠️ <%= error %>
+            </div>
+        <% } %>
+
+        <form action="/admin/usuarios/crear" method="POST">
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label-custom">Nombre del Empleado</label>
+                    <input type="text" name="nombre" class="form-control input-custom" required placeholder="Ej: Carlos">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label-custom">Apellido</label>
+                    <input type="text" name="apellido" class="form-control input-custom" required placeholder="Ej: Mendoza">
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label-custom">Cédula de Identidad</label>
+                    <input type="text" name="cedula" class="form-control input-custom" required placeholder="V-00000000">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label-custom">Correo Institucional (Gmail)</label>
+                    <input type="email" name="gmail" class="form-control input-custom" required placeholder="admin@gmail.com">
+                </div>
+            </div>
+
+            <hr class="my-5" style="border-color: var(--dash-border);">
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <label class="form-label-custom">Usuario (Login de acceso)</label>
+                    <input type="text" name="login" class="form-control input-custom" required placeholder="carlos_admin">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label-custom">Contraseña Temporal</label>
+                    <input type="password" name="password" class="form-control input-custom" required placeholder="••••••••">
+                </div>
+            </div>
+
+            <div class="row g-3 mt-2">
+                <div class="col-md-8">
+                    <button type="submit" class="btn btn-superadmin w-100">
+                        Crear Cuenta Administrativa ➔
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <a href="/admin/dashboard" class="btn btn-cancel">
+                        Cancelar
+                    </a>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

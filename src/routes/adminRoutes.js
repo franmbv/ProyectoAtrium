@@ -1,9 +1,28 @@
 const express = require('express');
 const router = express.Router();
 
-const adminController = require('../controllers/adminController'); // <--- CORREGIDO: minúscula
+const adminController = require('../controllers/adminController'); 
 const AuthController = require('../controllers/AuthController');
 const upload = require('../config/multer');
+
+const verificarAccesoPanel = (req, res, next) => {
+    const rol = req.session.usuario?.rol;
+    if (rol === 1 || rol === 3) {
+        return next();
+    }
+    res.redirect('/auth/login?error=Acceso denegado. Se requieren permisos de administrador.');
+};
+
+const verificarSuperAdmin = (req, res, next) => {
+    if (req.session.usuario && req.session.usuario.rol === 3) {
+        return next();
+    }
+    res.redirect('/admin/dashboard?error=Acceso restringido: Solo los Superadministradores pueden crear nuevas cuentas.');
+};
+
+router.use(AuthController.verificarSesion);
+
+router.use(verificarAccesoPanel);
 
 // Proteger todas las rutas de admin
 router.use(AuthController.verificarSesion);
@@ -44,5 +63,9 @@ router.get('/obras-vendidas', adminController.obrasVendidas);
 router.get('/facturas', adminController.facturasListado);
 router.get('/facturas/:id', adminController.facturaDetalle);
 router.get('/reportes-membresia', adminController.reporteMembresias);
+
+// Gestión de Usuarios
+router.get('/usuarios/crear', verificarSuperAdmin, adminController.mostrarCrearAdmin);
+router.post('/usuarios/crear', verificarSuperAdmin, adminController.procesarCrearAdmin);
 
 module.exports = router;

@@ -385,6 +385,11 @@ const AdminController = {
                 return res.render('admin/crear-admin', { error: 'El Login ya está en uso' });
             }
 
+            const existeEmail = await UsuarioModel.buscarPorEmail(gmail);
+            if (existeEmail) {
+                return res.render('admin/crear-admin', { error: 'El Correo ya está registrado en otra cuenta' });
+            }
+
             const passwordEncriptado = await bcrypt.hash(password, 10);
             const datosUsuario = { nombre, apellido, cedula, gmail, login, password: passwordEncriptado };
             await UsuarioModel.crear(datosUsuario, 1);
