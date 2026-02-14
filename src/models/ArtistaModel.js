@@ -14,6 +14,20 @@ class ArtistaModel {
         return rows;
     }
 
+    // --- NUEVO: Validar si existe la combinación nombre/apellido (Ignora mayúsculas/minúsculas) ---
+    static async existeNombreCompleto(nombre, apellido) {
+        const sql = 'SELECT id FROM artista WHERE LOWER(nombre) = LOWER(?) AND LOWER(apellido) = LOWER(?) LIMIT 1';
+        const [rows] = await db.execute(sql, [nombre, apellido]);
+        return rows.length > 0;
+    }
+
+    // --- NUEVO: Validar duplicados al editar (Verifica si el nombre ya lo tiene OTRO artista) ---
+    static async existeNombreCompletoExceptoId(nombre, apellido, id) {
+        const sql = 'SELECT id FROM artista WHERE LOWER(nombre) = LOWER(?) AND LOWER(apellido) = LOWER(?) AND id <> ? LIMIT 1';
+        const [rows] = await db.execute(sql, [nombre, apellido, id]);
+        return rows.length > 0;
+    }
+
     // Buscar uno por ID (Para edición y perfil público)
     static async obtenerPorId(id) {
         const [rows] = await db.execute('SELECT * FROM artista WHERE id = ?', [id]);
