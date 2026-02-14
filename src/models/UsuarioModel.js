@@ -64,6 +64,33 @@ class UsuarioModel {
         const [rows] = await db.execute(sql, [usuarioId]);
         return rows; 
     }
+
+    // 6. Obtener el catálogo de preguntas (Para mostrar en el formulario de registro)
+    static async obtenerCatalogoPreguntas() {
+        const sql = `SELECT Id, pregunta FROM catalogopreguntas ORDER BY Id ASC`;
+        const [rows] = await db.execute(sql);
+        return rows;
+    }
+
+    // 7. Guardar las respuestas de un usuario nuevo
+    static async guardarRespuestas(usuarioId, arrayIds, respuestasArray) {
+        try {
+            for (let i = 0; i < respuestasArray.length; i++) {
+                const preguntaId = arrayIds[i]; 
+                const respuestaUsuario = respuestasArray[i];
+
+                const sql = `
+                    INSERT INTO asignacion_q_comprador (pregunta_id, comprador_id, respuesta) 
+                    VALUES (?, ?, ?)
+                `;
+                await db.execute(sql, [preguntaId, usuarioId, respuestaUsuario]);
+            }
+            return true;
+        } catch (error) {
+            console.error('Error al guardar respuestas:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = UsuarioModel;

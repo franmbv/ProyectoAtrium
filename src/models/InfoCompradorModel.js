@@ -10,17 +10,17 @@ class InfoCompradorModel {
     }
 
     // 2. REGISTRAR MEMBRESÍA (Usado en el Registro del Usuario)
-    static async crear(idUsuario, codigoSeguridad) {
+    static async crear(idUsuario, codigoSeguridad, nroTarjeta) {
         const connection = await db.getConnection(); 
         try {
             await connection.beginTransaction();
 
             const sqlInfo = `
                 INSERT INTO info_comprador 
-                (comprador_id, codigoSeguridad, estado, fechaGeneracion, pais) 
-                VALUES (?, ?, 'Activo', CURDATE(), 'Venezuela')
+                (comprador_id, codigoSeguridad, nroTarjeta, estado, fechaGeneracion, pais) 
+                VALUES (?, ?, ?, 'Activo', CURDATE(), 'Venezuela')
             `;
-            await connection.execute(sqlInfo, [idUsuario, codigoSeguridad]);
+            await connection.execute(sqlInfo, [idUsuario, codigoSeguridad, nroTarjeta]);
 
             const sqlMembresia = `
                 INSERT INTO membresia 

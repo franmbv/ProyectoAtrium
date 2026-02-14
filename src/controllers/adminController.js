@@ -3,6 +3,8 @@ const ObraModel = require('../models/ObraModel');
 const VentaModel = require('../models/ventaModel');
 const ArtistaModel = require('../models/ArtistaModel');
 const InfoCompradorModel = require('../models/InfoCompradorModel');
+const bcrypt = require('bcryptjs');
+const UsuarioModel = require('../models/UsuarioModel');
 
 const AdminController = {
 
@@ -345,7 +347,32 @@ const AdminController = {
             console.error(error);
             res.status(500).send('Error al generar reporte de membresías');
         }
+    },
+
+    mostrarCrearAdmin: (req, res) => {
+        res.render('admin/crear-admin', { error: null }); 
+    },
+
+    procesarCrearAdmin: async (req, res) => {
+        try {
+            const { nombre, apellido, cedula, gmail, login, password } = req.body;
+
+            const existeLogin = await UsuarioModel.buscarPorLogin(login);
+            if (existeLogin) {
+                return res.render('admin/crear-admin', { error: 'El Login ya está en uso' });
+            }
+
+            const passwordEncriptado = await bcrypt.hash(password, 10);
+            const datosUsuario = { nombre, apellido, cedula, gmail, login, password: passwordEncriptado };
+            await UsuarioModel.crear(datosUsuario, 1);
+            res.redirect('/admin/dashboard?success=Nuevo Administrador creado con éxito');
+
+        } catch (error) {
+            console.error('Error al crear admin:', error);
+            res.render('admin/crear-admin', { error: 'Error interno del servidor.' });
+        }
     }
+
 };
 
 module.exports = AdminController;

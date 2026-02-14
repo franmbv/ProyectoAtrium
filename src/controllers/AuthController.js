@@ -6,8 +6,14 @@ const AuthController = {
 
     // --- 1. MOSTRAR FORMULARIOS (GET) ---
     
-    mostrarRegistro: (req, res) => {
-        res.render('auth/registro', { error: null });
+    mostrarRegistro: async(req, res) => {
+        try {
+            const preguntas = await UsuarioModel.obtenerCatalogoPreguntas();
+            res.render('auth/registro', { error: null, preguntas });
+        } catch (error) {
+            console.error('Error al cargar la vista de registro:', error);
+            res.redirect('/auth/login');
+        }
     },
 
     mostrarLogin: (req, res) => {
@@ -17,16 +23,28 @@ const AuthController = {
     // --- 2. PROCESAR REGISTRO (POST) ---
     registrar: async (req, res) => {
         try {
-            const { nombre, apellido, cedula, gmail, login, password } = req.body;
+            const { nombre, apellido, cedula, gmail, login, password, preguntasIds, respuestas, nroTarjeta, cvv} = req.body;
+
+            const preguntas = await UsuarioModel.obtenerCatalogoPreguntas();
 
             const existeUsuario = await UsuarioModel.buscarPorLogin(login);
             if (existeUsuario) {
-                return res.render('auth/registro', { error: 'El Login ya está en uso' });
+                return res.render('auth/registro', { error: 'El Usuario ya está en uso', preguntas });
+            }
+
+            const existeEmail = await UsuarioModel.buscarPorEmail(gmail);
+            if (existeEmail) {
+                return res.render('auth/registro', { error: 'El Correo ya está registrado', preguntas });
+            }
+
+            if (nroTarjeta.length < 15 || cvv.length < 3) {
+                return res.render('auth/registro', { error: 'Datos de tarjeta inválidos', preguntas });
             }
 
             const passwordEncriptado = await bcrypt.hash(password, 10);
             const numeroAleatorio = Math.floor(Math.random() * 1000); 
             const codigoSeguridad = numeroAleatorio.toString().padStart(3, '0');
+            const tarjetaSegura = nroTarjeta.slice(-4);
 
             const nuevoUsuario = {
                 nombre, 
@@ -37,19 +55,21 @@ const AuthController = {
                 password: passwordEncriptado 
             };
 
-            const idUsuario = await UsuarioModel.crear(nuevoUsuario);
-            await InfoCompradorModel.crear(idUsuario, codigoSeguridad);
+            const idUsuario = await UsuarioModel.crear(nuevoUsuario, 2);
+            await InfoCompradorModel.crear(idUsuario, codigoSeguridad, tarjetaSegura);
+            await UsuarioModel.guardarRespuestas(idUsuario, preguntasIds, respuestas);
             
             console.log("---------------------------------------------------");
             console.log(`📧 SIMULANDO ENVÍO DE CORREO A: ${gmail}`);
             console.log(`🔐 SU CÓDIGO DE SEGURIDAD ES: ${codigoSeguridad}`);
             console.log("---------------------------------------------------");
 
-            res.redirect('/auth/login');
+            res.redirect('/auth/login?success=Registro exitoso.');
 
         } catch (error) {
             console.error(error);
-            res.render('auth/registro', { error: 'Error interno al registrar usuario.' });
+            const preguntas = await UsuarioModel.obtenerCatalogoPreguntas();
+            res.render('auth/registro', { error: 'Error interno al procesar el registro. Intenta más tarde.', preguntas });
         }
     },
 
