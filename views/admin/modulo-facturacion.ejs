@@ -4,13 +4,14 @@
 <div class="container mt-4">
     <div class="card">
         <div class="card-header bg-dark text-white">
-            <h4>Emitir Factura Legal</h4>
+            <h4>Revisar Factura</h4>
         </div>
         <div class="card-body">
             <form action="/admin/emitir-factura" method="POST">
                 <input type="hidden" name="obra_id" value="<%= obra.id %>">
                 <input type="hidden" name="precioObra" value="<%= obra.precioObra %>">
                 <input type="hidden" name="porcentajeGanancia" value="<%= obra.porcentajeGanancia %>">
+                <input type="hidden" name="comprador_id" value="<%= comprador.id %>">
 
                 <div class="row mb-4">
                     <div class="col-md-6">
@@ -21,13 +22,8 @@
                     </div>
                     <div class="col-md-6 border-start">
                         <h5 class="text-secondary">Datos del Comprador</h5>
-                        <label class="form-label">Seleccionar Cliente</label>
-                        <select name="comprador_id" class="form-select" required>
-                            <option value="">-- Seleccione --</option>
-                            <% compradores.forEach(c => { %>
-                                <option value="<%= c.id %>"><%= c.nombre %> <%= c.apellido %></option>
-                            <% }) %>
-                        </select>
+                        <p><strong>Nombre:</strong> <%= comprador.nombre %> <%= comprador.apellido %></p>
+                        <p><strong>Correo:</strong> <%= comprador.gmail %></p>
                     </div>
                 </div>
 
@@ -42,8 +38,8 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Estado</label>
-                        <select name="estado" class="form-select" required>
-                            <option value="">Seleccione</option>
+                        <select name="estado" class="form-select">
+                            <option value="Pendiente" selected>Pendiente</option>
                             <option value="Bolívar">Bolívar</option>
                             <option value="Caracas">Caracas</option>
                             <option value="Anzoátegui">Anzoátegui</option>
@@ -55,24 +51,25 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Ciudad</label>
-                        <input type="text" name="ciudad" class="form-control" required placeholder="Ej: Puerto Ordaz">
+                        <input type="text" name="ciudad" class="form-control" value="Pendiente" placeholder="Ej: Puerto Ordaz">
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label">Municipio</label>
-                        <input type="text" name="municipio" class="form-control" placeholder="Ej: Caroní">
+                        <input type="text" name="municipio" class="form-control" value="Pendiente" placeholder="Ej: Caroní">
                     </div>
                     <div class="col-md-8">
                         <label class="form-label">Calle / Avenida / Casa / Edificio</label>
-                        <input type="text" name="calle" class="form-control" required placeholder="Dirección exacta...">
+                        <input type="text" name="calle" class="form-control" value="Pendiente" placeholder="Dirección exacta...">
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label">Empresa de Envío (Courier)</label>
-                    <select name="empresaEnvio" class="form-select" required>
+                    <select name="empresaEnvio" class="form-select">
+                        <option value="Pendiente" selected>Pendiente</option>
                         <option value="DHL">DHL</option>
                         <option value="FedEx">FedEx</option>
                         <option value="MRW">MRW</option>
@@ -90,7 +87,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-success btn-lg w-100">
-                    Confirmar Venta y Generar Factura
+                    Aceptar Reserva y Generar Factura
                 </button>
             </form>
         </div>

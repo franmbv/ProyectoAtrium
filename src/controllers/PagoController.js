@@ -137,7 +137,12 @@ const PagoController = {
                 return res.redirect('/galeria');
             }
 
-            const reservado = await ObraModel.reservarById(obra.id);
+            const compradorId = req.session.usuario?.id;
+            if (!compradorId) {
+                return res.redirect('/auth/login');
+            }
+
+            const reservado = await ObraModel.reservarById(obra.id, compradorId);
             
             if (reservado) {
                req.session.message = {
