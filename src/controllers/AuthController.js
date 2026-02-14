@@ -42,6 +42,14 @@ const AuthController = {
             }
 
             const passwordEncriptado = await bcrypt.hash(password, 10);
+
+            const respuestasHasheadas = [];
+            for (let i = 0; i < respuestas.length; i++) {
+                const respuestaLimpia = respuestas[i].trim().toLowerCase();
+                const hashRespuesta = await bcrypt.hash(respuestaLimpia, 10);
+                respuestasHasheadas.push(hashRespuesta);
+            }
+
             const numeroAleatorio = Math.floor(Math.random() * 1000); 
             const codigoSeguridad = numeroAleatorio.toString().padStart(3, '0');
             const tarjetaSegura = nroTarjeta.slice(-4);
@@ -57,7 +65,7 @@ const AuthController = {
 
             const idUsuario = await UsuarioModel.crear(nuevoUsuario, 2);
             await InfoCompradorModel.crear(idUsuario, codigoSeguridad, tarjetaSegura);
-            await UsuarioModel.guardarRespuestas(idUsuario, preguntasIds, respuestas);
+            await UsuarioModel.guardarRespuestas(idUsuario, preguntasIds, respuestasHasheadas);
             
             console.log("---------------------------------------------------");
             console.log(`📧 SIMULANDO ENVÍO DE CORREO A: ${gmail}`);

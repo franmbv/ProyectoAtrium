@@ -2,6 +2,7 @@ const InfoCompradorModel = require('../models/InfoCompradorModel');
 const ObraModel = require('../models/ObraModel'); 
 const UsuarioModel = require('../models/UsuarioModel');
 const { sendSecurityCode } = require('../config/mailer');
+const bcrypt = require('bcryptjs');
 
 const PagoController = {
 
@@ -234,17 +235,18 @@ const PagoController = {
             let todoCorrecto = true;
             
             for (let i = 0; i < datosCorrectos.length; i++) {
-                const respuestaReal = datosCorrectos[i].respuesta.trim().toLowerCase();
+                const hashGuardado = datosCorrectos[i].respuesta;
                 const respuestaInput = respuestasUsuario[i] ? respuestasUsuario[i].trim().toLowerCase() : '';
+                const coincide = await bcrypt.compare(respuestaInput, hashGuardado);
 
-                if (respuestaReal !== respuestaInput) {
+                if (!coincide) {
                     todoCorrecto = false;
                     break; 
                 }
             }
 
             if (todoCorrecto) {
-                const nuevoCodigo = Math.floor(100 + Math.random() * 900);
+                const nuevoCodigo = Math.floor(100 + Math.random() * 900).toString().padStart(3, '0');
                 await InfoCompradorModel.actualizarCodigo(usuarioId, nuevoCodigo);
 
                 return res.render('pagos/recuperar-codigo', {
