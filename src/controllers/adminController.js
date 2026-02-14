@@ -35,7 +35,7 @@ const AdminController = {
     gestionObras: async (req, res) => {
         try {
             const generos = await ObraModel.obtenerGeneros();
-            const artistas = await ArtistaModel.listar();
+            const artistas = await ArtistaModel.listarActivos(); // <--- Solo los activos - // En adminController.js, dentro de gestionObras:
             res.render('admin/gestion-obras', { generos, artistas });
         } catch (error) {
             console.error(error);
@@ -216,6 +216,17 @@ const AdminController = {
 
     guardarArtista: async (req, res) => {
         try {
+            const { nombre, apellido } = req.body;
+            
+            // VALIDACIÓN DE DUPLICADOS
+            const duplicado = await ArtistaModel.existeNombreCompleto(nombre, apellido);
+            
+            if (duplicado) {
+                // Si existe, podrías enviar un mensaje de error. 
+                // Para no complicar la vista, redirigimos con un mensaje simple o alerta.
+                return res.send("<script>alert('Error: Ya existe un artista registrado con ese nombre y apellido.'); window.location.href='/admin/gestion-artistas';</script>");
+            }
+
             const foto = req.file ? req.file.filename : null;
             await ArtistaModel.crear(req.body, foto);
             res.redirect('/admin/gestion-artistas');
@@ -252,14 +263,26 @@ const AdminController = {
         }
     },
 
-    // Accion Eliminar
+    //Activar artista
+    activarArtista: async (req, res) => {
+    try {
+        await ArtistaModel.activarLogico(req.params.id);
+        res.redirect('/admin/gestion-artistas');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error al activar el artista');
+    }
+},
+
+    //Desactivar(Eliminar) artista
     eliminarArtista: async (req, res) => {
         try {
-            await ArtistaModel.eliminar(req.params.id);
+            // En lugar de ArtistaModel.eliminar (físico), usamos el lógico
+            await ArtistaModel.eliminarLogico(req.params.id);
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
             console.error(error);
-            res.status(500).send('No se puede eliminar el artista porque tiene obras registradas.');
+            res.status(500).send('Error al desactivar el artista');
         }
     },
 

@@ -2,10 +2,30 @@ const db = require('../config/db');
 
 class ArtistaModel {
     
-    // Listar todos (Para los selects y la tabla de gestión)
+    // 1. PARA LA TABLA DE GESTIÓN: Trae a todos (Activos e Inactivos)
     static async listar() {
         const [rows] = await db.execute('SELECT * FROM artista ORDER BY nombre ASC');
         return rows;
+    }
+
+    // 2. PARA SELECTS Y GALERÍA: Trae solo los que pueden vender/aparecer
+    static async listarActivos() {
+        const [rows] = await db.execute('SELECT * FROM artista WHERE estado = "Activo" ORDER BY nombre ASC');
+        return rows;
+    }
+
+    // --- NUEVO: Validar si existe la combinación nombre/apellido (Ignora mayúsculas/minúsculas) ---
+    static async existeNombreCompleto(nombre, apellido) {
+        const sql = 'SELECT id FROM artista WHERE LOWER(nombre) = LOWER(?) AND LOWER(apellido) = LOWER(?) LIMIT 1';
+        const [rows] = await db.execute(sql, [nombre, apellido]);
+        return rows.length > 0;
+    }
+
+    // --- NUEVO: Validar duplicados al editar (Verifica si el nombre ya lo tiene OTRO artista) ---
+    static async existeNombreCompletoExceptoId(nombre, apellido, id) {
+        const sql = 'SELECT id FROM artista WHERE LOWER(nombre) = LOWER(?) AND LOWER(apellido) = LOWER(?) AND id <> ? LIMIT 1';
+        const [rows] = await db.execute(sql, [nombre, apellido, id]);
+        return rows.length > 0;
     }
 
     // Buscar uno por ID (Para edición y perfil público)
@@ -35,7 +55,7 @@ class ArtistaModel {
         let params;
 
         if (nuevaFoto) {
-            // Si hay foto nueva, actualizamos todo
+            // Si hay foto nueva, actualizamos todo (Columna: fotografia sin acento)
             sql = `UPDATE artista SET nombre=?, apellido=?, fechaNac=?, fechaFal=?, nacionalidad=?, descripcion=?, fotografia=? WHERE id=?`;
             params = [
                 datos.nombre, 
@@ -64,9 +84,16 @@ class ArtistaModel {
         await db.execute(sql, params);
     }
 
-    // Eliminar artista
-    static async eliminar(id) {
-        await db.execute('DELETE FROM artista WHERE id = ?', [id]);
+    // Cambia a Inactivo (Borrado Lógico)
+    static async eliminarLogico(id) {
+        const sql = `UPDATE artista SET estado = 'Inactivo' WHERE id = ?`;
+        await db.execute(sql, [id]);
+    }
+
+    // Vuelve a Activo (Reactivación)
+    static async activarLogico(id) {
+        const sql = `UPDATE artista SET estado = 'Activo' WHERE id = ?`;
+        await db.execute(sql, [id]);
     }
 }
 

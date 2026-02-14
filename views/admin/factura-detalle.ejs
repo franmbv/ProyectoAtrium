@@ -268,10 +268,11 @@
             padding: 0 !important;
             margin: 0 !important;
         }
-        nav, .btn-action-group, footer, .invoice-stamp { 
-            /* Ocultamos botones y footer. Dejo el sello visible pero si quieres quitarlo añade .invoice-stamp aquí */
+        
+        /* Corregido: Se eliminó el bloque vacío que causaba el error y se unificó la lógica de ocultación */
+        nav, footer, .btn-action-group { 
+            display: none !important; 
         }
-        .btn-action-group { display: none !important; }
         
         /* Configuración contenedores */
         .admin-page-wrapper {
@@ -302,137 +303,137 @@
         }
     }
 </style>
-
 <div class="admin-page-wrapper">
     <div class="container">
         <div class="invoice-container">
-            
-            <div class="invoice-card-premium">
-                <!-- CABECERA -->
-                <div class="invoice-top-bar">
-                    <div class="invoice-logo-area">
-                        <h3>🏛️ MUSEO <span style="color: var(--at-orange)">ATRIUM</span></h3>
-                    </div>
-                    <div class="invoice-number-box">
-                        <span class="label">Comprobante de Venta</span>
-                        <span class="value d-block"><%= factura.codigoDeFactura %></span>
-                    </div>
+
+<div class="invoice-card-premium">
+            <!-- CABECERA -->
+            <div class="invoice-top-bar">
+                <div class="invoice-logo-area">
+                    <h3>🏛️ MUSEO <span style="color: var(--at-orange)">ATRIUM</span></h3>
                 </div>
-
-                <div class="invoice-main-content">
-                    <% const precioBase = (factura.precioObra !== null && factura.precioObra !== undefined) ? parseFloat(factura.precioObra) : 0; %>
-
-                    <div class="info-grid">
-                        <!-- BLOQUE 1: EMISIÓN -->
-                        <div class="info-block">
-                            <div class="info-block-header"><i class="bi bi-calendar-check"></i> Emisión</div>
-                            <div class="data-row">
-                                <label>Fecha de Operación</label>
-                                <span><%= new Date(factura.fechaDeVenta).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></span>
-                            </div>
-                            <div class="data-row">
-                                <label>Vendedor Autorizado</label>
-                                <span>Admin ID #<%= factura.administrador_id %></span>
-                            </div>
-                        </div>
-
-                        <!-- BLOQUE 2: COMPRADOR (DATOS EXTENDIDOS) -->
-                        <div class="info-block">
-                            <div class="info-block-header"><i class="bi bi-person-badge"></i> Perfil del Comprador</div>
-                            
-                            <!-- Nombre y Estado en el mismo nivel -->
-                            <div class="row">
-                                <div class="col-7">
-                                    <div class="data-row">
-                                        <label>Nombre Completo</label>
-                                        <span><%= factura.nombre_comprador %> <%= factura.apellido_comprador %></span>
-                                    </div>
-                                </div>
-                                <div class="col-5">
-                                    <div class="data-row">
-                                        <label>Estado de Cuenta</label>
-                                        <span class="text-success small"><i class="bi bi-check-circle-fill"></i> Miembro Activo</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="data-row">
-                                <label>Cédula</label>
-                                <span><%= factura.cedula %></span>
-                            </div>
-                            <div class="data-row">
-                                <label>Correo Electrónico</label>
-                                <span class="text-lowercase" style="font-size: 0.9rem; color: white !important;"><%= factura.gmail %></span>
-                            </div>
-                        </div>
-
-                        <!-- BLOQUE 3: LA OBRA -->
-                        <div class="work-focus-box">
-                            <img src="<%= factura.foto ? ('/uploads/' + factura.foto) : '/img/default_obra.jpg' %>" class="work-mini-img" alt="Obra">
-                            <div>
-                                <div class="info-block-header" style="margin-bottom: 5px;"><i class="bi bi-palette"></i> Detalle Artístico</div>
-                                <h2 class="work-title-big"><%= factura.nombre_obra %></h2>
-                                <span class="text-white-50">Por <strong><%= factura.nombre_artista %> <%= factura.apellido_artista %></strong></span>
-                            </div>
-                        </div>
-
-                        <!-- BLOQUE 4: ENVÍO -->
-                        <div class="info-block">
-                            <div class="info-block-header"><i class="bi bi-truck"></i> Logística</div>
-                            <div class="data-row">
-                                <label>Courier asignado</label>
-                                <span><%= factura.empresaEnvio %></span>
-                            </div>
-                            <div class="data-row">
-                                <label>Dirección de destino</label>
-                                <span class="small"><%= factura.calle %>, <%= factura.ciudad %>, <%= factura.estado %>, <%= factura.pais %></span>
-                            </div>
-                        </div>
-
-                        <!-- BLOQUE 5: TOTALES -->
-                        <div class="billing-summary">
-                            <div class="totals-card">
-                                <div class="calc-row">
-                                    <span class="calc-label">Subtotal Obra</span>
-                                    <span class="calc-value">$<%= precioBase.toLocaleString() %></span>
-                                </div>
-                                <div class="calc-row">
-                                    <span class="calc-label">Impuesto IVA (16%)</span>
-                                    <span class="calc-value">$<%= parseFloat(factura.iva).toLocaleString() %></span>
-                                </div>
-                                <div class="calc-row">
-                                    <span class="calc-label">Comisión Museo (<%= factura.gananciaMuseoPorcentaje %>%)</span>
-                                    <span class="calc-value">$<%= parseFloat(factura.gananciaMuseoDolares).toLocaleString() %></span>
-                                </div>
-                                <div class="grand-total-row">
-                                    <span class="grand-total-text">PAGO TOTAL</span>
-                                    <span class="grand-total-amount">$<%= parseFloat(factura.precioFinalVenta).toLocaleString() %></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SELLO DECORATIVO -->
-                    <div class="invoice-stamp">
-                        <span>Autenticidad<br>Garantizada<br>Atrium 2026</span>
-                    </div>
+                <div class="invoice-number-box">
+                    <span class="label">Comprobante de Venta</span>
+                    <span class="value d-block"><%= factura.codigoDeFactura %></span>
                 </div>
             </div>
 
-            <!-- NAVEGACIÓN -->
-            <div class="btn-action-group">
-                <a href="/admin/facturas" class="btn-at-secondary">
-                    <i class="bi bi-arrow-left me-2"></i> Listado General
-                </a>
-                <a href="/admin/dashboard" class="btn-at-orange">
-                    Panel Principal
-                </a>
-                <button onclick="window.print()" class="btn-at-secondary">
-                    <i class="bi bi-printer"></i>
-                </button>
+            <div class="invoice-main-content">
+                <% const precioBase = (factura.precioObra !== null && factura.precioObra !== undefined) ? parseFloat(factura.precioObra) : 0; %>
+
+                <div class="info-grid">
+                    <!-- BLOQUE 1: EMISIÓN -->
+                    <div class="info-block">
+                        <div class="info-block-header"><i class="bi bi-calendar-check"></i> Emisión</div>
+                        <div class="data-row">
+                            <label>Fecha de Operación</label>
+                            <span><%= new Date(factura.fechaDeVenta).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+                        </div>
+                        <div class="data-row">
+                            <label>Vendedor Autorizado</label>
+                            <span>Admin ID #<%= factura.administrador_id %></span>
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE 2: COMPRADOR (DATOS EXTENDIDOS) -->
+                    <div class="info-block">
+                        <div class="info-block-header"><i class="bi bi-person-badge"></i> Perfil del Comprador</div>
+                        
+                        <!-- Nombre y Estado en el mismo nivel -->
+                        <div class="row">
+                            <div class="col-7">
+                                <div class="data-row">
+                                    <label>Nombre Completo</label>
+                                    <span><%= factura.nombre_comprador %> <%= factura.apellido_comprador %></span>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <div class="data-row">
+                                    <label>Estado de Cuenta</label>
+                                    <span class="text-success small"><i class="bi bi-check-circle-fill"></i> Miembro Activo</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="data-row">
+                            <label>Cédula</label>
+                            <span><%= factura.cedula %></span>
+                        </div>
+                        <div class="data-row">
+                            <label>Correo Electrónico</label>
+                            <span class="text-lowercase" style="font-size: 0.9rem; color: white !important;"><%= factura.gmail %></span>
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE 3: LA OBRA -->
+                    <div class="work-focus-box">
+                        <img src="<%= factura.foto ? ('/uploads/' + factura.foto) : '/img/default_obra.jpg' %>" class="work-mini-img" alt="Obra">
+                        <div>
+                            <div class="info-block-header" style="margin-bottom: 5px;"><i class="bi bi-palette"></i> Detalle Artístico</div>
+                            <h2 class="work-title-big"><%= factura.nombre_obra %></h2>
+                            <span class="text-white-50">Por <strong><%= factura.nombre_artista %> <%= factura.apellido_artista %></strong></span>
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE 4: ENVÍO -->
+                    <div class="info-block">
+                        <div class="info-block-header"><i class="bi bi-truck"></i> Logística</div>
+                        <div class="data-row">
+                            <label>Courier asignado</label>
+                            <span><%= factura.empresaEnvio %></span>
+                        </div>
+                        <div class="data-row">
+                            <label>Dirección de destino</label>
+                            <span class="small"><%= factura.calle %>, <%= factura.ciudad %>, <%= factura.estado %>, <%= factura.pais %></span>
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE 5: TOTALES -->
+                    <div class="billing-summary">
+                        <div class="totals-card">
+                            <div class="calc-row">
+                                <span class="calc-label">Subtotal Obra</span>
+                                <span class="calc-value">$<%= precioBase.toLocaleString() %></span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">Impuesto IVA (16%)</span>
+                                <span class="calc-value">$<%= parseFloat(factura.iva).toLocaleString() %></span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">Comisión Museo (<%= factura.gananciaMuseoPorcentaje %>%)</span>
+                                <span class="calc-value">$<%= parseFloat(factura.gananciaMuseoDolares).toLocaleString() %></span>
+                            </div>
+                            <div class="grand-total-row">
+                                <span class="grand-total-text">PAGO TOTAL</span>
+                                <span class="grand-total-amount">$<%= parseFloat(factura.precioFinalVenta).toLocaleString() %></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SELLO DECORATIVO -->
+                <div class="invoice-stamp">
+                    <span>Autenticidad<br>Garantizada<br>Atrium 2026</span>
+                </div>
             </div>
         </div>
+
+        <!-- NAVEGACIÓN -->
+        <div class="btn-action-group">
+            <a href="/admin/facturas" class="btn-at-secondary">
+                <i class="bi bi-arrow-left me-2"></i> Listado General
+            </a>
+            <a href="/admin/dashboard" class="btn-at-orange">
+                Panel Principal
+            </a>
+            <button onclick="window.print()" class="btn-at-secondary">
+                <i class="bi bi-printer"></i>
+            </button>
+        </div>
     </div>
+</div>
+
 </div>
 
 <%- include('../partials/footer') %>

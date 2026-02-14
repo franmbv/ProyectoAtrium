@@ -33,6 +33,7 @@ router.post('/guardar-artista', upload, adminController.guardarArtista);
 router.get('/editar-artista/:id', adminController.editarArtista);
 router.post('/actualizar-artista/:id', upload, adminController.actualizarArtista);
 router.get('/eliminar-artista/:id', adminController.eliminarArtista);
+router.get('/activar-artista/:id', adminController.activarArtista);
 
 // Facturación
 router.get('/facturar/:id', adminController.pantallaFactura);
