@@ -98,55 +98,11 @@ const AdminController = {
 
     aceptarReserva: async (req, res) => {
         try {
-            const adminId = req.session?.usuario?.id;
-            if (!adminId) {
-                return res.status(401).send('Sesión no válida o expirada');
-            }
-
             const obra = await ObraModel.obtenerPorId(req.params.id);
             if (!obra || obra.estatus !== 'Reservada' || !obra.reservado_por) {
                 return res.status(404).send('Reserva no encontrada');
             }
-
-            const compradorId = obra.reservado_por;
-            const comprador = await UsuarioModel.buscarPorId(compradorId);
-
-            const precioBase = parseFloat(obra.precioObra);
-            const porc = parseFloat(obra.porcentajeGanancia || 0);
-            const iva = precioBase * 0.16;
-            const ganancia = precioBase * (porc / 100);
-            const total = precioBase + iva + ganancia;
-            const codigo = 'FAC-' + Date.now();
-
-            await VentaModel.crear({
-                comprador_id: compradorId,
-                admin_id: adminId,
-                obra_id: obra.id,
-                pais: 'Venezuela',
-                estado: 'Pendiente',
-                ciudad: 'Pendiente',
-                municipio: 'Pendiente',
-                calle: 'Pendiente',
-                empresaEnvio: 'Pendiente',
-                iva,
-                gananciaDolar: ganancia,
-                gananciaPorc: porc,
-                precioFinal: total,
-                codigo
-            });
-
-            await ObraModel.marcarComoVendida(obra.id);
-
-            if (comprador && comprador.gmail) {
-                try {
-                    const result = await sendReservaAceptada(comprador.gmail, obra.nombre, codigo);
-                    console.log('Correo de reserva aceptada enviado. Preview:', result.previewUrl || result.info?.messageId);
-                } catch (mailErr) {
-                    console.error('Error al enviar correo de reserva aceptada:', mailErr);
-                }
-            }
-
-            res.redirect('/admin/reservas');
+            res.redirect(`/admin/facturar/${obra.id}`);
         } catch (error) {
             console.error(error);
             res.status(500).send('Error al aceptar la reserva');
@@ -299,7 +255,9 @@ const AdminController = {
                 return res.status(404).send('Comprador no encontrado');
             }
 
-            res.render('admin/modulo-facturacion', { obra, comprador });
+            const infoComprador = await InfoCompradorModel.obtenerPorCompradorId(obra.reservado_por);
+
+            res.render('admin/modulo-facturacion', { obra, comprador, infoComprador });
         } catch (error) {
             console.error(error);
             res.status(500).send("Error al cargar datos de facturación");
@@ -328,13 +286,23 @@ const AdminController = {
             const total = precioBase + iva + ganancia;
             const codigo = "FAC-" + Date.now();
 
+            const direccion = {
+                pais: (pais || 'Venezuela').trim(),
+                estado: (estado || 'Pendiente').trim(),
+                ciudad: (ciudad || 'Pendiente').trim(),
+                municipio: (municipio || 'Pendiente').trim(),
+                calle: (calle || 'Pendiente').trim()
+            };
+
+            await InfoCompradorModel.actualizarDireccion(comprador_id, direccion);
+
             await VentaModel.crear({
                 comprador_id, admin_id, obra_id,
-                pais: pais || 'Venezuela',
-                estado: estado || 'Pendiente',
-                ciudad: ciudad || 'Pendiente',
-                municipio: municipio || 'Pendiente',
-                calle: calle || 'Pendiente',
+                pais: direccion.pais,
+                estado: direccion.estado,
+                ciudad: direccion.ciudad,
+                municipio: direccion.municipio,
+                calle: direccion.calle,
                 empresaEnvio: empresaEnvio || 'Pendiente',
                 iva, gananciaDolar: ganancia, gananciaPorc: porc,
                 precioFinal: total, codigo

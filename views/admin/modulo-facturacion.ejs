@@ -8,6 +8,7 @@
         </div>
         <div class="card-body">
             <form action="/admin/emitir-factura" method="POST">
+                <% const info = infoComprador || {}; %>
                 <input type="hidden" name="obra_id" value="<%= obra.id %>">
                 <input type="hidden" name="precioObra" value="<%= obra.precioObra %>">
                 <input type="hidden" name="porcentajeGanancia" value="<%= obra.porcentajeGanancia %>">
@@ -34,35 +35,35 @@
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label">País</label>
-                        <input type="text" name="pais" class="form-control" value="Venezuela" readonly>
+                        <input type="text" name="pais" class="form-control" value="<%= info.pais || 'Venezuela' %>" readonly>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Estado</label>
                         <select name="estado" class="form-select">
-                            <option value="Pendiente" selected>Pendiente</option>
-                            <option value="Bolívar">Bolívar</option>
-                            <option value="Caracas">Caracas</option>
-                            <option value="Anzoátegui">Anzoátegui</option>
-                            <option value="Carabobo">Carabobo</option>
-                            <option value="Zulia">Zulia</option>
-                            <option value="Lara">Lara</option>
-                            <option value="Monagas">Monagas</option>
+                            <option value="Pendiente" <%= (info.estado_residencia || 'Pendiente') === 'Pendiente' ? 'selected' : '' %>>Pendiente</option>
+                            <option value="Bolívar" <%= info.estado_residencia === 'Bolívar' ? 'selected' : '' %>>Bolívar</option>
+                            <option value="Caracas" <%= info.estado_residencia === 'Caracas' ? 'selected' : '' %>>Caracas</option>
+                            <option value="Anzoátegui" <%= info.estado_residencia === 'Anzoátegui' ? 'selected' : '' %>>Anzoátegui</option>
+                            <option value="Carabobo" <%= info.estado_residencia === 'Carabobo' ? 'selected' : '' %>>Carabobo</option>
+                            <option value="Zulia" <%= info.estado_residencia === 'Zulia' ? 'selected' : '' %>>Zulia</option>
+                            <option value="Lara" <%= info.estado_residencia === 'Lara' ? 'selected' : '' %>>Lara</option>
+                            <option value="Monagas" <%= info.estado_residencia === 'Monagas' ? 'selected' : '' %>>Monagas</option>
                             </select>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Ciudad</label>
-                        <input type="text" name="ciudad" class="form-control" value="Pendiente" placeholder="Ej: Puerto Ordaz">
+                        <input type="text" name="ciudad" class="form-control" value="<%= info.ciudad || 'Pendiente' %>" placeholder="Ej: Puerto Ordaz">
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label">Municipio</label>
-                        <input type="text" name="municipio" class="form-control" value="Pendiente" placeholder="Ej: Caroní">
+                        <input type="text" name="municipio" class="form-control" value="<%= info.municipio || 'Pendiente' %>" placeholder="Ej: Caroní">
                     </div>
                     <div class="col-md-8">
                         <label class="form-label">Calle / Avenida / Casa / Edificio</label>
-                        <input type="text" name="calle" class="form-control" value="Pendiente" placeholder="Dirección exacta...">
+                        <input type="text" name="calle" class="form-control" value="<%= info.calle || 'Pendiente' %>" placeholder="Dirección exacta...">
                     </div>
                 </div>
 
@@ -86,9 +87,14 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-success btn-lg w-100">
-                    Aceptar Reserva y Generar Factura
-                </button>
+                <div class="d-flex flex-column flex-md-row gap-2">
+                    <a href="/admin/reservas" class="btn btn-outline-secondary btn-lg w-100">
+                        Regresar atras
+                    </a>
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        Aceptar Reserva y Generar Factura
+                    </button>
+                </div>
             </form>
         </div>
     </div>
