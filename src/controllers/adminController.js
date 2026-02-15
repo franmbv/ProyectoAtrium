@@ -3,6 +3,8 @@ const ObraModel = require('../models/ObraModel');
 const VentaModel = require('../models/ventaModel');
 const ArtistaModel = require('../models/ArtistaModel');
 const InfoCompradorModel = require('../models/InfoCompradorModel');
+const UsuarioModel = require('../models/UsuarioModel');
+const { sendReservaAceptada } = require('../config/mailer');
 
 const AdminController = {
 
@@ -91,6 +93,19 @@ const AdminController = {
         } catch (error) {
             console.error(error);
             res.status(500).send('Error al rechazar la reserva');
+        }
+    },
+
+    aceptarReserva: async (req, res) => {
+        try {
+            const obra = await ObraModel.obtenerPorId(req.params.id);
+            if (!obra || obra.estatus !== 'Reservada' || !obra.reservado_por) {
+                return res.status(404).send('Reserva no encontrada');
+            }
+            res.redirect(`/admin/facturar/${obra.id}`);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al aceptar la reserva');
         }
     },
 
@@ -231,9 +246,18 @@ const AdminController = {
     pantallaFactura: async (req, res) => {
         try {
             const obra = await ObraModel.obtenerPorId(req.params.id);
-            const [compradores] = await db.execute("SELECT id, nombre, apellido FROM usuario WHERE rol_id = 2");
-            
-            res.render('admin/modulo-facturacion', { obra, compradores });
+            if (!obra || obra.estatus !== 'Reservada' || !obra.reservado_por) {
+                return res.status(404).send('Reserva no encontrada');
+            }
+
+            const comprador = await UsuarioModel.buscarPorId(obra.reservado_por);
+            if (!comprador) {
+                return res.status(404).send('Comprador no encontrado');
+            }
+
+            const infoComprador = await InfoCompradorModel.obtenerPorCompradorId(obra.reservado_por);
+
+            res.render('admin/modulo-facturacion', { obra, comprador, infoComprador });
         } catch (error) {
             console.error(error);
             res.status(500).send("Error al cargar datos de facturación");
@@ -250,6 +274,11 @@ const AdminController = {
             const admin_id = req.session?.usuario?.id;
             if (!admin_id) return res.status(401).send('Sesión no válida o expirada');
 
+            const obra = await ObraModel.obtenerPorId(obra_id);
+            if (!obra || obra.estatus !== 'Reservada' || String(obra.reservado_por) !== String(comprador_id)) {
+                return res.status(400).send('Reserva inválida');
+            }
+
             const precioBase = parseFloat(precioObra);
             const porc = parseFloat(porcentajeGanancia);
             const iva = precioBase * 0.16;
@@ -257,14 +286,39 @@ const AdminController = {
             const total = precioBase + iva + ganancia;
             const codigo = "FAC-" + Date.now();
 
+            const direccion = {
+                pais: (pais || 'Venezuela').trim(),
+                estado: (estado || 'Pendiente').trim(),
+                ciudad: (ciudad || 'Pendiente').trim(),
+                municipio: (municipio || 'Pendiente').trim(),
+                calle: (calle || 'Pendiente').trim()
+            };
+
+            await InfoCompradorModel.actualizarDireccion(comprador_id, direccion);
+
             await VentaModel.crear({
                 comprador_id, admin_id, obra_id,
-                pais, estado, ciudad, municipio, calle, empresaEnvio,
-                iva, ganancia, porcentaje: porc,
-                total, codigo
+                pais: direccion.pais,
+                estado: direccion.estado,
+                ciudad: direccion.ciudad,
+                municipio: direccion.municipio,
+                calle: direccion.calle,
+                empresaEnvio: empresaEnvio || 'Pendiente',
+                iva, gananciaDolar: ganancia, gananciaPorc: porc,
+                precioFinal: total, codigo
             });
 
             await ObraModel.marcarComoVendida(obra_id);
+
+            const comprador = await UsuarioModel.buscarPorId(comprador_id);
+            if (comprador && comprador.gmail) {
+                try {
+                    const result = await sendReservaAceptada(comprador.gmail, obra.nombre, codigo);
+                    console.log('Correo de reserva aceptada enviado. Preview:', result.previewUrl || result.info?.messageId);
+                } catch (mailErr) {
+                    console.error('Error al enviar correo de reserva aceptada:', mailErr);
+                }
+            }
             res.redirect('/admin/reportes-ventas');
 
         } catch (error) {

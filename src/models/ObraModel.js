@@ -94,9 +94,9 @@ class ObraModel {
     }
 
     // Reservar obra
-    static async reservarById(id) {
-        const query = "UPDATE obra SET estatus = 'Reservada' WHERE id = ? AND estatus = 'Disponible'";
-        const [result] = await db.execute(query, [id]);
+    static async reservarById(id, compradorId) {
+        const query = "UPDATE obra SET estatus = 'Reservada', reservado_por = ?, fecha_reserva = CURDATE() WHERE id = ? AND estatus = 'Disponible'";
+        const [result] = await db.execute(query, [compradorId, id]);
         return result.affectedRows > 0;
     }
 
@@ -261,43 +261,107 @@ class ObraModel {
     }
 
     static async _actualizarSubtipo(obraId, generoId, datos) {
+        const normalize = (value) => (value === '' || value === undefined ? null : value);
+
         if (generoId === 1) {
-            await db.execute(
-                'UPDATE pintura SET tecnica = COALESCE(NULLIF(?, \'\'), tecnica), soporte = COALESCE(NULLIF(?, \'\'), soporte) WHERE obra_id = ?',
-                [datos.tecnica, datos.soporte, obraId]
-            );
+            const [rows] = await db.execute('SELECT obra_id FROM pintura WHERE obra_id = ?', [obraId]);
+            if (rows.length === 0) {
+                await db.execute(
+                    'INSERT INTO pintura (obra_id, tecnica, soporte) VALUES (?, ?, ?)',
+                    [obraId, normalize(datos.tecnica), normalize(datos.soporte)]
+                );
+            } else {
+                await db.execute(
+                    'UPDATE pintura SET tecnica = COALESCE(NULLIF(?, \'\'), tecnica), soporte = COALESCE(NULLIF(?, \'\'), soporte) WHERE obra_id = ?',
+                    [datos.tecnica, datos.soporte, obraId]
+                );
+            }
         } else if (generoId === 2) {
-            await db.execute(
-                'UPDATE escultura SET material = COALESCE(NULLIF(?, \'\'), material), peso = COALESCE(NULLIF(?, \'\'), peso), largo = COALESCE(NULLIF(?, \'\'), largo), ancho = COALESCE(NULLIF(?, \'\'), ancho), profundidad = COALESCE(NULLIF(?, \'\'), profundidad) WHERE obra_id = ?',
-                [datos.material, datos.peso, datos.largo, datos.ancho, datos.profundidad, obraId]
-            );
+            const [rows] = await db.execute('SELECT obra_id FROM escultura WHERE obra_id = ?', [obraId]);
+            if (rows.length === 0) {
+                await db.execute(
+                    'INSERT INTO escultura (obra_id, material, peso, largo, ancho, profundidad) VALUES (?, ?, ?, ?, ?, ?)',
+                    [
+                        obraId,
+                        normalize(datos.material),
+                        normalize(datos.peso),
+                        normalize(datos.largo),
+                        normalize(datos.ancho),
+                        normalize(datos.profundidad)
+                    ]
+                );
+            } else {
+                await db.execute(
+                    'UPDATE escultura SET material = COALESCE(NULLIF(?, \'\'), material), peso = COALESCE(NULLIF(?, \'\'), peso), largo = COALESCE(NULLIF(?, \'\'), largo), ancho = COALESCE(NULLIF(?, \'\'), ancho), profundidad = COALESCE(NULLIF(?, \'\'), profundidad) WHERE obra_id = ?',
+                    [datos.material, datos.peso, datos.largo, datos.ancho, datos.profundidad, obraId]
+                );
+            }
         } else if (generoId === 3) {
-            await db.execute(
-                'UPDATE fotografia SET tipo = COALESCE(NULLIF(?, \'\'), tipo), papel = COALESCE(NULLIF(?, \'\'), papel), formato = COALESCE(NULLIF(?, \'\'), formato) WHERE obra_id = ?',
-                [datos.tipo_foto, datos.papel, datos.formato, obraId]
-            );
+            const [rows] = await db.execute('SELECT obra_id FROM fotografia WHERE obra_id = ?', [obraId]);
+            if (rows.length === 0) {
+                await db.execute(
+                    'INSERT INTO fotografia (obra_id, tipo, papel, formato) VALUES (?, ?, ?, ?)',
+                    [
+                        obraId,
+                        normalize(datos.tipo_foto),
+                        normalize(datos.papel),
+                        normalize(datos.formato)
+                    ]
+                );
+            } else {
+                await db.execute(
+                    'UPDATE fotografia SET tipo = COALESCE(NULLIF(?, \'\'), tipo), papel = COALESCE(NULLIF(?, \'\'), papel), formato = COALESCE(NULLIF(?, \'\'), formato) WHERE obra_id = ?',
+                    [datos.tipo_foto, datos.papel, datos.formato, obraId]
+                );
+            }
         } else if (generoId === 4) {
-            await db.execute(
-                'UPDATE ceramica SET tipoArcilla = COALESCE(NULLIF(?, \'\'), tipoArcilla), temperaturaCoccion = COALESCE(NULLIF(?, \'\'), temperaturaCoccion), tipoEsmalte = COALESCE(NULLIF(?, \'\'), tipoEsmalte) WHERE obra_id = ?',
-                [datos.tipoArcilla, datos.temperaturaCoccion, datos.tipoEsmalte, obraId]
-            );
+            const [rows] = await db.execute('SELECT obra_id FROM ceramica WHERE obra_id = ?', [obraId]);
+            if (rows.length === 0) {
+                await db.execute(
+                    'INSERT INTO ceramica (obra_id, tipoArcilla, temperaturaCoccion, tipoEsmalte) VALUES (?, ?, ?, ?)',
+                    [
+                        obraId,
+                        normalize(datos.tipoArcilla),
+                        normalize(datos.temperaturaCoccion),
+                        normalize(datos.tipoEsmalte)
+                    ]
+                );
+            } else {
+                await db.execute(
+                    'UPDATE ceramica SET tipoArcilla = COALESCE(NULLIF(?, \'\'), tipoArcilla), temperaturaCoccion = COALESCE(NULLIF(?, \'\'), temperaturaCoccion), tipoEsmalte = COALESCE(NULLIF(?, \'\'), tipoEsmalte) WHERE obra_id = ?',
+                    [datos.tipoArcilla, datos.temperaturaCoccion, datos.tipoEsmalte, obraId]
+                );
+            }
         } else if (generoId === 5) {
-            await db.execute(
-                'UPDATE orfebreria SET metal = COALESCE(NULLIF(?, \'\'), metal), pureza = COALESCE(NULLIF(?, \'\'), pureza), piedraPreciosa = COALESCE(NULLIF(?, \'\'), piedraPreciosa) WHERE obra_id = ?',
-                [datos.metal, datos.pureza, datos.piedraPreciosa, obraId]
-            );
+            const [rows] = await db.execute('SELECT obra_id FROM orfebreria WHERE obra_id = ?', [obraId]);
+            if (rows.length === 0) {
+                await db.execute(
+                    'INSERT INTO orfebreria (obra_id, metal, pureza, piedraPreciosa) VALUES (?, ?, ?, ?)',
+                    [
+                        obraId,
+                        normalize(datos.metal),
+                        normalize(datos.pureza),
+                        normalize(datos.piedraPreciosa)
+                    ]
+                );
+            } else {
+                await db.execute(
+                    'UPDATE orfebreria SET metal = COALESCE(NULLIF(?, \'\'), metal), pureza = COALESCE(NULLIF(?, \'\'), pureza), piedraPreciosa = COALESCE(NULLIF(?, \'\'), piedraPreciosa) WHERE obra_id = ?',
+                    [datos.metal, datos.pureza, datos.piedraPreciosa, obraId]
+                );
+            }
         }
     }
 
     // Actualizar estatus a Vendida
 
     static async marcarComoVendida(id) {
-        await db.execute("UPDATE obra SET estatus = 'Vendida' WHERE id = ?", [id]);
+        await db.execute("UPDATE obra SET estatus = 'Vendida', reservado_por = NULL, fecha_reserva = NULL WHERE id = ?", [id]);
     }
 
     static async marcarComoDisponible(id) {
         const [result] = await db.execute(
-            "UPDATE obra SET estatus = 'Disponible' WHERE id = ? AND estatus = 'Reservada'",
+            "UPDATE obra SET estatus = 'Disponible', reservado_por = NULL, fecha_reserva = NULL WHERE id = ? AND estatus = 'Reservada'",
             [id]
         );
         return result.affectedRows > 0;

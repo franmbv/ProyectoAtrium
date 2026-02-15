@@ -58,4 +58,27 @@ async function sendSecurityCode(email, code) {
   return { info, previewUrl };
 }
 
-module.exports = { sendSecurityCode };
+async function sendReservaAceptada(email, obraNombre, codigoFactura) {
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    throw new Error('Correo invalido para notificacion de reserva');
+  }
+
+  const transporter = await getTransporter();
+
+  const fromAddress = process.env.SMTP_FROM || process.env.GMAIL_USER || `no-reply@${process.env.APP_DOMAIN || 'example.com'}`;
+
+  const mailOptions = {
+    from: fromAddress,
+    to: email,
+    subject: 'Reserva aceptada - Museo Atrium',
+    text: `Tu reserva de "${obraNombre}" fue aceptada. Codigo de factura: ${codigoFactura}.`,
+    html: `<p>Tu reserva de <strong>${obraNombre}</strong> fue aceptada.</p><p>Codigo de factura: <strong>${codigoFactura}</strong></p>`,
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+
+  const previewUrl = nodemailer.getTestMessageUrl ? nodemailer.getTestMessageUrl(info) : null;
+  return { info, previewUrl };
+}
+
+module.exports = { sendSecurityCode, sendReservaAceptada };
