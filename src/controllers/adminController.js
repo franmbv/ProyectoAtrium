@@ -399,8 +399,22 @@ const AdminController = {
             console.error('Error al crear admin:', error);
             res.render('admin/crear-admin', { error: 'Error interno del servidor.' });
         }
-    }
+    },
 
+    verificarAccesoPanel: (req, res, next) => {
+        const rol = req.session.usuario?.rol;
+        if (rol === 1 || rol === 3) {
+            return next();
+        }
+        res.redirect('/auth/login?error=Acceso denegado. Se requieren permisos de administrador.');
+    },
+
+    verificarSuperAdmin: (req, res, next) => {
+        if (req.session.usuario && req.session.usuario.rol === 3) {
+            return next();
+        }
+        res.redirect('/admin/dashboard?error=Acceso restringido: Solo los Superadministradores pueden crear nuevas cuentas.');
+    }
 };
 
 module.exports = AdminController;

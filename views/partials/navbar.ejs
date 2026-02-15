@@ -20,7 +20,7 @@
 
       <ul class="navbar-nav ms-auto align-items-center">
         <% if (locals.usuario) { %>
-            <% if (usuario.rol === 1) { %> 
+            <% if (usuario.rol === 1 || usuario.rol === 3) { %> 
                 <li class="nav-item">
                     <a class="nav-link text-warning fw-bold px-3 me-2" href="/admin/dashboard" style="font-size: 0.85rem; letter-spacing: 0.5px;">
                         ⚙️ PANEL ADMIN

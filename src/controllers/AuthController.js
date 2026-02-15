@@ -140,6 +140,16 @@ const AuthController = {
         } else {
             res.json({ loggedIn: false });
         }
+    },
+
+    // --- 7. MIDDLEWARE PARA RESTRINGIR ACCESO A COMPRADORES ---
+    verificarComprador: (req, res, next) => {
+        const rol = req.session.usuario?.rol;
+        
+        if (rol === 1 || rol === 3) {
+            return res.redirect('/galeria?error=Acceso denegado: Las cuentas administrativas no pueden realizar reservas ni compras.');
+        }
+                return next();
     }
 };
 

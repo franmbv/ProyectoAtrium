@@ -247,9 +247,16 @@
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button onclick="intentarComprar('<%= obra.id %>', '<%= obra.nombre %>')" class="btn btn-purchase">
-                            Comprar
-                        </button>
+                        <% if (locals.usuario && (locals.usuario.rol === 1 || locals.usuario.rol === 3)) { %>
+                            
+                            <button class="btn btn-secondary w-100 disabled" style="padding: 18px 0; font-weight: 800; text-transform: uppercase; cursor: not-allowed; opacity: 0.6; border-radius: 100px;">
+                                🛡️ Acción no permitida para Administradores
+                            </button>
+                        <% } else { %>
+                            <button onclick="intentarComprar('<%= obra.id %>', '<%= obra.nombre %>')" class="btn btn-purchase">
+                                Comprar
+                            </button>
+                        <% } %>
                         <a href="/galeria" class="btn btn-back-outline">
                             ← Volver al Catálogo
                         </a>
