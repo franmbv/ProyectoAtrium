@@ -277,8 +277,13 @@ const AdminController = {
             const admin_id = req.session?.usuario?.id;
             if (!admin_id) return res.status(401).send('Sesión no válida o expirada');
 
+            const compradorIdStr = String(comprador_id || '').trim();
+            if (!compradorIdStr) return res.status(400).send('Comprador inválido');
+
             const obra = await ObraModel.obtenerPorId(obra_id);
-            if (!obra || obra.estatus !== 'Reservada' || String(obra.reservado_por) !== String(comprador_id)) {
+            const estatus = String(obra?.estatus || '').trim().toLowerCase();
+            const reservadoPor = obra?.reservado_por == null ? '' : String(obra.reservado_por).trim();
+            if (!obra || estatus !== 'reservada' || reservadoPor !== compradorIdStr) {
                 return res.status(400).send('Reserva inválida');
             }
 
@@ -291,7 +296,7 @@ const AdminController = {
 
             const direccion = {
                 pais: (pais || 'Venezuela').trim(),
-                estado: (estado_residencia || 'Pendiente').trim(),
+                estado_residencia: (estado || 'Pendiente').trim(),
                 ciudad: (ciudad || 'Pendiente').trim(),
                 municipio: (municipio || 'Pendiente').trim(),
                 calle: (calle || 'Pendiente').trim()
