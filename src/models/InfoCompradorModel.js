@@ -1,5 +1,15 @@
 const db = require('../config/db');
 
+const toDbValue = (value, fallback = null) => {
+    if (value === undefined) return fallback;
+    if (value === null) return null;
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed === '' ? fallback : trimmed;
+    }
+    return value;
+};
+
 class InfoCompradorModel {
 
     // 1. VALIDAR CÓDIGO (Usado en la compra de obra)
@@ -88,17 +98,17 @@ class InfoCompradorModel {
     static async actualizarDireccion(compradorId, direccion) {
         const sql = `
             UPDATE info_comprador
-            SET pais = ?, estado = ?, ciudad = ?, municipio = ?, calle = ?
+            SET pais = ?, estado_residencia = ?, ciudad = ?, municipio = ?, calle = ?
             WHERE comprador_id = ?
         `;
 
         const params = [
-            direccion.pais,
-            direccion.estado,
-            direccion.ciudad,
-            direccion.municipio,
-            direccion.calle,
-            compradorId
+            toDbValue(direccion?.pais, 'Venezuela'),
+            toDbValue(direccion?.estado_residencia, 'Pendiente'),
+            toDbValue(direccion?.ciudad, 'Pendiente'),
+            toDbValue(direccion?.municipio, 'Pendiente'),
+            toDbValue(direccion?.calle, 'Pendiente'),
+            toDbValue(compradorId)
         ];
 
         await db.execute(sql, params);
