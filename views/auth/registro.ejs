@@ -1,7 +1,6 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<!-- Tipografías elegantes -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -59,6 +58,9 @@
         font-size: 0.9rem;
         margin-bottom: 40px;
         text-align: center;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
     }
 
     /* FORMULARIO */
@@ -67,6 +69,20 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+    }
+
+    /* CONTENEDOR DE PASOS */
+    .wizard-step {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     .form-group-custom {
@@ -85,7 +101,7 @@
         text-transform: uppercase;
         letter-spacing: 2px;
         margin-bottom: 8px;
-        text-align: left; /* Alineado a la izquierda */
+        text-align: left;
     }
 
     /* ALINEACIÓN A LA IZQUIERDA PARA CONTENIDO */
@@ -95,7 +111,7 @@
         color: white !important;
         padding: 12px 16px !important;
         border-radius: 10px !important;
-        text-align: left; /* Texto e inicio de cursor a la izquierda */
+        text-align: left;
         width: 100%;
         transition: all 0.3s ease;
     }
@@ -106,7 +122,15 @@
         outline: none;
     }
 
-    /* BOTÓN NARANJA (CENTRADO) */
+    /* BOTONES */
+    .button-group {
+        display: flex;
+        gap: 15px;
+        width: 100%;
+        max-width: 400px;
+        margin-top: 20px;
+    }
+
     .btn-atrium-register {
         background-color: var(--at-orange) !important;
         color: white !important;
@@ -118,8 +142,6 @@
         text-transform: uppercase;
         letter-spacing: 1px;
         width: 100%;
-        max-width: 350px; 
-        margin-top: 20px;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
         cursor: pointer;
@@ -129,6 +151,27 @@
         transform: translateY(-3px);
         filter: brightness(1.1);
         box-shadow: 0 15px 30px rgba(249, 115, 22, 0.4);
+    }
+
+    .btn-atrium-secondary {
+        background-color: transparent !important;
+        color: #94a3b8 !important;
+        border: 1px solid #94a3b8 !important;
+        border-radius: 100px;
+        padding: 16px 0;
+        font-weight: 800;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        width: 100%;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-atrium-secondary:hover {
+        color: white !important;
+        border-color: white !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
     }
 
     .login-footer {
@@ -172,7 +215,7 @@
     <div class="register-card shadow-2xl">
         <div style="font-size: 45px; margin-bottom: 10px; text-align: center;"><span role="img">📝</span></div>
         <h1 class="register-title">Registro <span class="brand-highlight">Atrium</span></h1>
-        <p class="register-subtitle">Únase a la comunidad de coleccionistas del museo.</p>
+        <p class="register-subtitle" id="step-indicator">Paso 1 de 3: Datos Personales</p>
 
         <% if (locals.error) { %>
             <div class="alert alert-register" role="alert">
@@ -180,60 +223,115 @@
             </div>
         <% } %>
 
-        <form action="/auth/registro" method="POST">
-            <!-- Fila: Nombre y Apellido -->
-            <div class="row w-100">
-                <div class="col-md-6">
-                    <div class="form-group-custom">
-                        <label class="form-label-custom">Nombre</label>
-                        <input type="text" name="nombre" class="form-control input-custom" required placeholder="Ej: Juan">
+        <form action="/auth/registro" method="POST" id="formWizard">
+            
+            <div id="step1" class="wizard-step">
+                <div class="row w-100">
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Nombre</label>
+                            <input type="text" name="nombre" class="form-control input-custom" required placeholder="Ej: Juan">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Apellido</label>
+                            <input type="text" name="apellido" class="form-control input-custom" required placeholder="Ej: Pérez">
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group-custom">
-                        <label class="form-label-custom">Apellido</label>
-                        <input type="text" name="apellido" class="form-control input-custom" required placeholder="Ej: Pérez">
+
+                <div class="row w-100">
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Cédula</label>
+                            <input type="text" name="cedula" class="form-control input-custom" required placeholder="V-00000000">
+                        </div>
                     </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Correo (Gmail)</label>
+                            <input type="email" name="gmail" class="form-control input-custom" required placeholder="usuario@gmail.com">
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="w-100 border-secondary border-opacity-25 my-3">
+
+                <div class="row w-100">
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Usuario / Login</label>
+                            <input type="text" name="login" class="form-control input-custom" required placeholder="Nombre de usuario">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Contraseña</label>
+                            <input type="password" name="password" class="form-control input-custom" required placeholder="••••••••">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group" style="justify-content: center;">
+                    <button type="button" class="btn btn-atrium-register" onclick="cambiarPaso(1, 2)">
+                        Continuar a Seguridad ➔
+                    </button>
                 </div>
             </div>
 
-            <!-- Fila: Cédula y Correo -->
-            <div class="row w-100">
-                <div class="col-md-6">
-                    <div class="form-group-custom">
-                        <label class="form-label-custom">Cédula</label>
-                        <input type="text" name="cedula" class="form-control input-custom" required placeholder="V-00000000">
+            <div id="step2" class="wizard-step" style="display: none;">
+                
+                <p class="text-muted small text-center mb-4">Selecciona 3 preguntas distintas y escribe tus respuestas.</p>
+
+                <% for(let i = 1; i <= 3; i++) { %>
+                    <div class="form-group-custom p-3 mb-3" style="background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                        <label class="form-label-custom text-white">Pregunta de Seguridad <%= i %></label>
+                        
+                        <select name="preguntasIds[]" class="form-control input-custom mb-2" required>
+                            <option value="" disabled selected>-- Haz clic para elegir una pregunta --</option>
+                            <% if (locals.preguntas) { %>
+                                <% preguntas.forEach(item => { %>
+                                    <option value="<%= item.Id %>"><%= item.pregunta %></option>
+                                <% }) %>
+                            <% } %>
+                        </select>
+
+                        <input type="text" name="respuestas[]" class="form-control input-custom" required placeholder="Tu respuesta secreta...">
                     </div>
+                <% } %>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-atrium-secondary" onclick="cambiarPaso(2, 1)">
+                        🡨 Atrás
+                    </button>
+                    <button type="button" class="btn btn-atrium-register" onclick="validarPaso2()">
+                        Continuar al Pago ➔
+                    </button>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group-custom">
-                        <label class="form-label-custom">Correo (Gmail)</label>
-                        <input type="email" name="gmail" class="form-control input-custom" required placeholder="usuario@gmail.com">
-                    </div>
+            </div>
+            <div id="step3" class="wizard-step" style="display: none;">
+                
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Número de Tarjeta de Crédito</label>
+                    <input type="text" name="nroTarjeta" class="form-control input-custom" required placeholder="0000 1111 2222 3333" minlength="15" maxlength="19">
+                </div>
+                
+                <div class="form-group-custom" style="max-width: 200px; align-self: flex-start;">
+                    <label class="form-label-custom">Código CVV</label>
+                    <input type="password" name="cvv" class="form-control input-custom" required placeholder="123" maxlength="4">
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-atrium-secondary" onclick="cambiarPaso(3, 2)">
+                        🡨 Atrás
+                    </button>
+                    <button type="submit" class="btn btn-atrium-register" style="background-color: #10b981 !important; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">
+                        ✓ Finalizar Registro
+                    </button>
                 </div>
             </div>
 
-            <hr class="w-100 border-secondary border-opacity-25 my-3">
-
-            <!-- Fila: Login y Password -->
-            <div class="row w-100">
-                <div class="col-md-6">
-                    <div class="form-group-custom">
-                        <label class="form-label-custom">Usuario / Login</label>
-                        <input type="text" name="login" class="form-control input-custom" required placeholder="Nombre de usuario">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group-custom">
-                        <label class="form-label-custom">Contraseña</label>
-                        <input type="password" name="password" class="form-control input-custom" required placeholder="••••••••">
-                    </div>
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-atrium-register">
-                Crear Cuenta Nueva
-            </button>
         </form>
         
         <div class="login-footer">
@@ -245,3 +343,54 @@
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+    function cambiarPaso(pasoActual, pasoSiguiente) {
+        if (pasoSiguiente > pasoActual) {
+            const currentStepDiv = document.getElementById('step' + pasoActual);
+            const inputs = currentStepDiv.querySelectorAll('input[required]');
+            
+            for (let input of inputs) {
+                if (!input.value) {
+                    input.reportValidity(); 
+                    return; 
+                }
+            }
+        }
+
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step3').style.display = 'none';
+
+        document.getElementById('step' + pasoSiguiente).style.display = 'flex';
+
+        const titulos = ["Datos Personales", "Preguntas de Seguridad", "Método de Pago"];
+        document.getElementById('step-indicator').innerText = `Paso ${pasoSiguiente} de 3: ${titulos[pasoSiguiente - 1]}`;
+    }
+
+    function validarPaso2() {
+        const step2 = document.getElementById('step2');
+        const selects = step2.querySelectorAll('select[name="preguntasIds[]"]');
+        const inputs = step2.querySelectorAll('input[name="respuestas[]"]');
+
+        for (let i = 0; i < 3; i++) {
+            if (!selects[i].value) {
+                selects[i].reportValidity();
+                return;
+            }
+            if (!inputs[i].value) {
+                inputs[i].reportValidity();
+                return;
+            }
+        }
+
+        const valoresElegidos = [selects[0].value, selects[1].value, selects[2].value];
+        const valoresUnicos = new Set(valoresElegidos); 
+
+        if (valoresUnicos.size < 3) {
+            alert("⚠️ Por favor, selecciona 3 preguntas diferentes. No puedes repetir la misma pregunta.");
+            return; 
+        }
+        cambiarPaso(2, 3);
+    }
+</script>

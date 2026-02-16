@@ -216,6 +216,15 @@
                 <span><span role="img">💳</span>Usuarios con Membresía</span>
                 <span class="arrow">→</span>
             </a>
+            <% if (locals.usuario && locals.usuario.rol === 3) { %>
+                <div class="list-group-item list-header mt-4" style="background-color: #0f172a !important; color: var(--atrium-orange) !important;">
+                    Funciones de Superadmin
+                </div>
+                <a href="/admin/usuarios/crear" class="list-group-item list-group-item-action" style="border-bottom: none !important;">
+                    <span>👑 Añadir Nuevo Administrador</span>
+                    <span class="arrow">→</span>
+                </a>
+            <% } %>
         </div>
     </div>
 </div>

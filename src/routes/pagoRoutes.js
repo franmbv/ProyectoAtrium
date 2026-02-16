@@ -4,18 +4,17 @@ const router = express.Router();
 const PagoController = require('../controllers/PagoController');
 const AuthController = require('../controllers/AuthController');
 
+
+router.use(AuthController.verificarSesion);
+router.use(AuthController.verificarComprador);
+
 // Rutas
-// Ruta para ver pantalla 
-router.get('/confirmar-reserva', AuthController.verificarSesion, PagoController.mostrarConfirmacion);
+// Rutas para Confirmar Reserva 
+router.get('/confirmar-reserva', PagoController.mostrarConfirmacion);
+router.post('/confirmar-reserva', PagoController.procesarReserva);
 
-// Ruta para enviar formulario 
-router.post('/confirmar-reserva', AuthController.verificarSesion, PagoController.procesarReserva);
-
-// Ruta para MOSTRAR el formulario 
-router.get('/recuperar', AuthController.verificarSesion, PagoController.formRecuperarCodigo);
-
-// Ruta para PROCESAR el formulario 
-router.post('/recuperar', AuthController.verificarSesion, PagoController.procesarRecuperacion);
-
+// Rutas para Recuperar Código de Seguridad
+router.get('/recuperar', PagoController.formRecuperarCodigo);
+router.post('/recuperar', PagoController.procesarRecuperacion);
 
 module.exports = router;

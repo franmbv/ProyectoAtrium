@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-const adminController = require('../controllers/adminController'); // <--- CORREGIDO: minúscula
+const adminController = require('../controllers/adminController'); 
 const AuthController = require('../controllers/AuthController');
 const upload = require('../config/multer');
 
 // Proteger todas las rutas de admin
 router.use(AuthController.verificarSesion);
+
+// Verificar que el usuario tenga acceso al panel de administración
+router.use(adminController.verificarAccesoPanel);
 
 // Redirigir /admin al dashboard
 router.get('/', (req, res) => {
@@ -45,5 +48,9 @@ router.get('/obras-vendidas', adminController.obrasVendidas);
 router.get('/facturas', adminController.facturasListado);
 router.get('/facturas/:id', adminController.facturaDetalle);
 router.get('/reportes-membresia', adminController.reporteMembresias);
+
+// Gestión de Usuarios
+router.get('/usuarios/crear', adminController.verificarSuperAdmin, adminController.mostrarCrearAdmin);
+router.post('/usuarios/crear', adminController.verificarSuperAdmin, adminController.procesarCrearAdmin);
 
 module.exports = router;
