@@ -291,7 +291,7 @@ const AdminController = {
 
             const direccion = {
                 pais: (pais || 'Venezuela').trim(),
-                estado: (estado || 'Pendiente').trim(),
+                estado: (estado_residencia || 'Pendiente').trim(),
                 ciudad: (ciudad || 'Pendiente').trim(),
                 municipio: (municipio || 'Pendiente').trim(),
                 calle: (calle || 'Pendiente').trim()
@@ -302,7 +302,7 @@ const AdminController = {
             await VentaModel.crear({
                 comprador_id, admin_id, obra_id,
                 pais: direccion.pais,
-                estado: direccion.estado,
+                estado: direccion.estado_residencia,
                 ciudad: direccion.ciudad,
                 municipio: direccion.municipio,
                 calle: direccion.calle,
