@@ -187,7 +187,7 @@
         
         <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-5">
-            <h2 class="admin-title">🖼️ Inventario General</h2>
+            <h2 class="admin-title"><span role="img">🖼️</span>Inventario General</h2>
             <a href="/admin/gestion-obras" class="btn btn-new-atrium shadow">
                 + Nueva Obra
             </a>
@@ -295,7 +295,9 @@
                                         <td>
                                             <div class="d-flex gap-2 justify-content-center">
                                                 <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-edit-soft">Editar</a>
-                                                <a href="/admin/facturar/<%= o.id %>" class="btn btn-facturar-soft">Facturar</a>
+                                                <form action="/admin/obras/<%= o.id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar obra?');">
+                                                    <button type="submit" class="btn btn-delete-soft">Borrar</button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>

@@ -314,6 +314,8 @@ CREATE TABLE `obra` (
   `precioObra` float NOT NULL,
   `porcentajeGanancia` float DEFAULT NULL CHECK (`porcentajeGanancia` between 5 and 10),
   `estatus` enum('Disponible','Reservada','Vendida') DEFAULT 'Disponible',
+  `reservado_por` int(11) DEFAULT NULL,
+  `fecha_reserva` date DEFAULT NULL,
   `foto` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

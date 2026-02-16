@@ -9,6 +9,13 @@ class InfoCompradorModel {
         return rows[0];
     }
 
+    // 1b. OBTENER INFO DEL COMPRADOR POR USUARIO
+    static async obtenerPorCompradorId(compradorId) {
+        const sql = 'SELECT * FROM info_comprador WHERE comprador_id = ? LIMIT 1';
+        const [rows] = await db.execute(sql, [compradorId]);
+        return rows[0];
+    }
+
     // 2. REGISTRAR MEMBRESÍA (Usado en el Registro del Usuario)
     static async crear(idUsuario, codigoSeguridad, nroTarjeta) {
         const connection = await db.getConnection(); 
@@ -74,6 +81,27 @@ class InfoCompradorModel {
     static async actualizarCodigo(compradorId, nuevoCodigo) {
         const sql = 'UPDATE info_comprador SET codigoSeguridad = ? WHERE comprador_id = ?';
         await db.execute(sql, [nuevoCodigo, compradorId]);
+        return true;
+    }
+
+    // 6. ACTUALIZAR DIRECCION DEL COMPRADOR
+    static async actualizarDireccion(compradorId, direccion) {
+        const sql = `
+            UPDATE info_comprador
+            SET pais = ?, estado = ?, ciudad = ?, municipio = ?, calle = ?
+            WHERE comprador_id = ?
+        `;
+
+        const params = [
+            direccion.pais,
+            direccion.estado,
+            direccion.ciudad,
+            direccion.municipio,
+            direccion.calle,
+            compradorId
+        ];
+
+        await db.execute(sql, params);
         return true;
     }
 }

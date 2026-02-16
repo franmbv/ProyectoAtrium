@@ -1,41 +1,43 @@
 :root {
-    --at-navy-bg: #0d1117;       /* Fondo base oscuro */
-    --at-panel-carbon: #161b22;  /* El azul oscuro para paneles y tablas */
-    --at-orange: #f97316;        /* Naranja Atrium */
+    /* VARIABLES PARA MODO OSCURO (POR DEFECTO) */
+    --at-body-bg: linear-gradient(180deg, #111827 0%, #05070a 100%);
+    --at-panel-carbon: #161b22;
+    --at-text-main: #ffffff;
+    --at-text-muted: #cbd5e1;
+    --at-orange: #f97316;
     --at-orange-glow: rgba(249, 115, 22, 0.4);
     --at-border: rgba(255, 255, 255, 0.1);
+    --at-table-border: rgba(255, 255, 255, 0.05);
 }
 
 body {
     margin: 0;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    /* Degradado Marino a Negro sin interrupciones */
-    background: linear-gradient(180deg, #111827 0%, #05070a 100%) !important;
-    color: #ffffff !important;
+    background: var(--at-body-bg) !important;
+    color: var(--at-text-main) !important;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 main { flex: 1; display: flex; flex-direction: column; width: 100%; }
 
-/* ELIMINAR BORDES Y SOMBRAS GENÉRICAS */
 .navbar, footer { border: none !important; box-shadow: none !important; }
 
-/* PANELES AZUL CARBONO (IGUAL A LAS TABLAS) */
-.card, .admin-panel-dark, .filter-sidebar {
+.card, .admin-panel-dark, .filter-sidebar, .admin-card, .dashboard-panel {
     background-color: var(--at-panel-carbon) !important;
     border: 1px solid var(--at-border) !important;
     border-radius: 20px;
     padding: 30px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    color: var(--at-text-main) !important;
 }
 
-/* TABLAS ESTÉTICAS */
-.table { color: #ffffff !important; margin-bottom: 0; border-collapse: separate; border-spacing: 0; }
+.table { color: var(--at-text-main) !important; margin-bottom: 0; border-collapse: separate; border-spacing: 0; }
 .table thead th {
     background-color: var(--at-orange) !important;
-    color: #000000 !important;
+    color: #ffffff !important;
     font-weight: 800;
     text-transform: uppercase;
     text-align: center;
@@ -43,18 +45,16 @@ main { flex: 1; display: flex; flex-direction: column; width: 100%; }
     border: none !important;
 }
 .table td { 
-    border-bottom: 1px solid rgba(255,255,255,0.05) !important; 
+    border-bottom: 1px solid var(--at-table-border) !important; 
     padding: 15px;
 }
 
-/* TÍTULOS */
 h1, h2, h3, h4, h5, .h2 {
-    color: #ffffff !important;
+    color: var(--at-text-main) !important;
     text-align: left !important;
     font-weight: 700;
 }
 
-/* BOTÓN PÍLDORA NARANJA */
 .btn-atrium-pill {
     background-color: var(--at-orange) !important;
     color: white !important;
@@ -70,34 +70,111 @@ h1, h2, h3, h4, h5, .h2 {
     box-shadow: 0 10px 25px var(--at-orange-glow);
 }
 
-/* --- BUSCA O AGREGA ESTO EN TU CSS --- */
-
 footer {
-    /* Color Gris Carbón idéntico al de tus paneles para total armonía */
-    background-color: #161b22 !important; 
-    
-    /* ELIMINAMOS LA RAYA NEGRA: Quitamos bordes y sombras */
+    background-color: var(--at-panel-carbon) !important; 
     border: none !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.03) !important; /* Una línea casi invisible para dar profundidad */
+    border-top: 1px solid var(--at-border) !important;
     box-shadow: none !important;
-    
-    margin-top: auto; /* Mantiene el footer abajo */
+    margin-top: auto;
     width: 100%;
 }
 
-/* Aseguramos que no haya un margen extraño en el main que deje ver el fondo */
-main {
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
+main { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+
+::placeholder { color: var(--at-text-muted) !important; opacity: 1 !important; }
+::-webkit-input-placeholder { color: var(--at-text-muted) !important; opacity: 1 !important; }
+::-moz-placeholder { color: var(--at-text-muted) !important; opacity: 1 !important; }
+:-ms-input-placeholder { color: var(--at-text-muted) !important; opacity: 1 !important; }
+::-ms-input-placeholder { color: var(--at-text-muted) !important; opacity: 1 !important; }
+
+/* ==========================================================================
+   SISTEMA DE MODO CLARO - VERSIÓN FINAL CON CLASE "PRESERVE-COLOR"
+   ========================================================================== */
+
+/* 1. Inversión Base del HTML */
+html[data-theme="light"] {
+    filter: invert(1) hue-rotate(180deg) contrast(1.1);
+    background-color: #000000 !important; 
 }
 
-::placeholder {
-    color: #cbd5e1 !important; /* Gris claro/azulado de alta visibilidad */
-    opacity: 1 !important;      /* Quitar la transparencia por defecto */
+
+/* 2.1 RE-INVERSIÓN PARA INTERFAZ (Iconos, Emojis, Logos) */
+/* Estos necesitan saturación extra para no verse grises u opacos */
+html[data-theme="light"] .navbar-brand span:first-child,
+html[data-theme="light"] span[role="img"],
+html[data-theme="light"] #theme-icon {
+    filter: invert(1) hue-rotate(180deg) brightness(1.2) saturate(2.5) !important;
+    opacity: 1 !important;
 }
 
-/* Soporte para diferentes navegadores */
-::-webkit-input-placeholder { color: #cbd5e1 !important; opacity: 1 !important; }
-::-moz-placeholder { color: #cbd5e1 !important; opacity: 1 !important; }
-:-ms-input-placeholder { color: #cbd5e1 !important; opacity: 1 !important; }
-::-ms-input-placeholder { color: #cbd5e1 !important; opacity: 1 !important; }
+
+/* Aquí eliminamos el brillo y la saturación extra para conservar la obra original */
+html[data-theme="light"] .obra-img,
+html[data-theme="light"] .artist-profile-img,
+html[data-theme="light"] .mini-img,
+html[data-theme="light"] .img-thumb,
+html[data-theme="light"] .art-brick,
+html[data-theme="light"] .img-detail-pano,
+html[data-theme="light"] .preserve-art {
+    /* CORREGIDO: brightness y contrast movidos dentro de filter */
+    filter: invert(1) hue-rotate(180deg) brightness(1) contrast(1) !important;
+}
+
+
+
+/* 2. RE-INVERSIÓN AGRESIVA (Fotos, Iconos, Emojis y elementos protegidos) */ 
+html[data-theme="light"] .no-invert,
+html[data-theme="light"] .navbar-brand span:first-child,
+html[data-theme="light"] span[role="img"],
+/* AQUI AGREGAMOS LA NUEVA CLASE PARA QUE SE RE-INVIERTA */
+html[data-theme="light"] .preserve-color {
+    filter: invert(1) hue-rotate(180deg) brightness(1.1) saturate(2.5) !important;
+    opacity: 1 !important;
+    border: none !important; /* Quitamos bordes raros */
+}
+
+/* 3. TEXTOS GENERALES (Negro visual) */
+html[data-theme="light"] h1, html[data-theme="light"] h2, html[data-theme="light"] h3,
+html[data-theme="light"] h4, html[data-theme="light"] .dashboard-title,
+html[data-theme="light"] .navbar-brand, html[data-theme="light"] .obra-title,
+html[data-theme="light"] .artist-name, html[data-theme="light"] footer h5,
+html[data-theme="light"] footer h6, html[data-theme="light"] footer p,
+html[data-theme="light"] .nav-link, html[data-theme="light"] .text-white,
+html[data-theme="light"] .text-white-50 {
+    color: #ffffff !important;
+}
+
+/* 4. SEPARACIÓN VISUAL (FONDO VS PANELES) */
+html[data-theme="light"] body {
+    background-color: #000000 !important;
+}
+
+/* APLICAMOS EL FONDO CLARO A TODO MENOS A LAS MÉTRICAS PROTEGIDAS */
+html[data-theme="light"] .dashboard-panel,
+html[data-theme="light"] .admin-card,
+html[data-theme="light"] .card:not(.preserve-color) { 
+    background-color: #0f172a !important; /* Gris claro al invertirse */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 5. CORRECCIÓN DE TEXTO DENTRO DE LOS CUADROS PROTEGIDOS */
+/* Como los hemos re-invertido, vuelven a ser oscuros/naranjas. 
+   Necesitamos quitarles la regla global que los obliga a ser blancos. */
+html[data-theme="light"] .preserve-color h5,
+html[data-theme="light"] .preserve-color .display-value {
+    color: inherit !important; /* Usa el color original del EJS */
+    filter: none !important;
+}
+
+/* 6. FIX FOOTER */
+html[data-theme="light"] footer {
+    background-color: #161b22 !important; 
+    border-top: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 7. BOTÓN DE TEMA */
+#theme-toggle { filter: none !important; }
+html[data-theme="light"] #theme-icon {
+    filter: invert(1) hue-rotate(180deg) brightness(1.2) saturate(2);
+}
