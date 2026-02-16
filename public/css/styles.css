@@ -100,8 +100,6 @@ html[data-theme="light"] {
 
 /* 2.1 RE-INVERSIÓN PARA INTERFAZ (Iconos, Emojis, Logos) */
 /* Estos necesitan saturación extra para no verse grises u opacos */
-html[data-theme="light"] i, 
-html[data-theme="light"] .bi,
 html[data-theme="light"] .navbar-brand span:first-child,
 html[data-theme="light"] span[role="img"],
 html[data-theme="light"] #theme-icon {
@@ -118,9 +116,8 @@ html[data-theme="light"] .img-thumb,
 html[data-theme="light"] .art-brick,
 html[data-theme="light"] .img-detail-pano,
 html[data-theme="light"] .preserve-art {
-    filter: invert(1) hue-rotate(180deg) !important; /* Inversión pura 1:1 */
-    brightness: 1 !important;
-    contrast: 1 !important;
+    /* CORREGIDO: brightness y contrast movidos dentro de filter */
+    filter: invert(1) hue-rotate(180deg) brightness(1) contrast(1) !important;
 }
 
 
@@ -147,7 +144,7 @@ html[data-theme="light"] .text-white-50 {
     color: #ffffff !important;
 }
 
-/* 4. SEPARACIÓN VISUAL (Fondo vs Paneles) */
+/* 4. SEPARACIÓN VISUAL (FONDO VS PANELES) */
 html[data-theme="light"] body {
     background-color: #000000 !important;
 }
