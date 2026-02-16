@@ -111,6 +111,8 @@ html[data-theme="light"] #theme-icon {
 /* Aquí eliminamos el brillo y la saturación extra para conservar la obra original */
 html[data-theme="light"] .obra-img,
 html[data-theme="light"] .artist-profile-img,
+html[data-theme="light"] .img-edit-preview,
+html[data-theme="light"] .img-artist-thumb,
 html[data-theme="light"] .mini-img,
 html[data-theme="light"] .img-thumb,
 html[data-theme="light"] .art-brick,
