@@ -187,6 +187,15 @@
 </style>
 
 <div class="detail-wrapper">
+    <% 
+        /* LÓGICA DE NOTACIÓN COMPACTA (K, M, B) */
+        const shortFormat = new Intl.NumberFormat('en-US', {
+            notation: 'compact',
+            compactDisplay: 'short',
+            maximumFractionDigits: 1
+        });
+    %>
+
     <div class="container-fluid">
         <div class="detail-card-panoramic shadow-2xl">
             <div class="row g-0">
@@ -209,7 +218,8 @@
                         </a>
                     </p>
                     
-                    <div class="price-value-pano">$<%= parseFloat(obra.precioObra).toLocaleString('en-US') %></div>
+                    <!-- MODIFICADO: Notación Compacta Aplicada al Precio -->
+                    <div class="price-value-pano">$<%= shortFormat.format(parseFloat(obra.precioObra || 0)) %></div>
 
                     <!-- FICHA TÉCNICA -->
                     <div class="specs-box-modern">
@@ -250,7 +260,7 @@
                         <% if (locals.usuario && (locals.usuario.rol === 1 || locals.usuario.rol === 3)) { %>
                             
                             <button class="btn btn-secondary w-100 disabled" style="padding: 18px 0; font-weight: 800; text-transform: uppercase; cursor: not-allowed; opacity: 0.6; border-radius: 100px;">
-                                🛡️ Acción no permitida para Administradores
+                                 Acción no permitida para Administradores
                             </button>
                         <% } else { %>
                             <button onclick="intentarComprar('<%= obra.id %>', '<%= obra.nombre %>')" class="btn btn-purchase">
