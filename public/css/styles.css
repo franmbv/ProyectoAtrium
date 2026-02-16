@@ -180,3 +180,25 @@ html[data-theme="light"] footer {
 html[data-theme="light"] #theme-icon {
     filter: invert(1) hue-rotate(180deg) brightness(1.2) saturate(2);
 }
+
+/* REGLA MEJORADA PARA CIFRAS DINÁMICAS */
+.admin-kpi .display-value {
+    /* clamp(mínimo, preferido, máximo) -> La letra se achica si el contenedor es pequeño */
+    font-size: clamp(1rem, 3.2vw, 2.5rem) !important; 
+    font-weight: 900;
+    margin: 0;
+    text-align: center !important;
+    
+    /* SEGURIDAD TOTAL: Si el número es absurdamente largo, no rompe el diseño */
+    width: 100%;
+    overflow: hidden;         /* Oculta lo que se salga */
+    text-overflow: ellipsis;  /* Agrega "..." si no cabe */
+    white-space: nowrap;      /* Mantiene todo en una sola línea */
+    display: block;
+}
+
+/* Reducimos el padding lateral del contenedor para dar más espacio al número */
+.admin-kpi {
+    padding: 30px 8px !important; 
+    min-width: 0; /* Permite que el contenido se ajuste correctamente */
+}

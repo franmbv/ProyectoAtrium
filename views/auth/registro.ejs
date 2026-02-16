@@ -1,6 +1,7 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
+<!-- Tipografías elegantes -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -13,7 +14,7 @@
         --at-border: rgba(255, 255, 255, 0.1);
     }
 
-    /* Fondo unificado y centrado absoluto */
+    /* Contenedor unificado y centrado absoluto */
     .auth-page-container {
         background: radial-gradient(circle at center, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
         min-height: calc(100vh - 70px);
@@ -24,14 +25,14 @@
         font-family: 'Inter', sans-serif;
     }
 
-    /* Card Azul Carbono simétrica */
+    /* Card Azul Carbono */
     .register-card {
         background-color: var(--at-card-bg) !important;
         border: 1px solid var(--at-border) !important;
-        border-radius: 16px; 
+        border-radius: 24px; 
         padding: 50px 45px;
         width: 100%;
-        max-width: 600px;
+        max-width: 650px;
         box-shadow: 0 30px 60px rgba(0,0,0,0.6);
         display: flex;
         flex-direction: column;
@@ -53,14 +54,38 @@
         text-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
     }
 
-    .register-subtitle {
-        color: #94a3b8;
-        font-size: 0.9rem;
+    /* Indicador de Pasos Moderno */
+    .step-indicator-container {
+        width: 100%;
         margin-bottom: 40px;
         text-align: center;
-        font-weight: 600;
-        letter-spacing: 1px;
+    }
+
+    .register-subtitle {
+        color: var(--at-orange);
+        font-size: 0.75rem;
+        font-weight: 800;
         text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 15px;
+    }
+
+    .progress-track {
+        height: 4px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 10px;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: var(--at-orange);
+        width: 33.33%;
+        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 10px var(--at-orange-glow);
     }
 
     /* FORMULARIO */
@@ -71,7 +96,6 @@
         align-items: center;
     }
 
-    /* CONTENEDOR DE PASOS */
     .wizard-step {
         width: 100%;
         display: flex;
@@ -92,7 +116,6 @@
         flex-direction: column;
     }
 
-    /* ALINEACIÓN A LA IZQUIERDA PARA TÍTULOS */
     .form-label-custom {
         display: block;
         color: #94a3b8;
@@ -104,13 +127,13 @@
         text-align: left;
     }
 
-    /* ALINEACIÓN A LA IZQUIERDA PARA CONTENIDO */
+    /* Inputs y Selects Homogéneos */
     .input-custom {
         background-color: #0d1117 !important;
         border: 1px solid var(--at-border) !important;
         color: white !important;
         padding: 12px 16px !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
         text-align: left;
         width: 100%;
         transition: all 0.3s ease;
@@ -122,32 +145,37 @@
         outline: none;
     }
 
-    /* BOTONES */
+    /* Estilo para las opciones del Select */
+    select.input-custom option {
+        background-color: #1f2937;
+        color: white;
+    }
+
+    /* BOTONES PILL ATRIUM */
     .button-group {
         display: flex;
         gap: 15px;
         width: 100%;
-        max-width: 400px;
-        margin-top: 20px;
+        margin-top: 30px;
     }
 
-    .btn-atrium-register {
+    .btn-atrium-main {
         background-color: var(--at-orange) !important;
         color: white !important;
         border: none;
         border-radius: 100px;
         padding: 16px 0;
         font-weight: 800;
-        font-size: 1rem;
+        font-size: 0.9rem;
         text-transform: uppercase;
         letter-spacing: 1px;
-        width: 100%;
+        flex: 1;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
         cursor: pointer;
     }
 
-    .btn-atrium-register:hover {
+    .btn-atrium-main:hover {
         transform: translateY(-3px);
         filter: brightness(1.1);
         box-shadow: 0 15px 30px rgba(249, 115, 22, 0.4);
@@ -156,14 +184,14 @@
     .btn-atrium-secondary {
         background-color: transparent !important;
         color: #94a3b8 !important;
-        border: 1px solid #94a3b8 !important;
+        border: 1px solid #334155 !important;
         border-radius: 100px;
         padding: 16px 0;
         font-weight: 800;
         font-size: 0.9rem;
         text-transform: uppercase;
         letter-spacing: 1px;
-        width: 100%;
+        flex: 1;
         transition: all 0.3s ease;
         cursor: pointer;
     }
@@ -172,6 +200,16 @@
         color: white !important;
         border-color: white !important;
         background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* Cajas de preguntas Step 2 */
+    .question-card {
+        background: rgba(255,255,255,0.02);
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: 20px;
+        width: 100%;
     }
 
     .login-footer {
@@ -189,33 +227,36 @@
         transition: 0.3s;
     }
 
-    .login-link strong {
-        color: var(--at-orange);
-        font-weight: 700;
-    }
-
-    .login-link:hover strong {
-        color: white;
-    }
+    .login-link strong { color: var(--at-orange); font-weight: 700; }
+    .login-link:hover strong { color: white; }
 
     .alert-register {
         width: 100%;
         background: rgba(239, 68, 68, 0.1);
         color: #fca5a5;
         border: 1px solid rgba(239, 68, 68, 0.2);
-        border-radius: 10px;
+        border-radius: 12px;
         font-size: 0.85rem;
-        padding: 12px;
+        padding: 15px;
         margin-bottom: 25px;
         text-align: center;
     }
+
+    /* Evitar inversión en emojis para que no se vean opacos */
+    .no-invert { filter: none !important; }
 </style>
 
 <div class="auth-page-container">
     <div class="register-card shadow-2xl">
-        <div style="font-size: 45px; margin-bottom: 10px; text-align: center;"><span role="img">📝</span></div>
+        <div style="font-size: 45px; margin-bottom: 10px; text-align: center;"><span role="img" class="no-invert">📝</span></div>
         <h1 class="register-title">Registro <span class="brand-highlight">Atrium</span></h1>
-        <p class="register-subtitle" id="step-indicator">Paso 1 de 3: Datos Personales</p>
+        
+        <div class="step-indicator-container">
+            <p class="register-subtitle" id="step-indicator">Paso 1 de 3: Datos Personales</p>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-bar"></div>
+            </div>
+        </div>
 
         <% if (locals.error) { %>
             <div class="alert alert-register" role="alert">
@@ -225,6 +266,7 @@
 
         <form action="/auth/registro" method="POST" id="formWizard">
             
+            <!-- PASO 1: DATOS PERSONALES -->
             <div id="step1" class="wizard-step">
                 <div class="row w-100">
                     <div class="col-md-6">
@@ -273,22 +315,22 @@
                     </div>
                 </div>
 
-                <div class="button-group" style="justify-content: center;">
-                    <button type="button" class="btn btn-atrium-register" onclick="cambiarPaso(1, 2)">
+                <div class="button-group">
+                    <button type="button" class="btn-atrium-main" onclick="cambiarPaso(1, 2)">
                         Continuar a Seguridad ➔
                     </button>
                 </div>
             </div>
 
+            <!-- PASO 2: SEGURIDAD -->
             <div id="step2" class="wizard-step" style="display: none;">
-                
-                <p class="text-muted small text-center mb-4">Selecciona 3 preguntas distintas y escribe tus respuestas.</p>
+                <p class="text-white small text-center mb-4">Seleccione 3 preguntas distintas para recuperar su clave en el futuro.</p>
 
                 <% for(let i = 1; i <= 3; i++) { %>
-                    <div class="form-group-custom p-3 mb-3" style="background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
-                        <label class="form-label-custom text-white">Pregunta de Seguridad <%= i %></label>
+                    <div class="question-card shadow-sm">
+                        <label class="form-label-custom" style="color: #ffffff;">Pregunta de Seguridad <%= i %></label>
                         
-                        <select name="preguntasIds[]" class="form-control input-custom mb-2" required>
+                        <select name="preguntasIds[]" class="form-control input-custom mb-3" required>
                             <option value="" disabled selected>-- Haz clic para elegir una pregunta --</option>
                             <% if (locals.preguntas) { %>
                                 <% preguntas.forEach(item => { %>
@@ -297,36 +339,50 @@
                             <% } %>
                         </select>
 
-                        <input type="text" name="respuestas[]" class="form-control input-custom" required placeholder="Tu respuesta secreta...">
+                        <input type="text" name="respuestas[]" class="form-control input-custom" required placeholder="Escriba su respuesta secreta...">
                     </div>
                 <% } %>
 
                 <div class="button-group">
-                    <button type="button" class="btn btn-atrium-secondary" onclick="cambiarPaso(2, 1)">
+                    <button type="button" class="btn-atrium-secondary" onclick="cambiarPaso(2, 1)">
                         🡨 Atrás
                     </button>
-                    <button type="button" class="btn btn-atrium-register" onclick="validarPaso2()">
+                    <button type="button" class="btn-atrium-main" onclick="validarPaso2()">
                         Continuar al Pago ➔
                     </button>
                 </div>
             </div>
+
+            <!-- PASO 3: PAGO -->
             <div id="step3" class="wizard-step" style="display: none;">
-                
+                <!-- MODIFICADO: Estilo alert cambiado a Naranja Atrium -->
+                <div class="alert-custom mb-4 p-3 text-center" style="background: rgba(249, 115, 22, 0.05); border-radius: 12px; border: 1px solid rgba(249, 115, 22, 0.3); color: #f97316; font-size: 0.85rem;">
+                    <i class="bi bi-info-circle me-2"></i> Se realizará un cargo único de <strong>$10.00</strong> por membresía anual.
+                </div>
+
                 <div class="form-group-custom">
                     <label class="form-label-custom">Número de Tarjeta de Crédito</label>
                     <input type="text" name="nroTarjeta" class="form-control input-custom" required placeholder="0000 1111 2222 3333" minlength="15" maxlength="19">
                 </div>
                 
-                <div class="form-group-custom" style="max-width: 200px; align-self: flex-start;">
-                    <label class="form-label-custom">Código CVV</label>
-                    <input type="password" name="cvv" class="form-control input-custom" required placeholder="123" maxlength="4">
+                <div class="row w-100">
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Código CVV</label>
+                            <input type="password" name="cvv" class="form-control input-custom" required placeholder="123" maxlength="4">
+                        </div>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center justify-content-center">
+                        <span style="font-size: 30px;"><span role="img">💳 🔒</span></span>
+                    </div>
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="btn btn-atrium-secondary" onclick="cambiarPaso(3, 2)">
+                    <button type="button" class="btn-atrium-secondary" onclick="cambiarPaso(3, 2)">
                         🡨 Atrás
                     </button>
-                    <button type="submit" class="btn btn-atrium-register" style="background-color: #10b981 !important; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">
+                    <!-- MODIFICADO: Botón cambiado a Naranja Atrium -->
+                    <button type="submit" class="btn-atrium-main" style="background-color: #f97316 !important; box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);">
                         ✓ Finalizar Registro
                     </button>
                 </div>
@@ -364,8 +420,11 @@
 
         document.getElementById('step' + pasoSiguiente).style.display = 'flex';
 
-        const titulos = ["Datos Personales", "Preguntas de Seguridad", "Método de Pago"];
+        const titulos = ["Datos Personales", "Seguridad", "Método de Pago"];
         document.getElementById('step-indicator').innerText = `Paso ${pasoSiguiente} de 3: ${titulos[pasoSiguiente - 1]}`;
+        
+        const progreso = (pasoSiguiente / 3) * 100;
+        document.getElementById('progress-bar').style.width = progreso + '%';
     }
 
     function validarPaso2() {

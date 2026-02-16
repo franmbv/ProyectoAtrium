@@ -1,50 +1,212 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-warning text-dark">
-                    <h4><span role="img">🔐</span>Recuperar Código de Seguridad</h4>
-                </div>
-                <div class="card-body">
-                    
-                    <% if (error) { %>
-                        <div class="alert alert-danger"><%= error %></div>
-                    <% } %>
+<!-- Tipografías elegantes -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-                    <% if (success) { %>
-                        <div class="alert alert-success">
-                            <h4><%= success %></h4>
-                            <a href="/galeria" class="btn btn-success mt-3">Ir a Comprar</a>
-                        </div>
-                    <% } %>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.1);
+    }
 
-                    <% if (preguntas && preguntas.length > 0 && !success) { %>
-                        <p>Responde tus siguientes preguntas de seguridad:</p>
-                        
-                        <form action="/pagos/recuperar" method="POST">
-                            
-                            <% preguntas.forEach((item, index) => { %>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">
-                                        <%= index + 1 %>. <%= item.pregunta %>
-                                    </label>
-                                    <input type="text" name="respuestas[]" class="form-control" required autocomplete="off">
-                                </div>
-                            <% }) %>
+    /* Contenedor unificado con centrado absoluto */
+    .recover-page-wrapper {
+        background: radial-gradient(circle at center, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        font-family: 'Inter', sans-serif;
+    }
 
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">Verificar Respuestas</button>
-                                <a href="/galeria" class="btn btn-secondary">Cancelar</a>
-                            </div>
-                        </form>
-                    <% } %>
+    /* Card estructurada */
+    .recover-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 24px;
+        padding: 50px 45px;
+        width: 100%;
+        max-width: 550px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        display: flex;
+        flex-direction: column;
+    }
 
+    .recover-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: white;
+        margin-bottom: 10px;
+        letter-spacing: -1px;
+        /* MODIFICADO: Se añade !important para sobreescribir el estilo global */
+        text-align: center !important;
+    }
+
+    .recover-subtitle {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        margin-bottom: 35px;
+        line-height: 1.6;
+        text-align: center;
+    }
+
+    /* Estilo de los inputs */
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        padding: 12px 16px !important;
+        border-radius: 12px !important;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 15px var(--at-orange-glow) !important;
+        outline: none;
+    }
+
+    .form-label-custom {
+        display: block;
+        color: var(--at-orange);
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+        text-align: left;
+    }
+
+    /* Botones Atrium */
+    .btn-atrium-main {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 16px 0;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+    }
+
+    .btn-atrium-main:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px var(--at-orange-glow);
+    }
+
+    .btn-atrium-outline {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 14px 0;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        transition: 0.3s;
+        margin-top: 10px;
+    }
+
+    .btn-atrium-outline:hover {
+        color: white;
+        border-color: white;
+    }
+
+    /* Alertas */
+    .alert-custom {
+        border-radius: 12px;
+        padding: 15px;
+        font-size: 0.9rem;
+        margin-bottom: 25px;
+        border: 1px solid rgba(255,255,255,0.1);
+        text-align: center;
+    }
+    .alert-error { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border-color: rgba(239, 68, 68, 0.2); }
+    
+    /* MODIFICADO: Ahora es Naranja para ser homogéneo con la marca */
+    .alert-success-atrium { 
+        background: rgba(249, 115, 22, 0.1); 
+        color: #fed7aa; 
+        border: 1px solid rgba(249, 115, 22, 0.3); 
+    }
+
+    /* Cajas de preguntas alineadas */
+    .question-box {
+        background: rgba(255,255,255,0.02);
+        padding: 25px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: 20px;
+        text-align: left; /* Mantiene la estructura de formulario */
+    }
+
+    .question-text {
+        color: white;
+        font-size: 1.05rem;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="recover-page-wrapper">
+    <div class="recover-card shadow-2xl">
+        
+        <!-- ENCABEZADO CENTRADO -->
+        <div class="text-center mb-4">
+            <div style="font-size: 50px; margin-bottom: 10px;"><span role="img">🔐</span></div>
+            <h1 class="recover-title">Recuperar Código</h1>
+            <% if (!success) { %>
+                <p class="recover-subtitle">Por razones de seguridad, verifique su identidad respondiendo a sus preguntas de seguridad.</p>
+            <% } %>
+        </div>
+        
+        <!-- ÁREA DE ALERTAS -->
+        <% if (error) { %>
+            <div class="alert-custom alert-error"><%= error %></div>
+        <% } %>
+
+        <% if (success) { %>
+            <div class="alert-custom alert-success-atrium">
+                <h4 class="fw-bold mb-3"><%= success %></h4>
+                <p class="small opacity-75 mb-4">Ya puede utilizar su nuevo PIN para confirmar sus reservas de obras.</p>
+                <div class="d-grid">
+                    <a href="/galeria" class="btn btn-atrium-main">Regresar a la Galería</a>
                 </div>
             </div>
-        </div>
+        <% } %>
+
+        <!-- FORMULARIO ESTRUCTURADO -->
+        <% if (preguntas && preguntas.length > 0 && !success) { %>
+            <form action="/pagos/recuperar" method="POST">
+                
+                <% preguntas.forEach((item, index) => { %>
+                    <div class="question-box shadow-sm">
+                        <label class="form-label-custom">
+                            Pregunta de Seguridad #<%= index + 1 %>
+                        </label>
+                        <p class="question-text"><%= item.pregunta %></p>
+                        <input type="text" name="respuestas[]" class="form-control input-custom" placeholder="Escriba su respuesta aquí..." required autocomplete="off">
+                    </div>
+                <% }) %>
+
+                <!-- ACCIONES CENTRADAS MEDIANTE GRID -->
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-atrium-main">Verificar Respuestas</button>
+                    <a href="/galeria" class="btn btn-atrium-outline">Cancelar y Volver</a>
+                </div>
+            </form>
+        <% } %>
+
     </div>
 </div>
 

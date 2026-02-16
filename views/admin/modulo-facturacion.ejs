@@ -1,102 +1,257 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header bg-dark text-white">
-            <h4>Revisar Factura</h4>
-        </div>
-        <div class="card-body">
-            <form action="/admin/emitir-factura" method="POST">
-                <% const info = infoComprador || {}; %>
-                <input type="hidden" name="obra_id" value="<%= obra.id %>">
-                <input type="hidden" name="precioObra" value="<%= obra.precioObra %>">
-                <input type="hidden" name="porcentajeGanancia" value="<%= obra.porcentajeGanancia %>">
-                <input type="hidden" name="comprador_id" value="<%= comprador.id %>">
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h5 class="text-secondary">Detalle de la Obra</h5>
-                        <p><strong>Título:</strong> <%= obra.nombre %></p>
-                        <p><strong>Precio Base:</strong> $<%= parseFloat(obra.precioObra).toLocaleString('en-US') %></p>
-                        <p><strong>% Ganancia Museo:</strong> <%= obra.porcentajeGanancia %>%</p>
-                    </div>
-                    <div class="col-md-6 border-start">
-                        <h5 class="text-secondary">Datos del Comprador</h5>
-                        <p><strong>Nombre:</strong> <%= comprador.nombre %> <%= comprador.apellido %></p>
-                        <p><strong>Correo:</strong> <%= comprador.gmail %></p>
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.1);
+    }
+
+    .admin-page-wrapper {
+        background: radial-gradient(circle at center, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: calc(100vh - 70px);
+        padding: 60px 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .form-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 24px;
+        padding: 45px;
+        max-width: 950px;
+        margin: 0 auto;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    }
+
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+        margin-bottom: 30px;
+    }
+
+    /* BLOQUES DE INFORMACIÓN */
+    .info-section-box {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 25px;
+        height: 100%;
+    }
+
+    .section-label {
+        display: block;
+        color: var(--at-orange);
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 15px;
+    }
+
+    .data-text {
+        color: #e2e8f0;
+        font-size: 1rem;
+        margin-bottom: 8px;
+    }
+
+    .data-text strong {
+        color: #94a3b8;
+        font-weight: 500;
+        margin-right: 5px;
+    }
+
+    /* ESTILO DE INPUTS Y SELECTS */
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        padding: 12px 16px !important;
+        border-radius: 12px !important;
+        transition: all 0.3s ease;
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 15px var(--at-orange-glow) !important;
+        outline: none;
+    }
+
+    .form-label-custom {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
+    }
+
+    /* ALERTAS */
+    .alert-atrium-info {
+        background: rgba(56, 189, 248, 0.05);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        color: #7dd3fc;
+        border-radius: 12px;
+        padding: 15px;
+        font-size: 0.85rem;
+    }
+
+    /* BOTONES */
+    .btn-atrium-main {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 16px 30px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+    }
+
+    .btn-atrium-main:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px var(--at-orange-glow);
+    }
+
+    .btn-atrium-outline {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 15px 30px;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        transition: 0.3s;
+    }
+
+    .btn-atrium-outline:hover {
+        color: white;
+        border-color: white;
+        background: rgba(255,255,255,0.03);
+    }
+
+    hr { border-color: rgba(255,255,255,0.05); opacity: 1; margin: 40px 0; }
+
+    select.input-custom option { background-color: #1f2937; color: white; }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="form-card">
+        <h1 class="page-title">Revisar Factura</h1>
+
+        <form action="/admin/emitir-factura" method="POST">
+            <% const info = infoComprador || {}; %>
+            <input type="hidden" name="obra_id" value="<%= obra.id %>">
+            <input type="hidden" name="precioObra" value="<%= obra.precioObra %>">
+            <input type="hidden" name="porcentajeGanancia" value="<%= obra.porcentajeGanancia %>">
+            <input type="hidden" name="comprador_id" value="<%= comprador.id %>">
+
+            <div class="row g-4 mb-4">
+                <!-- Columna Obra -->
+                <div class="col-md-6">
+                    <div class="info-section-box">
+                        <span class="section-label">Detalle de la Obra</span>
+                        <p class="data-text"><strong>Título:</strong> <%= obra.nombre %></p>
+                        <p class="data-text"><strong>Precio Base:</strong> $<%= parseFloat(obra.precioObra).toLocaleString('en-US') %></p>
+                        <p class="data-text"><strong>Comisión Museo:</strong> <%= obra.porcentajeGanancia %>%</p>
                     </div>
                 </div>
-
-                <hr>
-
-                <h5 class="mb-3 text-secondary">Datos de Envío y Facturación</h5>
-                
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label">País</label>
-                        <input type="text" name="pais" class="form-control" value="<%= info.pais || 'Venezuela' %>" readonly>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Estado</label>
-                        <select name="estado" class="form-select">
-                            <option value="Pendiente" <%= (info.estado_residencia || 'Pendiente') === 'Pendiente' ? 'selected' : '' %>>Pendiente</option>
-                            <option value="Bolívar" <%= info.estado_residencia === 'Bolívar' ? 'selected' : '' %>>Bolívar</option>
-                            <option value="Caracas" <%= info.estado_residencia === 'Caracas' ? 'selected' : '' %>>Caracas</option>
-                            <option value="Anzoátegui" <%= info.estado_residencia === 'Anzoátegui' ? 'selected' : '' %>>Anzoátegui</option>
-                            <option value="Carabobo" <%= info.estado_residencia === 'Carabobo' ? 'selected' : '' %>>Carabobo</option>
-                            <option value="Zulia" <%= info.estado_residencia === 'Zulia' ? 'selected' : '' %>>Zulia</option>
-                            <option value="Lara" <%= info.estado_residencia === 'Lara' ? 'selected' : '' %>>Lara</option>
-                            <option value="Monagas" <%= info.estado_residencia === 'Monagas' ? 'selected' : '' %>>Monagas</option>
-                            </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Ciudad</label>
-                        <input type="text" name="ciudad" class="form-control" value="<%= info.ciudad || 'Pendiente' %>" placeholder="Ej: Puerto Ordaz">
+                <!-- Columna Comprador -->
+                <div class="col-md-6">
+                    <div class="info-section-box border-start-0">
+                        <span class="section-label">Datos del Comprador</span>
+                        <p class="data-text"><strong>Nombre:</strong> <%= comprador.nombre %> <%= comprador.apellido %></p>
+                        <p class="data-text"><strong>Correo:</strong> <%= comprador.gmail %></p>
                     </div>
                 </div>
+            </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Municipio</label>
-                        <input type="text" name="municipio" class="form-control" value="<%= info.municipio || 'Pendiente' %>" placeholder="Ej: Caroní">
-                    </div>
-                    <div class="col-md-8">
-                        <label class="form-label">Calle / Avenida / Casa / Edificio</label>
-                        <input type="text" name="calle" class="form-control" value="<%= info.calle || 'Pendiente' %>" placeholder="Dirección exacta...">
-                    </div>
+            <hr>
+
+            <h2 class="section-label mb-4" style="font-size: 0.9rem; color: #ffffff; opacity: 0.8;">Datos de Envío y Facturación</h2>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label-custom">País</label>
+                    <input type="text" name="pais" class="form-control input-custom" value="<%= info.pais || 'Venezuela' %>" readonly>
                 </div>
-
-                <div class="mb-4">
-                    <label class="form-label">Empresa de Envío (Courier)</label>
-                    <select name="empresaEnvio" class="form-select">
-                        <option value="Pendiente" selected>Pendiente</option>
-                        <option value="DHL">DHL</option>
-                        <option value="FedEx">FedEx</option>
-                        <option value="MRW">MRW</option>
-                        <option value="Zoom">Zoom</option>
-                        <option value="Tealca">Tealca</option>
-                        <option value="Liberty Express">Liberty Express</option>
+                <div class="col-md-4">
+                    <label class="form-label-custom">Estado</label>
+                    <select name="estado" class="form-select input-custom">
+                        <option value="Pendiente" <%= (info.estado_residencia || 'Pendiente') === 'Pendiente' ? 'selected' : '' %>>Pendiente</option>
+                        <option value="Bolívar" <%= info.estado_residencia === 'Bolívar' ? 'selected' : '' %>>Bolívar</option>
+                        <option value="Caracas" <%= info.estado_residencia === 'Caracas' ? 'selected' : '' %>>Caracas</option>
+                        <option value="Anzoátegui" <%= info.estado_residencia === 'Anzoátegui' ? 'selected' : '' %>>Anzoátegui</option>
+                        <option value="Carabobo" <%= info.estado_residencia === 'Carabobo' ? 'selected' : '' %>>Carabobo</option>
+                        <option value="Zulia" <%= info.estado_residencia === 'Zulia' ? 'selected' : '' %>>Zulia</option>
+                        <option value="Lara" <%= info.estado_residencia === 'Lara' ? 'selected' : '' %>>Lara</option>
+                        <option value="Monagas" <%= info.estado_residencia === 'Monagas' ? 'selected' : '' %>>Monagas</option>
                     </select>
                 </div>
-
-                <div class="alert alert-info d-flex align-items-center">
-                    <i class="bi bi-info-circle-fill me-2"></i>
-                    <div>
-                        El sistema calculará automáticamente el <strong>16% de IVA</strong> y la ganancia del museo sobre el precio base.
-                    </div>
+                <div class="col-md-4">
+                    <label class="form-label-custom">Ciudad</label>
+                    <input type="text" name="ciudad" class="form-control input-custom" value="<%= info.ciudad || 'Pendiente' %>" placeholder="Ej: Puerto Ordaz">
                 </div>
+            </div>
 
-                <div class="d-flex flex-column flex-md-row gap-2">
-                    <a href="/admin/reservas" class="btn btn-outline-secondary btn-lg w-100">
-                        Regresar atras
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label-custom">Municipio</label>
+                    <input type="text" name="municipio" class="form-control input-custom" value="<%= info.municipio || 'Pendiente' %>" placeholder="Ej: Caroní">
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label-custom">Calle / Avenida / Casa / Edificio</label>
+                    <input type="text" name="calle" class="form-control input-custom" value="<%= info.calle || 'Pendiente' %>" placeholder="Dirección exacta...">
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="form-label-custom">Empresa de Envío (Courier)</label>
+                <select name="empresaEnvio" class="form-select input-custom">
+                    <option value="Pendiente" selected>Pendiente</option>
+                    <option value="DHL">DHL</option>
+                    <option value="FedEx">FedEx</option>
+                    <option value="MRW">MRW</option>
+                    <option value="Zoom">Zoom</option>
+                    <option value="Tealca">Tealca</option>
+                    <option value="Liberty Express">Liberty Express</option>
+                </select>
+            </div>
+
+            <div class="alert-atrium-info d-flex align-items-center mb-5">
+                <i class="bi bi-info-circle-fill me-3 fs-5"></i>
+                <div>
+                    El sistema generará la factura legal calculando automáticamente el <strong>16% de IVA</strong> y la comisión establecida.
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <a href="/admin/reservas" class="btn btn-atrium-outline w-100">
+                        Regresar
                     </a>
-                    <button type="submit" class="btn btn-success btn-lg w-100">
-                        Aceptar Reserva y Generar Factura
+                </div>
+                <div class="col-md-8">
+                    <button type="submit" class="btn btn-atrium-main w-100">
+                        Aceptar Reserva y Generar Factura ➔
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </div>
 

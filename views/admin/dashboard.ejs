@@ -49,9 +49,10 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 30px 15px;
+        padding: 30px 10px;
         transition: all 0.3s ease;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        min-width: 0; /* Asegura que el contenido no desborde el flex-item */
     }
     
     .admin-kpi:hover { 
@@ -66,24 +67,31 @@
         letter-spacing: 1px;
         margin-bottom: 12px;
         text-align: center !important;
+        width: 100%;
     }
 
     .admin-kpi .display-value {
-        font-size: 2.5rem;
+        /* Tipografía elástica: se achica sola si el número es gigante */
+        font-size: clamp(1rem, 2.5vw, 2.5rem) !important; 
         font-weight: 900;
         margin: 0;
         text-align: center !important;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis; /* Si aun así no cabe, pone "..." */
+        white-space: nowrap;
+        display: block;
     }
 
     /* COLORES DE LOS CUADROS - CONTRASTE GARANTIZADO */
     .kpi-gray { background-color: var(--kpi-gray) !important; }
-    .kpi-gray h5, .kpi-gray .display-value { color: #161b22 !important; } /* Texto oscuro en fondo gris */
+    .kpi-gray h5, .kpi-gray .display-value { color: #161b22 !important; }
 
     .kpi-dark { background-color: var(--kpi-dark) !important; border: 1px solid var(--dash-border) !important; }
-    .kpi-dark h5, .kpi-dark .display-value { color: #ffffff !important; } /* Texto blanco en fondo oscuro */
+    .kpi-dark h5, .kpi-dark .display-value { color: #ffffff !important; }
 
     .kpi-orange { background-color: var(--kpi-orange) !important; }
-    .kpi-orange h5, .kpi-orange .display-value { color: #000000 !important; } /* Texto negro en fondo naranja */
+    .kpi-orange h5, .kpi-orange .display-value { color: #000000 !important; }
 
     /* LISTA DE ACCIONES MODERNA (GLASS STYLE) */
     .list-group {
@@ -109,7 +117,7 @@
     /* BOTONES OSCUROS CON ANIMACIÓN DE DESLIZAMIENTO */
     .list-group-item-action {
         background-color: transparent !important;
-        color: #e2e8f0 !important; /* Blanco hueso para lectura suave */
+        color: #e2e8f0 !important;
         padding: 22px 25px !important;
         font-weight: 600;
         border: none !important;
@@ -123,11 +131,10 @@
 
     .list-group-item-action:hover {
         background-color: rgba(255, 255, 255, 0.03) !important;
-        padding-left: 45px !important; /* Tu animación solicitada */
+        padding-left: 45px !important;
         color: var(--atrium-orange) !important;
     }
 
-    /* Flecha de la animación */
     .list-group-item-action .arrow {
         transition: all 0.4s ease;
         opacity: 0;
@@ -145,6 +152,16 @@
 </style>
 
 <div class="admin-dashboard-wrapper">
+    <% 
+        /* LÓGICA DE FORMATEO PROFESIONAL (Ingeniería de Software) */
+        /* Convertimos 1,000 -> 1K | 1,000,000 -> 1M | 1,000,000,000 -> 1B */
+        const shortFormat = new Intl.NumberFormat('en-US', {
+            notation: 'compact',
+            compactDisplay: 'short',
+            maximumFractionDigits: 1
+        });
+    %>
+
     <div class="dashboard-panel shadow-2xl">
         <h1 class="dashboard-title">Panel Administrativo</h1>
 
@@ -157,25 +174,25 @@
             <div class="col-md-3">
                 <div class="card admin-kpi kpi-gray preserve-color">
                     <h5>Obras Activas</h5>
-                    <p class="display-value"><%= stats.totalObras %></p>
+                    <p class="display-value"><%= shortFormat.format(stats.totalObras) %></p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card admin-kpi kpi-dark preserve-color">
                     <h5>Total Recaudado</h5>
-                    <p class="display-value">$<%= stats.recaudado %></p>
+                    <p class="display-value">$<%= shortFormat.format(99999999999999999999999999999999999) %></p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card admin-kpi kpi-gray preserve-color">
                     <h5>Ganancia Museo</h5>
-                    <p class="display-value">$<%= stats.gananciaMuseo %></p>
+                    <p class="display-value">$<%= shortFormat.format(stats.gananciaMuseo) %></p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card admin-kpi kpi-orange preserve-color">
                     <h5>Nuevas Membresías</h5>
-                    <p class="display-value"><%= stats.membresias %></p>
+                    <p class="display-value"><%= shortFormat.format(stats.membresias) %></p>
                 </div>
             </div>
         </div>
