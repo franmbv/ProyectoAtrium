@@ -34,6 +34,25 @@ class VentaModel {
         return result;
     }
 
+    // NUEVO: Obtener datos completos para el PDF por Código de Factura
+    static async obtenerFacturaPorCodigo(codigo) {
+        const sql = `
+            SELECT v.*, 
+                   o.nombre AS nombre_obra, o.precioObra, o.porcentajeGanancia, o.foto,
+                   a.nombre AS nombre_artista, a.apellido AS apellido_artista,
+                   u.nombre AS nombre_comprador, u.apellido AS apellido_comprador,
+                   u.cedula, u.gmail
+            FROM venta v
+            JOIN obra o ON v.obra_id = o.id
+            JOIN artista a ON o.autor_id = a.id
+            JOIN usuario u ON v.comprador_id = u.id
+            WHERE v.codigoDeFactura = ?
+            LIMIT 1
+        `;
+        const [rows] = await db.execute(sql, [codigo]);
+        return rows[0];
+    }
+
     // 2. REPORTE: Listado detallado (Soporta filtrado opcional)
     static async obtenerVentasPorPeriodo(fechaInicio, fechaFin) {
         let sql = `
@@ -169,7 +188,7 @@ class VentaModel {
     static async obtenerFacturaPorId(id) {
         const sql = `
             SELECT v.*, 
-                   o.nombre AS nombre_obra, o.precioObra, o.porcentajeGanancia,
+                   o.nombre AS nombre_obra, o.precioObra, o.porcentajeGanancia, o.foto,
                    a.nombre AS nombre_artista, a.apellido AS apellido_artista,
                    u.nombre AS nombre_comprador, u.apellido AS apellido_comprador,
                    u.cedula, u.gmail
