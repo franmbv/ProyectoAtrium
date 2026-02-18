@@ -184,6 +184,20 @@ class VentaModel {
         const [rows] = await db.execute(sql, [id]);
         return rows[0];
     }
+
+    // Obtener ventas (facturas) por comprador
+    static async obtenerPorComprador(compradorId) {
+        const sql = `
+            SELECT v.id as ventaId, v.codigoDeFactura, v.fechaDeVenta, v.precioFinalVenta,
+                   o.id as obraId, o.nombre as nombre_obra, o.foto, o.precioObra, o.estatus
+            FROM venta v
+            JOIN obra o ON v.obra_id = o.id
+            WHERE v.comprador_id = ?
+            ORDER BY v.fechaDeVenta DESC
+        `;
+        const [rows] = await db.execute(sql, [compradorId]);
+        return rows;
+    }
 }
 
 module.exports = VentaModel;

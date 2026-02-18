@@ -1,0 +1,439 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<!-- Tipografías y librerías de iconos -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-border: rgba(255, 255, 255, 0.08);
+        --at-green: #22c55e;
+    }
+
+    .admin-page-wrapper {
+        background: radial-gradient(circle at top, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 80px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* ESTILO CERTIFICADO / FACTURA */
+    .invoice-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .invoice-card-premium {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 50px 100px -20px rgba(0,0,0,0.8);
+        position: relative;
+    }
+
+    /* BARRA DE ESTADO LATERAL */
+    .invoice-card-premium::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 6px; height: 100%;
+        background: var(--at-orange);
+    }
+
+    /* HEADER DINÁMICO */
+    .invoice-top-bar {
+        padding: 40px 50px;
+        background: rgba(255, 255, 255, 0.02);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--at-border);
+    }
+
+    .invoice-logo-area h3 {
+        font-family: 'Playfair Display', serif;
+        font-weight: 900;
+        letter-spacing: -1px;
+        margin: 0;
+    }
+
+    .invoice-number-box {
+        text-align: right;
+    }
+
+    .invoice-number-box .label {
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: var(--at-orange);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .invoice-number-box .value {
+        font-family: 'Inter', monospace;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: white;
+    }
+
+    /* CUERPO DE LA FACTURA */
+    .invoice-main-content {
+        padding: 50px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+    }
+
+    .info-block {
+        margin-bottom: 30px;
+    }
+
+    .info-block-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--at-orange);
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 20px;
+    }
+
+    .info-block-header i { font-size: 1.1rem; }
+
+    .data-row { margin-bottom: 12px; }
+    .data-row label {
+        color: #64748b !important;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: block;
+        margin-bottom: 2px;
+    }
+    .data-row span {
+        color: #f1f5f9;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    /* SECCIÓN DE LA OBRA CON FOCO */
+    .work-focus-box {
+        grid-column: span 2;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--at-border);
+        border-radius: 20px;
+        padding: 30px;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .work-mini-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 2px solid var(--at-border);
+    }
+
+    .work-title-big {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: white !important;
+        margin-bottom: 5px;
+    }
+
+    /* SECCIÓN TOTALES - IMPACTO VISUAL */
+    .billing-summary {
+        grid-column: span 2;
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .totals-card {
+        width: 100%;
+        max-width: 400px;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 30px;
+        border-radius: 20px;
+        border: 1px solid var(--at-border);
+    }
+
+    .calc-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+    }
+    .calc-label { color: #94a3b8; }
+    .calc-value { color: white; font-weight: 600; }
+
+    .grand-total-row {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .grand-total-text { font-weight: 800; font-size: 1.2rem; color: white; }
+    .grand-total-price { 
+        font-size: 2.2rem; 
+        font-weight: 900; 
+        color: var(--at-orange);
+        text-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+    }
+
+    /* SELLO DE AUTENTICIDAD */
+    .invoice-stamp {
+        position: absolute;
+        bottom: 50px;
+        left: 50px;
+        width: 120px;
+        height: 120px;
+        border: 4px double rgba(249, 115, 22, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        transform: rotate(-15deg);
+        pointer-events: none;
+    }
+    .invoice-stamp span {
+        font-size: 0.6rem;
+        font-weight: 900;
+        color: rgba(249, 115, 22, 0.2) !important;
+        text-transform: uppercase;
+        line-height: 1;
+    }
+
+    /* BOTONES */
+    .btn-action-group {
+        margin-top: 60px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .btn-at-secondary {
+        background: rgba(255,255,255,0.05);
+        color: white;
+        border: 1px solid var(--at-border);
+        padding: 14px 35px;
+        border-radius: 100px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    .btn-at-secondary:hover { background: white; color: black; }
+
+    .btn-at-orange {
+        background: var(--at-orange);
+        color: white !important;
+        padding: 14px 35px;
+        border-radius: 100px;
+        font-weight: 800;
+        text-decoration: none;
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+        transition: 0.3s;
+    }
+    .btn-at-orange:hover { transform: translateY(-3px); filter: brightness(1.1); }
+
+    /* ESTILOS DE IMPRESIÓN (SOLO FACTURA EN UNA HOJA) */
+    @media print {
+        @page {
+            margin: 0;
+            size: auto;
+        }
+        body {
+            background-color: #161b22;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        /* Ocultar todo lo que no sea necesario */
+        nav, .btn-action-group, footer, .admin-page-wrapper {
+            background: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Corregido: Se eliminó el bloque vacío que causaba el error y se unificó la lógica de ocultación */
+        nav, footer, .btn-action-group { 
+            display: none !important; 
+        }
+        
+        /* Configuración contenedores */
+        .admin-page-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .invoice-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+        }
+        .invoice-card-premium {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            border: none !important;
+            /* Escalar para asegurar que quepa en una hoja */
+            transform: scale(0.90);
+            transform-origin: top center;
+            margin-top: 20px;
+        }
+    }
+</style>
+<div class="admin-page-wrapper">
+    <div class="container">
+        <div class="invoice-container">
+
+<div class="invoice-card-premium">
+            <!-- CABECERA -->
+            <div class="invoice-top-bar">
+                <div class="invoice-logo-area">
+                    <h3><span role="img">🏛️</span>MUSEO <span style="color: var(--at-orange)">ATRIUM</span></h3>
+                </div>
+                <div class="invoice-number-box">
+                    <span class="label">Comprobante de Venta</span>
+                    <span class="value d-block"><%= factura.codigoDeFactura %></span>
+                </div>
+            </div>
+
+            <div class="invoice-main-content">
+                <% const precioBase = (factura.precioObra !== null && factura.precioObra !== undefined) ? parseFloat(factura.precioObra) : 0; %>
+
+                <div class="info-grid">
+                    <!-- BLOQUE 1: EMISIÓN -->
+                    <div class="info-block">
+                        <div class="info-block-header"><i class="bi bi-calendar-check"></i> Emisión</div>
+                        <div class="data-row">
+                            <label>Fecha de Operación</label>
+                            <span><%= new Date(factura.fechaDeVenta).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+                        </div>
+                        <div class="data-row">
+                            <label>Vendedor Autorizado</label>
+                            <span>Admin ID #<%= factura.administrador_id %></span>
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE 2: COMPRADOR (DATOS EXTENDIDOS) -->
+                    <div class="info-block">
+                        <div class="info-block-header"><i class="bi bi-person-badge"></i> Perfil del Comprador</div>
+                        
+                        <!-- Nombre y Estado en el mismo nivel -->
+                        <div class="row">
+                            <div class="col-7">
+                                <div class="data-row">
+                                    <label>Nombre Completo</label>
+                                    <span><%= factura.nombre_comprador %> <%= factura.apellido_comprador %></span>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <div class="data-row">
+                                    <label>Estado de Cuenta</label>
+                                    <span class="text-success small"><i class="bi bi-check-circle-fill"></i> Miembro Activo</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="data-row">
+                            <label>Cédula</label>
+                            <span><%= factura.cedula %></span>
+                        </div>
+                        <div class="data-row">
+                            <label>Correo Electrónico</label>
+                            <span class="text-lowercase" style="font-size: 0.9rem; color: white !important;"><%= factura.gmail %></span>
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE 3: LA OBRA -->
+                    <div class="work-focus-box">
+                        <img src="<%= factura.foto ? ('/uploads/' + factura.foto) : '/img/default_obra.jpg' %>" class="work-mini-img" alt="Obra">
+                        <div>
+                            <div class="info-block-header" style="margin-bottom: 5px;"><i class="bi bi-palette"></i> Detalle Artístico</div>
+                            <h2 class="work-title-big"><%= factura.nombre_obra %></h2>
+                            <span class="text-white-50">Por <strong><%= factura.nombre_artista %> <%= factura.apellido_artista %></strong></span>
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE 4: ENVÍO -->
+                    <div class="info-block">
+                        <div class="info-block-header"><i class="bi bi-truck"></i> Logística</div>
+                        <div class="data-row">
+                            <label>Courier asignado</label>
+                            <span><%= factura.empresaEnvio %></span>
+                        </div>
+                        <div class="data-row">
+                            <label>Dirección de destino</label>
+                            <span class="small"><%= factura.calle %>, <%= factura.municipio %>, <%= factura.ciudad %>, <%= factura.estado %>, <%= factura.pais %></span>
+                        </div>
+                    </div>
+
+                    <!-- BLOQUE 5: TOTALES -->
+                    <div class="billing-summary">
+                        <div class="totals-card">
+                            <div class="calc-row">
+                                <span class="calc-label">Subtotal Obra</span>
+                                <span class="calc-value">$<%= precioBase.toLocaleString() %></span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">Impuesto IVA (16%)</span>
+                                <span class="calc-value">$<%= parseFloat(factura.iva).toLocaleString() %></span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">Comisión Museo (<%= factura.gananciaMuseoPorcentaje %>%)</span>
+                                <span class="calc-value">$<%= parseFloat(factura.gananciaMuseoDolares).toLocaleString() %></span>
+                            </div>
+                            <div class="grand-total-row">
+                                <span class="grand-total-text">PAGO TOTAL</span>
+                                <span class="grand-total-amount">$<%= parseFloat(factura.precioFinalVenta).toLocaleString() %></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SELLO DECORATIVO -->
+                <div class="invoice-stamp">
+                    <span>Autenticidad<br>Garantizada<br>Atrium 2026</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAVEGACIÓN -->
+        <div class="btn-action-group">
+            <a href="/galeria/historial" class="btn-at-secondary">
+                <i class="bi bi-arrow-left me-2"></i> Mi Historial
+            </a>
+            <a href="/galeria" class="btn-at-orange">
+                Volver a la Galería
+            </a>
+            <button onclick="window.print()" class="btn-at-secondary">
+                <i class="bi bi-printer"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<%- include('../partials/footer') %>

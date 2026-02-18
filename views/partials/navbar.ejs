@@ -42,6 +42,10 @@
                     <span role="img">👤</span><%= usuario.nombre %>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2" style="background-color: #1f2937; border-radius: 12px;">
+                    <% if (usuario.rol === 2) { %>
+                        <li><a class="dropdown-item text-white fw-bold" href="/galeria/historial"><span role="img">📋</span> Mi Historial</a></li>
+                        <li><hr class="dropdown-divider border-secondary"></li>
+                    <% } %>
                     <li><a class="dropdown-item text-danger fw-bold" href="/auth/logout">Cerrar Sesión</a></li>
                 </ul>
             </li>

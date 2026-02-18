@@ -1,0 +1,350 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<!-- Tipografías elegantes -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-border: rgba(255, 255, 255, 0.1);
+    }
+
+    .bio-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+        color: white;
+        padding-bottom: 80px;
+    }
+
+    /* CONTENEDOR CENTRALIZADO: Nivela la Bio Card con el Carrusel de Obras */
+    .content-focus-area {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* CABECERA user */
+    .user-hero {
+        padding: 80px 0 40px 0;
+        text-align: center;
+    }
+
+    .user-portrait-frame {
+        display: inline-block;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px; 
+        margin-bottom: 30px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    .user-profile-img {
+        width: 200px;
+        height: 260px; 
+        object-fit: cover;
+        border-radius: 8px;
+        display: block;
+    }
+
+    .user-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 3.8rem;
+        font-weight: 900;
+        margin-bottom: 10px;
+        letter-spacing: -2px;
+        text-align: center !important;
+    }
+
+    .user-meta {
+        font-size: 1rem;
+        color: var(--at-orange);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin-top: 15px;
+        text-align: center !important;
+    }
+
+    .user-dates {
+        margin-top: 15px;
+        font-weight: 500;
+        color: #64748b;
+        font-size: 0.9rem;
+        text-align: center !important;
+    }
+
+    /* CARD DE BIOGRAFÍA */
+    .bio-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 20px;
+        padding: 50px;
+        margin-bottom: 60px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        width: 100%;
+    }
+
+    .bio-card h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        color: var(--at-orange);
+        text-align: left !important;
+    }
+
+    .bio-text {
+        font-size: 1.1rem;
+        line-height: 1.9;
+        color: #cbd5e1;
+        text-align: justify;
+    }
+
+    /* SECCIÓN DE OBRAS (CARRUSEL) */
+    .exhibition-section {
+        width: 100%;
+    }
+
+    .exhibition-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        margin-bottom: 30px;
+        text-align: center !important;
+    }
+
+    /* --- LÓGICA DEL CARRUSEL --- */
+    .art-carousel {
+        display: flex;
+        overflow-x: auto; /* Permite el scroll horizontal */
+        gap: 20px;
+        padding: 10px 0 40px 0;
+        scroll-snap-type: x mandatory; /* Hace que las fotos se "peguen" al borde */
+        scrollbar-width: none; /* Oculta scrollbar en Firefox */
+    }
+    .art-carousel::-webkit-scrollbar { display: none; } /* Oculta scrollbar en Chrome */
+
+    .art-carousel-item {
+        min-width: calc(33.333% - 14px); /* Muestra 3 obras niveladas con el panel de arriba */
+        scroll-snap-align: start;
+        flex-shrink: 0;
+    }
+
+    .mini-obra-card {
+        background-color: var(--at-card-bg);
+        border: 1px solid var(--at-border);
+        border-radius: 16px;
+        padding: 15px;
+        transition: all 0.4s ease;
+        height: 100%;
+    }
+
+    .mini-obra-card:hover {
+        border-color: var(--at-orange);
+        transform: translateY(-8px);
+    }
+
+    .mini-img-box {
+        width: 100%;
+        height: 200px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        position: relative;
+        background: #000;
+    }
+
+    .mini-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* ESTADOS: VENDIDA / RESERVADA */
+    .art-unavailable { filter: grayscale(100%); opacity: 0.4; }
+
+    .status-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-10deg);
+        border: 1px solid white;
+        color: white;
+        padding: 4px 12px;
+        font-size: 0.65rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(4px);
+    }
+
+    .mini-obra-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 15px;
+        text-align: left !important;
+    }
+
+    .btn-mini-view {
+        background: var(--at-orange);
+        color: white !important;
+        border-radius: 100px;
+        padding: 8px 0;
+        width: 100%;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+    }
+
+    .btn-back-atrium {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 12px 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+        display: inline-block;
+    }
+    .btn-back-atrium:hover { color: white; border-color: white; background: rgba(255,255,255,0.03); }
+
+    @media (max-width: 992px) {
+        .art-carousel-item { min-width: 280px; }
+        .user-name { font-size: 2.8rem; }
+    }
+</style>
+
+<div class="bio-page-wrapper">
+    <!-- SECCIÓN DE CABECERA -->
+    <section class="user-hero">
+        <div class="container">
+            <div class="user-portrait-frame">
+                <% if(user.fotografia) { %>
+                    <img src="/uploads/<%= user.fotografia %>" alt="<%= user.nombre %>" class="user-profile-img">
+                <% } else { %>
+                    <div class="user-profile-img bg-dark d-flex align-items-center justify-content-center text-white-50 fs-1"><span role="img">👤</span></div>
+                <% } %>
+            </div>
+            
+            <h1 class="user-name">
+                <%= user.nombre %> <span style="color: var(--at-orange)"><%= user.apellido %></span>
+            </h1>
+            <p class="user-meta"><%= user.nacionalidad %></p>
+        </div>
+    </section>
+
+    <!-- ÁREA NIVELADA -->
+    <div class="content-focus-area">
+
+        <!-- BLOQUE DE EXHIBICIÓN (CARRUSEL) -->
+        <section class="exhibition-section">
+            <h2 class="exhibition-title">Obras en <span style="color: var(--at-orange)">Exhibición</span></h2>
+            
+            <% if(obras.length === 0) { %>
+                <div class="text-center p-5 opacity-50 border border-secondary border-dashed rounded-4">
+                    <p>No se encontraron obras compradas o reservadas por usted.</p>
+                </div>
+            <% } else { %>
+                <!-- CONTENEDOR DEL CARRUSEL HORIZONTAL -->
+                <div class="art-carousel">
+                    <% obras.forEach(o => { %>
+                        <div class="art-carousel-item">
+                            <div class="mini-obra-card shadow-lg">
+                                <div class="mini-img-box">
+                                    <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" 
+                                         class="mini-img <%= o.estatus !== 'Disponible' ? 'art-unavailable' : '' %>" 
+                                         alt="<%= o.nombre %>">
+                                    
+                                    <% if (o.estatus === 'Vendida') { %>
+                                        <div class="status-overlay">ADQUIRIDA</div>
+                                    <% } else if (o.estatus === 'Reservada') { %>
+                                        <div class="status-overlay" style="border-color: var(--at-orange); color: var(--at-orange);">RESERVADA</div>
+                                    <% } %>
+                                </div>
+                                
+                                <h4 class="mini-obra-title text-truncate"><%= o.nombre %></h4>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold fs-5 text-white-50">$<%= parseFloat(o.precioObra).toLocaleString() %></span>
+                                    
+                                    <% if (o.estatus === 'Vendida') { %>
+                                        <a href="/galeria/factura/<%= o.ventaId %>" class="btn-mini-view" style="width: 120px;">Ver Factura</a>
+                                    <% } else if (o.estatus === 'Reservada') { %>
+                                        <button class="btn-mini-view" style="width: 120px; background: #334155; opacity: 0.6;" disabled>En Espera</button>
+                                    <% } else if (o.estatus === 'Disponible') { %>
+                                        <a href="/galeria/detalle/<%= o.id %>" class="btn-mini-view" style="width: 120px;">Ver</a>
+                                    <% } else { %>
+                                        <button class="btn-mini-view" style="width: 120px; background: #334155; opacity: 0.5;" disabled>Privada</button>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+               <div class="text-center text-white-50 small opacity-25">
+                    <span>(Desliza horizontalmente ↔)</span>
+                </div>
+            <% } %>
+        </section>
+
+        <!-- BOTÓN DE REGRESO -->
+        <div class="text-center py-5">
+            <a href="/galeria" class="btn-back-atrium">
+                ← Regresar al catálogo
+            </a>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    (function() {
+        const carousel = document.querySelector('.art-carousel');
+        const left = document.getElementById('carousel-left');
+        const right = document.getElementById('carousel-right');
+        if (!carousel) return;
+
+        const step = carousel.querySelector('.art-carousel-item')?.offsetWidth || 300;
+
+        left?.addEventListener('click', () => {
+            carousel.scrollBy({ left: -step - 20, behavior: 'smooth' });
+        });
+
+        right?.addEventListener('click', () => {
+            carousel.scrollBy({ left: step + 20, behavior: 'smooth' });
+        });
+
+        // Navegación con teclado
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                carousel.scrollBy({ left: -step - 20, behavior: 'smooth' });
+            } else if (e.key === 'ArrowRight') {
+                carousel.scrollBy({ left: step + 20, behavior: 'smooth' });
+            }
+        });
+
+        // Ocultar botones en pantallas pequeñas
+        function updateArrows() {
+            const w = window.innerWidth;
+            if (w < 600) {
+                left.style.display = 'none';
+                right.style.display = 'none';
+            } else {
+                left.style.display = '';
+                right.style.display = '';
+            }
+        }
+        updateArrows();
+        window.addEventListener('resize', updateArrows);
+    })();
+</script>

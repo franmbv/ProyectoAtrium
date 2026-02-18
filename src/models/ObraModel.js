@@ -143,6 +143,22 @@ class ObraModel {
         return rows;
     }
 
+    // Obtener obras reservadas por un usuario específico
+    static async obtenerReservadasPorUsuario(usuarioId) {
+        const sql = `
+            SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto,
+                   a.nombre AS nombre_artista, a.apellido AS apellido_artista,
+                   g.nombre AS nombre_genero, o.reservado_por, o.fecha_reserva
+            FROM obra o
+            INNER JOIN artista a ON o.autor_id = a.id
+            INNER JOIN genero g ON o.genero_id = g.id
+            WHERE o.estatus = 'Reservada' AND o.reservado_por = ?
+            ORDER BY o.fecha_reserva DESC
+        `;
+        const [rows] = await db.execute(sql, [usuarioId]);
+        return rows;
+    }
+
     // CREAR OBRA 
     static async crear(datos, fotoFilename) {
         const sqlObra = `INSERT INTO obra
