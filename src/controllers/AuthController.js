@@ -106,6 +106,29 @@ const AuthController = {
                 return res.render('auth/login', { error: 'Credenciales inválidas (Contraseña incorrecta)' });
             }
 
+            // --- VALIDACIÓN DE ESTADO ---(NUEVO)
+            if (usuario.estado === 'Inactivo') {
+                // 1. Generamos un código totalmente nuevo de 3 dígitos
+                const nuevoCodigo = Math.floor(100 + Math.random() * 900).toString();
+                
+                // 2. Lo guardamos en la base de datos (Invalida el anterior)
+                await InfoCompradorModel.actualizarCodigo(usuario.id, nuevoCodigo);
+                
+                // 3. Lo enviamos por correo real
+                try {
+                    await sendSecurityCode(usuario.gmail, nuevoCodigo);
+                } catch (mailErr) {
+                    console.error("Error al enviar código de reactivación:", mailErr);
+                }
+
+                // 4. Preparamos la sesión para la verificación
+                req.session.idReactivacion = usuario.id; 
+                req.session.emailReactivacion = usuario.gmail; // Para mostrarlo en la vista
+                
+                return res.redirect('/auth/reactivar-cuenta');
+            }
+            // ----------------------------(NUEVO)
+
             req.session.usuario = {
                 id: usuario.id,
                 nombre: usuario.nombre,
@@ -124,6 +147,72 @@ const AuthController = {
             res.render('auth/login', { error: 'Error al iniciar sesión' });
         }
     },
+
+    //==============================(NUEVO-NUEVO-NUEVO-NUEVO-)==========
+    // Mostrar pantalla de aviso de reactivación
+    // 1. GET: Mostrar la pantalla pidiendo el PIN
+   mostrarReactivar: (req, res) => {
+        if (!req.session.idReactivacion) return res.redirect('/auth/login');
+        res.render('auth/reactivar-aviso', { 
+            error: req.query.error || null,
+            email: req.session.emailReactivacion 
+        });
+    },
+
+    procesarReactivacion: async (req, res) => {
+        try {
+            const id = req.session.idReactivacion;
+            const pinIngresado = req.body.codigoSeguridad;
+
+            if (!id) return res.redirect('/auth/login');
+
+            // Validamos el nuevo PIN generado contra la base de datos
+            const membresia = await InfoCompradorModel.buscarPorCodigoyUsuario(pinIngresado, id);
+
+            if (!membresia) {
+                return res.redirect('/auth/reactivar-cuenta?error=Código de reactivación incorrecto.');
+            }
+
+            // Si es correcto, activamos la cuenta
+            await UsuarioModel.cambiarEstado(id, 'Activo');
+            
+            // Limpiamos la sesión temporal de reactivación
+            delete req.session.idReactivacion;
+            delete req.session.emailReactivacion;
+
+            res.redirect('/auth/login?success=¡Cuenta reactivada! Ya puedes iniciar sesión con normalidad.');
+
+        } catch (error) {
+            res.status(500).send("Error en el proceso");
+        }
+    },
+
+    // 3. Procesar la Baja Voluntaria
+  procesarBaja: async (req, res) => {
+    try {
+        const usuarioId = req.session.usuario?.id; // Usamos el ? por seguridad
+        
+        if (!usuarioId) {
+            return res.redirect('/auth/login?error=Sesión expirada');
+        }
+
+        // Llamamos al modelo
+        await UsuarioModel.cambiarEstado(usuarioId, 'Inactivo');
+
+        // Destruimos la sesión para que el usuario salga
+        req.session.destroy((err) => {
+            if (err) console.error("Error al destruir sesión:", err);
+            res.clearCookie('connect.sid'); // Limpiamos la cookie del navegador
+            res.redirect('/auth/login?success=Tu cuenta ha sido desactivada correctamente.');
+        });
+
+    } catch (error) {
+        console.error("Error en procesarBaja:", error);
+        res.status(500).send("Error interno al procesar la baja");
+    }
+},
+//==============================(NUEVO-NUEVO-NUEVO-NUEVO-)==========
+
 
     // --- 4. CERRAR SESIÓN ---
     logout: (req, res) => {

@@ -91,6 +91,14 @@ class UsuarioModel {
             throw error;
         }
     }
+
+    // Método profesional para cambiar el estado del usuario (Baja/Alta)
+    static async cambiarEstado(id, nuevoEstado) {
+        const sql = `UPDATE usuario SET estado = ? WHERE id = ?`;
+        const [result] = await db.execute(sql, [nuevoEstado, id]);
+        return result.affectedRows > 0;
+    }
+
 }
 
 module.exports = UsuarioModel;

@@ -28,4 +28,15 @@ router.get('/logout', AuthController.logout);
 // 6. Verificar sesión para frontend (GET)
 router.get('/check-session', AuthController.checkSession);
 
+//NUEVAS RUTAS
+
+// Rutas de Reactivación
+router.get('/reactivar-cuenta', AuthController.mostrarReactivar);
+router.post('/reactivar-cuenta', AuthController.procesarReactivacion);
+
+// Ruta de Baja
+router.post('/dar-de-baja', AuthController.verificarSesion, AuthController.procesarBaja);
+
+
+
 module.exports = router;

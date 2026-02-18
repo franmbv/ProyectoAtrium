@@ -16,16 +16,12 @@
         <li class="nav-item">
             <a class="nav-link px-3" href="/galeria" style="font-weight: 500; transition: color 0.3s;">Explorar Galería</a>
         </li>
-     <li class="nav-item d-flex align-items-center me-3">
-    <button id="theme-toggle" style="background: none; border: none; cursor: pointer; font-size: 1.4rem;">
-        <span id="theme-icon">🌙</span>
-    </button>
-</li>
-    
-    
-    </ul>
-
-      
+        <li class="nav-item d-flex align-items-center me-3">
+            <button id="theme-toggle" style="background: none; border: none; cursor: pointer; font-size: 1.4rem;">
+                <span id="theme-icon">🌙</span>
+            </button>
+        </li>
+      </ul>
 
       <ul class="navbar-nav ms-auto align-items-center">
         <% if (locals.usuario) { %>
@@ -42,6 +38,15 @@
                     <span role="img">👤</span><%= usuario.nombre %>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2" style="background-color: #1f2937; border-radius: 12px;">
+                    <!-- OPCIÓN AGREGADA: DAR DE BAJA -->
+                    <li>
+                        <form action="/auth/dar-de-baja" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas darte de baja? Tu cuenta quedará inactiva y se cerrará la sesión.')">
+                            <button type="submit" class="dropdown-item text-warning fw-bold" style="font-size: 0.85rem; background: none; border: none; width: 100%; text-align: left;">
+                                ⚠️ DAR DE BAJA CUENTA
+                            </button>
+                        </form>
+                    </li>
+                    <li><hr class="dropdown-divider border-secondary opacity-25"></li>
                     <li><a class="dropdown-item text-danger fw-bold" href="/auth/logout">Cerrar Sesión</a></li>
                 </ul>
             </li>
