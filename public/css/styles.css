@@ -97,13 +97,34 @@ html[data-theme="light"] {
     background-color: #000000 !important; 
 }
 
-/* 2. RE-INVERSIÓN AGRESIVA (Fotos, Iconos, Emojis y elementos protegidos) */
-html[data-theme="light"] img, 
+
+/* 2.1 RE-INVERSIÓN PARA INTERFAZ (Iconos, Emojis, Logos) */
+/* Estos necesitan saturación extra para no verse grises u opacos */
+html[data-theme="light"] .navbar-brand span:first-child,
+html[data-theme="light"] span[role="img"],
+html[data-theme="light"] #theme-icon {
+    filter: invert(1) hue-rotate(180deg) brightness(1.2) saturate(2.5) !important;
+    opacity: 1 !important;
+}
+
+
+/* Aquí eliminamos el brillo y la saturación extra para conservar la obra original */
 html[data-theme="light"] .obra-img,
 html[data-theme="light"] .artist-profile-img,
+html[data-theme="light"] .img-edit-preview,
+html[data-theme="light"] .img-artist-thumb,
 html[data-theme="light"] .mini-img,
 html[data-theme="light"] .img-thumb,
 html[data-theme="light"] .art-brick,
+html[data-theme="light"] .img-detail-pano,
+html[data-theme="light"] .preserve-art {
+    /* CORREGIDO: brightness y contrast movidos dentro de filter */
+    filter: invert(1) hue-rotate(180deg) brightness(1) contrast(1) !important;
+}
+
+
+
+/* 2. RE-INVERSIÓN AGRESIVA (Fotos, Iconos, Emojis y elementos protegidos) */ 
 html[data-theme="light"] .no-invert,
 html[data-theme="light"] .navbar-brand span:first-child,
 html[data-theme="light"] span[role="img"],
@@ -125,7 +146,7 @@ html[data-theme="light"] .text-white-50 {
     color: #ffffff !important;
 }
 
-/* 4. SEPARACIÓN VISUAL (Fondo vs Paneles) */
+/* 4. SEPARACIÓN VISUAL (FONDO VS PANELES) */
 html[data-theme="light"] body {
     background-color: #000000 !important;
 }
@@ -158,4 +179,26 @@ html[data-theme="light"] footer {
 #theme-toggle { filter: none !important; }
 html[data-theme="light"] #theme-icon {
     filter: invert(1) hue-rotate(180deg) brightness(1.2) saturate(2);
+}
+
+/* REGLA MEJORADA PARA CIFRAS DINÁMICAS */
+.admin-kpi .display-value {
+    /* clamp(mínimo, preferido, máximo) -> La letra se achica si el contenedor es pequeño */
+    font-size: clamp(1rem, 3.2vw, 2.5rem) !important; 
+    font-weight: 900;
+    margin: 0;
+    text-align: center !important;
+    
+    /* SEGURIDAD TOTAL: Si el número es absurdamente largo, no rompe el diseño */
+    width: 100%;
+    overflow: hidden;         /* Oculta lo que se salga */
+    text-overflow: ellipsis;  /* Agrega "..." si no cabe */
+    white-space: nowrap;      /* Mantiene todo en una sola línea */
+    display: block;
+}
+
+/* Reducimos el padding lateral del contenedor para dar más espacio al número */
+.admin-kpi {
+    padding: 30px 8px !important; 
+    min-width: 0; /* Permite que el contenido se ajuste correctamente */
 }

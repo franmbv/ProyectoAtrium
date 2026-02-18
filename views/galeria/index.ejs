@@ -243,6 +243,15 @@
 </style>
 
 <div class="gallery-wrapper">
+    <% 
+        /* LÓGICA DE NOTACIÓN COMPACTA (K, M, B) */
+        const shortFormat = new Intl.NumberFormat('en-US', {
+            notation: 'compact',
+            compactDisplay: 'short',
+            maximumFractionDigits: 1
+        });
+    %>
+
     <div class="container">
         
         <div class="text-start mb-5">
@@ -321,7 +330,8 @@
                                                 <%= obra.nombre_artista %> <%= obra.apellido_artista %>
                                             </a>
                                         </p>
-                                        <div class="obra-price text-start">$<%= parseFloat(obra.precioObra || 0).toLocaleString() %></div>
+                                        <!-- MODIFICADO: Notación Compacta Aplicada -->
+                                        <div class="obra-price text-start">$<%= shortFormat.format(parseFloat(obra.precioObra || 0)) %></div>
                                         
                                         <a href="/galeria/detalle/<%= obra.id %>" class="btn-atrium-pill">
                                             Ver Detalles

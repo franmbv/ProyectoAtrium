@@ -1,5 +1,15 @@
 const db = require('../config/db');
 
+const toDbValue = (value, fallback = null) => {
+    if (value === undefined) return fallback;
+    if (value === null) return null;
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed === '' ? fallback : trimmed;
+    }
+    return value;
+};
+
 class InfoCompradorModel {
 
     // 1. VALIDAR CÓDIGO (Usado en la compra de obra)
@@ -17,17 +27,17 @@ class InfoCompradorModel {
     }
 
     // 2. REGISTRAR MEMBRESÍA (Usado en el Registro del Usuario)
-    static async crear(idUsuario, codigoSeguridad) {
+    static async crear(idUsuario, codigoSeguridad, nroTarjeta) {
         const connection = await db.getConnection(); 
         try {
             await connection.beginTransaction();
 
             const sqlInfo = `
                 INSERT INTO info_comprador 
-                (comprador_id, codigoSeguridad, estado, fechaGeneracion, pais) 
-                VALUES (?, ?, 'Activo', CURDATE(), 'Venezuela')
+                (comprador_id, codigoSeguridad, nroTarjeta, estado, fechaGeneracion, pais) 
+                VALUES (?, ?, ?, 'Activo', CURDATE(), 'Venezuela')
             `;
-            await connection.execute(sqlInfo, [idUsuario, codigoSeguridad]);
+            await connection.execute(sqlInfo, [idUsuario, codigoSeguridad, nroTarjeta]);
 
             const sqlMembresia = `
                 INSERT INTO membresia 
@@ -50,7 +60,7 @@ class InfoCompradorModel {
     // 3. REPORTE PARA EL ADMIN
     static async obtenerReportePorPeriodo(fechaInicio, fechaFin) {
         let sql = `
-            SELECT i.Id, i.codigoSeguridad, i.fechaGeneracion, i.estado,
+            SELECT i.comprador_id AS Id, i.codigoSeguridad, i.fechaGeneracion, i.estado,
                    m.fechaPago, m.montoPagado,
                    u.nombre, u.apellido, u.cedula, u.gmail
             FROM info_comprador i
@@ -88,17 +98,17 @@ class InfoCompradorModel {
     static async actualizarDireccion(compradorId, direccion) {
         const sql = `
             UPDATE info_comprador
-            SET pais = ?, estado = ?, ciudad = ?, municipio = ?, calle = ?
+            SET pais = ?, estado_residencia = ?, ciudad = ?, municipio = ?, calle = ?
             WHERE comprador_id = ?
         `;
 
         const params = [
-            direccion.pais,
-            direccion.estado,
-            direccion.ciudad,
-            direccion.municipio,
-            direccion.calle,
-            compradorId
+            toDbValue(direccion?.pais, 'Venezuela'),
+            toDbValue(direccion?.estado_residencia, 'Pendiente'),
+            toDbValue(direccion?.ciudad, 'Pendiente'),
+            toDbValue(direccion?.municipio, 'Pendiente'),
+            toDbValue(direccion?.calle, 'Pendiente'),
+            toDbValue(compradorId)
         ];
 
         await db.execute(sql, params);
