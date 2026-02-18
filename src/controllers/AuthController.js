@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs'); // Para encriptar contraseñas
 const UsuarioModel = require('../models/UsuarioModel');
 const InfoCompradorModel = require('../models/InfoCompradorModel'); 
+const { sendSecurityCode } = require('../config/mailer'); // <--- AGREGADO
 
 const AuthController = {
 
@@ -67,6 +68,13 @@ const AuthController = {
             await InfoCompradorModel.crear(idUsuario, codigoSeguridad, tarjetaSegura);
             await UsuarioModel.guardarRespuestas(idUsuario, preguntasIds, respuestasHasheadas);
             
+            // --- ENVÍO DE CORREO REAL ---
+            try {
+                await sendSecurityCode(gmail, codigoSeguridad);
+            } catch (mailError) {
+                console.error("Error al enviar correo real:", mailError.message);
+            }
+
             console.log("---------------------------------------------------");
             console.log(`📧 SIMULANDO ENVÍO DE CORREO A: ${gmail}`);
             console.log(`🔐 SU CÓDIGO DE SEGURIDAD ES: ${codigoSeguridad}`);

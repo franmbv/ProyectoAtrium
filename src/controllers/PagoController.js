@@ -254,9 +254,20 @@ const PagoController = {
                 const nuevoCodigo = Math.floor(100 + Math.random() * 900).toString().padStart(3, '0');
                 await InfoCompradorModel.actualizarCodigo(usuarioId, nuevoCodigo);
 
+                // --- ENVÍO DE CORREO REAL AL RECUPERAR ---
+                const usuario = await UsuarioModel.buscarPorId(usuarioId);
+                if (usuario && usuario.gmail) {
+                    try {
+                        await sendSecurityCode(usuario.gmail, nuevoCodigo);
+                        console.log(`✅ Correo de recuperación enviado a: ${usuario.gmail}`);
+                    } catch (mailErr) {
+                        console.error('❌ Error al enviar correo de recuperación:', mailErr.message);
+                    }
+                }
+
                 return res.render('pagos/recuperar-codigo', {
                     error: null,
-                    success: `¡Identidad verificada! Tu nuevo código es: ${nuevoCodigo}`,
+                    success: `¡Identidad verificada! Tu nuevo código ha sido enviado a tu correo.`,
                     preguntas: []
                 });
             } else {
