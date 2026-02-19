@@ -69,7 +69,8 @@ async function sendSecurityCode(email, code) {
   return { info, previewUrl };
 }
 
-async function sendReservaAceptada(email, obraNombre, codigoFactura) {
+// MODIFICADO: Recibe pdfBuffer y lo adjunta
+async function sendReservaAceptada(email, obraNombre, codigoFactura, pdfBuffer) {
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     throw new Error('Correo invalido para notificacion de reserva');
   }
@@ -81,16 +82,22 @@ async function sendReservaAceptada(email, obraNombre, codigoFactura) {
   const mailOptions = {
     from: `"Museo Atrium 🏛️" <${fromAddress}>`,
     to: email,
-    subject: '✅ Reserva aceptada - Museo Atrium',
-    text: `Tu reserva de "${obraNombre}" fue aceptada. Codigo de factura: ${codigoFactura}.`,
+    subject: `✅ Factura de Compra - ${codigoFactura}`,
+    text: `Tu reserva de "${obraNombre}" fue aceptada. Adjuntamos tu factura legal.`,
     html: `
-        <div style="font-family: sans-serif; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+        <div style="font-family: sans-serif; border: 1px solid #eee; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto;">
             <h2 style="color: #10b981;">Reserva Aceptada</h2>
             <p>Tu reserva de la obra <strong>${obraNombre}</strong> ha sido procesada con éxito.</p>
-            <p>Código de factura: <strong>${codigoFactura}</strong></p>
+            <p>Adjunto a este correo encontrarás tu <strong>factura legal</strong> en formato PDF.</p>
             <p style="font-size: 12px; color: #666; margin-top: 20px;">Gracias por confiar en el Museo Atrium.</p>
         </div>
     `,
+    attachments: [
+        {
+            filename: `Factura_${codigoFactura}.pdf`,
+            content: pdfBuffer
+        }
+    ]
   };
 
   const info = await transporter.sendMail(mailOptions);
