@@ -166,7 +166,7 @@
                     <div class="info-section-box">
                         <span class="section-label">Detalle de la Obra</span>
                         <p class="data-text"><strong>Título:</strong> <%= obra.nombre %></p>
-                        <p class="data-text"><strong>Precio Base:</strong> $<%= parseFloat(obra.precioObra).toLocaleString('en-US') %></p>
+                        <p class="data-text"><strong>Precio Base:</strong> $<%= parseFloat(obra.precioObra).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></p>
                         <p class="data-text"><strong>Comisión Museo:</strong> <%= obra.porcentajeGanancia %>%</p>
                     </div>
                 </div>

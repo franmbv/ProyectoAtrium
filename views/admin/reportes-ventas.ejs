@@ -203,9 +203,9 @@
                                     <td class="text-warning small font-monospace"><%= v.codigoDeFactura %></td>
                                     <td class="text-white"><%= new Date(v.fechaDeVenta).toLocaleDateString() %></td>
                                     <td class="fw-bold text-white"><%= v.nombre_obra %></td>
-                                    <td style="color: #94a3b8">$<%= v.gananciaMuseoDolares %></td>
+                                    <td style="color: #94a3b8">$<%= parseFloat(v.gananciaMuseoDolares).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                                     <td><span class="badge bg-dark border border-secondary text-white-50"><%= v.gananciaMuseoPorcentaje %>%</span></td>
-                                    <td class="fw-bold text-white">$<%= parseFloat(v.precioFinalVenta).toLocaleString() %></td>
+                                    <td class="fw-bold text-white">$<%= parseFloat(v.precioFinalVenta).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                                 </tr>
                             <% }) %>
                         <% } else { %>

@@ -270,7 +270,7 @@
                                             <%= o.estatus %>
                                         </div>
                                     </td>
-                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString('en-US') %></td>
+                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                                     <td>
                                         <div class="d-flex gap-2 justify-content-center">
                                             <a href="/admin/facturar/<%= o.id %>" class="btn-accept-soft">Aceptar</a>

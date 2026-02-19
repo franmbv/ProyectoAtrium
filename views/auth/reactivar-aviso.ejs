@@ -1,0 +1,71 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+    .reactivate-card {
+        background-color: #161b22 !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 24px;
+        padding: 50px 45px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .pin-input-reactivate {
+        background-color: #0d1117 !important;
+        border: 1px solid rgba(249, 115, 22, 0.4) !important;
+        color: #f97316 !important;
+        font-size: 2.2rem !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        letter-spacing: 15px;
+        padding: 15px 0 15px 15px !important; 
+        border-radius: 16px !important;
+        width: 100%;
+        max-width: 280px;
+        margin: 20px 0;
+        transition: 0.3s;
+    }
+</style>
+
+<div class="auth-page-container" style="background: radial-gradient(circle, #0f172a 0%, #020617 100%); min-height: calc(100vh - 70px); display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div class="reactivate-card">
+        <div style="font-size: 55px; margin-bottom: 10px;">📧</div>
+        <h1 style="color: white; font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; margin-bottom: 10px;">Verificar Identidad</h1>
+        
+        <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 20px;">
+            Para reactivar tu cuenta, ingresa el nuevo código de seguridad que hemos enviado a:<br>
+            <strong style="color: white;"><%= email %></strong>
+        </p>
+
+        <% if (locals.error) { %>
+            <div style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; padding: 12px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 20px; width: 100%;">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <form action="/auth/reactivar-cuenta" method="POST" style="width: 100%;">
+            <input 
+                type="text" 
+                name="codigoSeguridad" 
+                maxlength="3" 
+                placeholder="000" 
+                class="pin-input-reactivate" 
+                required 
+                autocomplete="off"
+            >
+            <button type="submit" class="btn-atrium-login" style="background-color: #f97316; color: white; border: none; border-radius: 100px; padding: 16px 40px; width: 100%; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+                Confirmar y Activar
+            </button>
+        </form>
+        
+        <a href="/auth/login" style="display: block; margin-top: 25px; color: #475569; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Regresar al Login</a>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
