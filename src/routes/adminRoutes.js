@@ -53,4 +53,7 @@ router.get('/reportes-membresia', adminController.reporteMembresias);
 router.get('/usuarios/crear', adminController.verificarSuperAdmin, adminController.mostrarCrearAdmin);
 router.post('/usuarios/crear', adminController.verificarSuperAdmin, adminController.procesarCrearAdmin);
 
+//Exportación a Excel:
+router.get('/exportar-ventas', adminController.exportarVentasExcel);
+
 module.exports = router;

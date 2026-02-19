@@ -2,7 +2,7 @@
 node_modules/
 
 # Variables de entorno (Contiene contraseñas de tu DB local)
-
+.env
 
 # Archivos del sistema y logs
 npm-debug.log*

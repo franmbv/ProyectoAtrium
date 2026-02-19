@@ -94,6 +94,28 @@
         border-style: solid;
     }
 
+    /* NUEVO BOTÓN EXCEL INTEGRADO */
+    .btn-excel-integrated {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1.5px solid rgba(16, 185, 129, 0.3);
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        text-align: center;
+        transition: 0.3s;
+    }
+    .btn-excel-integrated:hover {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+    }
+
     /* TABLA */
     .inventory-card {
         background-color: var(--at-card-bg) !important;
@@ -137,9 +159,12 @@
 <div class="admin-page-wrapper">
     <div class="container" style="max-width: 1200px;">
         
-        <h2 class="admin-title mb-5"><span role="img">📊</span>Reporte de Ventas</h2>
+        <!-- HEADER SOLO CON TÍTULO -->
+        <div class="mb-5">
+            <h2 class="admin-title m-0"><span role="img">📊</span>Reporte de Ventas</h2>
+        </div>
 
-        <!-- FILTROS EN UNA SOLA LÍNEA -->
+        <!-- FILTROS + BOTÓN EXPORTAR INTEGRADO -->
         <div class="filter-card-panoramic">
             <form action="/admin/reportes-ventas" method="GET" id="salesFilterForm" class="row g-3 align-items-end">
                 
@@ -149,7 +174,7 @@
                     <input type="text" id="salesSearch" class="form-control input-custom" placeholder="Obra o Factura..." autocomplete="off">
                 </div>
                 
-                <!-- FECHAS (Automáticas) -->
+                <!-- FECHAS -->
                 <div class="col-md-2">
                     <label class="form-label-custom">Desde</label>
                     <input type="date" name="fechaInicio" class="form-control input-custom" value="<%= filtros.fechaInicio %>" onchange="this.form.submit()">
@@ -160,7 +185,7 @@
                 </div>
 
                 <!-- ORDENAMIENTO -->
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label-custom">Ordenar por Valor</label>
                     <select id="salesSort" class="form-select input-custom">
                         <option value="default">Relevancia</option>
@@ -171,9 +196,18 @@
                     </select>
                 </div>
 
-                <!-- LIMPIAR -->
-                <div class="col-md-2">
-                    <a href="/admin/reportes-ventas" class="btn-reset-aesthetic">✕ Limpiar</a>
+                <!-- SEPARADOR Y BOTONES DE ACCIÓN (MODIFICADO AQUÍ) -->
+                <div class="col-md-3 d-flex gap-3 align-items-center">
+                    <div style="flex: 1;">
+                        <a href="/admin/reportes-ventas" class="btn-reset-aesthetic">Limpiar</a>
+                    </div>
+                    <!-- LÍNEA DE SEPARACIÓN ENTRE LOS BOTONES -->
+                    <div style="height: 35px; width: 1px; background-color: rgba(255,255,255,0.1);"></div>
+                    <div style="flex: 1;">
+                        <a href="/admin/exportar-ventas" class="btn-excel-integrated">
+                            <span role="img">📥</span> Excel
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>
