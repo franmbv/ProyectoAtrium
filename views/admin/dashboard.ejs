@@ -1,6 +1,5 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
-
 <style>
     /* VARIABLES DE COLOR PARA ARMONÍA TOTAL */
     :root {
@@ -154,7 +153,6 @@
 <div class="admin-dashboard-wrapper">
     <% 
         /* LÓGICA DE FORMATEO PROFESIONAL (Ingeniería de Software) */
-        /* Convertimos 1,000 -> 1K | 1,000,000 -> 1M | 1,000,000,000 -> 1B */
         const shortFormat = new Intl.NumberFormat('en-US', {
             notation: 'compact',
             compactDisplay: 'short',
@@ -168,6 +166,30 @@
         <% if (typeof errorMsg !== 'undefined' && errorMsg) { %>
             <div class="alert alert-danger bg-danger bg-opacity-10 border-0 text-danger mb-4"><%= errorMsg %></div>
         <% } %>
+
+        
+        <!-- SECCIÓN DE ANALÍTICA (GRÁFICOS) -->
+        <div class="row g-4 mt-2 mb-5">
+            <!-- Gráfico 1: Inventario por Género -->
+            <div class="col-md-6">
+                <div class="card admin-kpi" style="background-color: var(--at-panel-carbon); border: 1px solid var(--at-border); height: 100%; min-height: 350px;">
+                    <h5 class="text-start mb-4" style="color: var(--at-orange); font-size: 0.85rem; letter-spacing: 1px;">DISTRIBUCIÓN POR DISCIPLINA</h5>
+                    <div style="position: relative; height: 250px; width: 100%;">
+                        <canvas id="chartGeneros"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico 2: Estado del Inventario -->
+            <div class="col-md-6">
+                <div class="card admin-kpi" style="background-color: var(--at-panel-carbon); border: 1px solid var(--at-border); height: 100%; min-height: 350px;">
+                    <h5 class="text-start mb-4" style="color: var(--at-orange); font-size: 0.85rem; letter-spacing: 1px;">ESTADO DEL INVENTARIO</h5>
+                    <div style="position: relative; height: 250px; width: 100%;">
+                        <canvas id="chartEstatus"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- BLOQUES DE CONTADORES CON RELLENO SÓLIDO -->
         <div class="row g-4">
@@ -196,6 +218,8 @@
                 </div>
             </div>
         </div>
+
+
 
         <!-- MENÚ DE OPCIONES ESTÉTICO -->
         <div class="list-group shadow-xl">
@@ -249,5 +273,81 @@
         </div>
     </div>
 </div>
+
+<!-- Librería Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Recuperamos los datos enviados por el servidor
+    // FIX: Parseamos el JSON para evitar errores de sintaxis en el editor
+    const rawGeneros = JSON.parse('<%- JSON.stringify(charts.generos) %>');
+    const rawEstatus = JSON.parse('<%- JSON.stringify(charts.estatus) %>');
+
+    // Configuración de Colores Atrium
+    const colorOrange = '#f97316';
+    const colorGray = '#94a3b8';
+    const colorWhite = '#ffffff';
+
+    // 1. Gráfico de Géneros (Doughnut)
+    const ctxGeneros = document.getElementById('chartGeneros').getContext('2d');
+    new Chart(ctxGeneros, {
+        type: 'doughnut',
+        data: {
+            labels: rawGeneros.map(g => g.nombre),
+            datasets: [{
+                data: rawGeneros.map(g => g.total),
+                backgroundColor: [
+                    colorOrange, 
+                    '#fb923c', // Naranja claro
+                    '#fdba74', // Naranja más claro
+                    '#334155', // Gris azulado
+                    '#475569'  // Gris
+                ],
+                borderColor: '#161b22', // Color del fondo para separar
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { color: colorGray, font: { family: 'Inter' } }
+                }
+            }
+        }
+    });
+
+    // 2. Gráfico de Estatus (Bar)
+    const ctxEstatus = document.getElementById('chartEstatus').getContext('2d');
+    new Chart(ctxEstatus, {
+        type: 'bar',
+        data: {
+            labels: rawEstatus.map(e => e.estatus),
+            datasets: [{
+                label: 'Cantidad de Obras',
+                data: rawEstatus.map(e => e.total),
+                backgroundColor: [
+                    '#22c55e', // Verde (Disponible)
+                    '#f59e0b', // Amarillo (Reservada)
+                    '#ef4444'  // Rojo (Vendida)
+                ],
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, ticks: { color: colorGray }, grid: { color: '#334155' } },
+                x: { ticks: { color: colorWhite } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
 
 <%- include('../partials/footer') %>
