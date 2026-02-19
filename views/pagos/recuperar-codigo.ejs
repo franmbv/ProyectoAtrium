@@ -171,6 +171,9 @@
         </div>
         
         <!-- ÁREA DE ALERTAS -->
+        <% if (message) { %>
+            <div class="alert-custom alert-error"><%= message %></div>
+        <% } %>
         <% if (error) { %>
             <div class="alert-custom alert-error"><%= error %></div>
         <% } %>

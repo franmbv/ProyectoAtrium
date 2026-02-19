@@ -18,6 +18,11 @@ const PagoController = {
             obraNombre = '';
         }
 
+        // Si el usuario ya tiene 3 o más intentos fallidos, redirigir al formulario de recuperación
+        if (req.session.failedAttempts && req.session.failedAttempts >= 3) {
+            req.session.messageInfo = 'Has excedido el número máximo de intentos. Por favor, recupera tu código.';
+            return res.redirect('/pagos/recuperar');
+        }
         res.render('pagos/confirmar-reserva', { 
             message: null, 
             success: null, 
@@ -56,6 +61,11 @@ const PagoController = {
             req.session.failedAttempts = 0;
         }
 
+        // Si está en estado de bloqueo (>=3), forzar ir al flujo de recuperación
+        if (req.session.failedAttempts >= 3) {
+            req.session.messageInfo = 'Has excedido el número máximo de intentos. Por favor, recupera tu código.';
+            return res.redirect('/pagos/recuperar');
+        }
         try {
             const membresia = await InfoCompradorModel.buscarPorCodigoyUsuario(codigoRaw, req.session.usuario?.id);
 
@@ -63,43 +73,9 @@ const PagoController = {
                 req.session.failedAttempts += 1;
 
                 if (req.session.failedAttempts >= 3) {
-                    // Generar nuevo código de 3 dígitos
-                    const nuevoCodigo = Math.floor(100 + Math.random() * 900).toString();
-                    const updated = await InfoCompradorModel.actualizarCodigo(req.session.usuario?.id, nuevoCodigo);
-                    if (updated) {
-                        console.log(`Nuevo código generado para usuario ${req.session.usuario?.id}: ${nuevoCodigo}`);
-                        req.session.failedAttempts = 0; // Resetear intentos
-
-                        // Intentar obtener el correo del usuario y enviar el nuevo código
-                        try {
-                            const usuario = await UsuarioModel.buscarPorId(req.session.usuario?.id);
-                            const correo = usuario && usuario.gmail ? String(usuario.gmail).trim() : null;
-                            if (correo && correo.endsWith('@gmail.com')) {
-                                try {
-                                    const result = await sendSecurityCode(correo, nuevoCodigo);
-                                    console.log('Código de seguridad enviado por correo. Preview:', result.previewUrl || result.info?.messageId);
-                                } catch (mailErr) {
-                                    console.error('Error al enviar correo con el nuevo código:', mailErr);
-                                }
-                            } else {
-                                console.log('No se encontró un correo @gmail.com para el usuario.');
-                            }
-                        } catch (userErr) {
-                            console.error('Error al obtener datos del usuario para envío de correo:', userErr);
-                        }
-
-                        return res.render('pagos/confirmar-reserva', {
-                            message: 'Demasiados intentos fallidos. Se ha generado un nuevo código de seguridad. Revise su correo o contacte al administrador.',
-                            success: false,
-                            form: formData
-                        });
-                    } else {
-                        return res.render('pagos/confirmar-reserva', {
-                            message: 'Error al generar nuevo código.',
-                            success: false,
-                            form: formData
-                        });
-                    }
+                    // No generar ni enviar código automáticamente: forzar al usuario a pasar por el formulario de recuperación
+                    req.session.messageInfo = 'Has excedido el número máximo de intentos. Por seguridad, debes recuperar tu código.';
+                    return res.redirect('/pagos/recuperar');
                 } else {
                     return res.render('pagos/confirmar-reserva', {
                         message: `Código de seguridad incorrecto o no encontrado. Intentos restantes: ${3 - req.session.failedAttempts}`,
@@ -206,18 +182,27 @@ const PagoController = {
 
             const datos = await UsuarioModel.obtenerPreguntasSeguridad(usuarioId);
             
+            // Si no hay preguntas, informar
             if (!datos || datos.length === 0) {
+                const msg = req.session.messageInfo || null;
+                delete req.session.messageInfo;
                 return res.render('pagos/recuperar-codigo', { 
                     error: 'No tienes preguntas de seguridad asignadas.',
                     success: null,
-                    preguntas: [] 
+                    preguntas: [],
+                    message: msg
                 });
             }
+
+            // Pasar cualquier mensaje que haya quedado en sesión (ej. bloqueo por intentos)
+            const msg = req.session.messageInfo || null;
+            delete req.session.messageInfo;
 
             res.render('pagos/recuperar-codigo', { 
                 error: null, 
                 success: null,
-                preguntas: datos 
+                preguntas: datos,
+                message: msg
             });
 
         } catch (error) {
@@ -263,6 +248,11 @@ const PagoController = {
                     } catch (mailErr) {
                         console.error('❌ Error al enviar correo de recuperación:', mailErr.message);
                     }
+                }
+
+                // Resetear contador de intentos tras recuperación exitosa
+                if (req.session) {
+                    req.session.failedAttempts = 0;
                 }
 
                 return res.render('pagos/recuperar-codigo', {
