@@ -1,5 +1,11 @@
 </main> <!-- Cierre del contenedor principal -->
 
+    <!-- Elemento oculto para transferir datos de notificación -->
+    <div id="flash-info" 
+         data-type="<%= locals.flash ? locals.flash.type : '' %>" 
+         data-message="<%= locals.flash ? locals.flash.message : '' %>">
+    </div>
+
     <footer class="text-white pt-5 pb-4">
         <div class="container">
             <div class="row g-4">
@@ -53,21 +59,19 @@
 
 
 <script>
+    // 1. LÓGICA DEL MODO CLARO/OSCURO
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
-    const rootElement = document.documentElement; // Esto es la etiqueta <html>
+    const rootElement = document.documentElement;
 
-    // 1. Al cargar la página, aplicar el tema guardado
     const currentTheme = localStorage.getItem('atrium-theme') || 'dark';
     rootElement.setAttribute('data-theme', currentTheme);
     updateThemeUI(currentTheme);
 
-    // 2. Evento de click para cambiar
     if(themeToggle) {
         themeToggle.addEventListener('click', () => {
             const theme = rootElement.getAttribute('data-theme');
             const newTheme = (theme === 'dark') ? 'light' : 'dark';
-            
             rootElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('atrium-theme', newTheme);
             updateThemeUI(newTheme);
@@ -79,9 +83,65 @@
             themeIcon.innerText = (theme === 'dark') ? '🌙' : '☀️';
         }
     }
+// 2. LÓGICA DE NOTIFICACIONES (FLASH) - VERSIÓN DEFINITIVA
+   // 2. LÓGICA DE NOTIFICACIONES (FLASH) - INTELIGENTE
+    (function() {
+        const flashInfo = document.getElementById('flash-info');
+        const type = flashInfo.getAttribute('data-type');
+        const message = flashInfo.getAttribute('data-message');
+
+        if (type && message) {
+            // Iconos por defecto si el mensaje no trae uno
+            const defaultIcons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1100,
+                timerProgressBar: true,
+                background: '#161b22', 
+                color: '#ffffff',
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    toast.style.border = '1px solid #f97316';
+                }
+            });
+
+            // Lógica de detección de emoji
+            const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/u;
+            const match = message.match(emojiRegex);
+            
+            let emoji, cleanText;
+
+            if (match) {
+                // Si el mensaje ya trae un emoji (como la manito 👋), lo usamos
+                emoji = match[0];
+                cleanText = message.replace(emoji, "").trim();
+            } else {
+                // Si no trae, usamos el del mapa por defecto
+                emoji = defaultIcons[type] || '🔔';
+                cleanText = message;
+            }
+
+            Toast.fire({
+                icon: undefined, 
+                html: `
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="swal-emoji-rescale" style="font-size: 1.4rem;">${emoji}</span>
+                        <span class="toast-text-fix" style="font-weight: 700; font-size: 0.95rem;">${cleanText}</span>
+                    </div>
+                `
+            });
+        }
+    })();
 </script>
-
-
 
     <!-- Scripts de Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
