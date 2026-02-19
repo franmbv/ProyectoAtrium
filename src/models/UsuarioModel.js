@@ -131,7 +131,7 @@ class UsuarioModel {
     // 10. Obtener todos los usuarios con rol de Super Admin
     static async obtenerTodosLosAdmins() {
         const sql = `
-            SELECT id, nombre, apellido, cedula, gmail, login, rol_id 
+            SELECT id, nombre, apellido, cedula, gmail, login, rol_id,  ultima_conexion  
             FROM usuario 
             WHERE rol_id IN (1, 3)
             ORDER BY rol_id ASC, apellido ASC
@@ -151,6 +151,16 @@ class UsuarioModel {
         await db.execute(sql, params);
         return true;
     }
+
+    // Método para registrar el rastro de acceso del usuario
+    static async actualizarUltimaConexion(id) {
+        const sql = `UPDATE usuario SET ultima_conexion = NOW() WHERE id = ?`;
+        await db.execute(sql, [id]);
+        return true;
+    }
+
+
+
 }
 
 module.exports = UsuarioModel;

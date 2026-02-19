@@ -138,6 +138,10 @@ const AuthController = {
             }
             // ----------------------------(NUEVO)
 
+            // --- ACTUALIZAR ÚLTIMA CONEXIÓN (NUEVO) ---
+            await UsuarioModel.actualizarUltimaConexion(usuario.id);
+            // ------------------------------------------
+
             req.session.usuario = {
                 id: usuario.id,
                 nombre: usuario.nombre,

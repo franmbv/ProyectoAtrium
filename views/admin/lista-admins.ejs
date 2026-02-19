@@ -1,43 +1,162 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<div class="perfil-container" style="min-height: calc(100vh - 70px); background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); padding: 50px 20px;">
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-border: rgba(255, 255, 255, 0.1);
+        /* Color amarillo para el botón de editar */
+        --at-yellow-soft: rgba(251, 191, 36, 0.12); 
+        --at-yellow-text: #fcd34d;
+    }
+
+    .admin-page-wrapper {
+        background: radial-gradient(circle at center, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: calc(100vh - 70px);
+        padding: 60px 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+        text-align: center !important;
+    }
+
+    /* CARD ESTILO CARBONO */
+    .card-atrium-premium {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 20px;
+        padding: 35px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    /* TABLA ESTÉTICA */
+    .table-atrium { color: white !important; margin-bottom: 0; }
+    
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #000000 !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        padding: 18px;
+        border: none;
+        letter-spacing: 1px;
+    }
+
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        padding: 20px 18px;
+        vertical-align: middle;
+    }
+
+    .table-atrium tbody tr:hover {
+        background-color: rgba(249, 115, 22, 0.03) !important;
+    }
+
+    /* COLUMNA GRISÁCEA DE CONEXIÓN */
+    .connection-date {
+        color: #94a3b8 !important; 
+        font-size: 0.8rem;
+        font-family: monospace;
+        font-weight: 500;
+    }
+
+    /* MODIFICADO: BOTÓN DE EDICIÓN EN AMARILLO SOFT */
+    .btn-edit-soft {
+        background-color: var(--at-yellow-soft) !important;
+        color: var(--at-yellow-text) !important;
+        border: 1px solid rgba(251, 191, 36, 0.2) !important;
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 0.75rem;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    .btn-edit-soft:hover {
+        background-color: rgba(251, 191, 36, 0.2) !important;
+        transform: translateY(-2px);
+    }
+
+    .badge-role {
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        padding: 5px 12px;
+        border-radius: 50px;
+        text-transform: uppercase;
+    }
+
+    .btn-back-link {
+        color: #64748b;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+    .btn-back-link:hover { color: white; }
+
+</style>
+
+<div class="admin-page-wrapper">
     <div class="container">
-        <h1 class="text-center mb-5" style="font-family: 'Playfair Display', serif; color: white;">
-            Gestión de <span style="color: #f97316;">Administradores</span>
+        
+        <h1 class="admin-title mb-5">
+            Gestión de <span style="color: var(--at-orange);">Administradores</span>
         </h1>
 
-        <div class="card card-atrium p-4">
+        <div class="card-atrium-premium">
             <div class="table-responsive">
-                <table class="table table-hover table-dark mb-0" style="background-color: transparent;">
+                <table class="table table-atrium align-middle">
                     <thead>
-                        <tr style="border-bottom: 2px solid #f97316; color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
-                            <th>Rol</th>
+                        <tr>
+                            <th>Nivel / Rol</th>
                             <th>Nombre Completo</th>
-                            <th>Usuario</th>
-                            <th>Correo</th>
-                            <th>Cédula</th>
+                            <th>Identificador</th>
+                            <th>Correo Electrónico</th>
+                            <th>Última Conexión</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody style="font-size: 0.9rem;">
+                    <tbody>
                         <% admins.forEach(admin => { %>
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle;">
+                            <tr>
                                 <td>
-                                    <span class="badge <%= admin.rol_id == 1 ? 'bg-danger' : 'bg-warning text-dark' %>" style="font-size: 0.7rem;">
+                                    <span class="badge badge-role <%= admin.rol_id == 3 ? 'bg-danger' : 'bg-warning text-dark' %>">
                                         <%= admin.rol_id == 3 ? 'SUPER ADMIN' : 'ADMIN' %>
                                     </span>
                                 </td>
-                                <td class="text-white fw-bold"><%= admin.nombre %> <%= admin.apellido %></td>
-                                <td class="text-white-50">@<%= admin.login %></td>
+                                <td>
+                                    <div class="text-white fw-bold"><%= admin.nombre %> <%= admin.apellido %></div>
+                                    <div class="small text-muted" style="font-size: 0.7rem;">C.I. <%= admin.cedula %></div>
+                                </td>
+                                <td class="text-white-50 font-monospace">@<%= admin.login %></td>
                                 <td class="text-white-50"><%= admin.gmail %></td>
-                                <td class="text-white-50"><%= admin.cedula %></td>
+                                
+                                <td class="connection-date">
+                                    <span role="img">🕒</span>
+                                    <%= admin.ultima_conexion ? new Date(admin.ultima_conexion).toLocaleString('es-ES') : 'Sin registros' %>
+                                </td>
+
                                 <td class="text-center">
-                                    <div class="btn-group">
-                                        <a href="/admin/editar-usuario/<%= admin.id %>" class="btn btn-sm btn-outline-info" title="Editar">
-                                            ✏️
-                                        </a>
-                                    </div>
+                                    <a href="/admin/editar-usuario/<%= admin.id %>" class="btn-edit-soft" title="Editar Perfil">
+                                        Editar
+                                    </a>
                                 </td>
                             </tr>
                         <% }) %>
@@ -46,24 +165,12 @@
             </div>
         </div>
 
-        <div class="text-center mt-4">
-            <a href="/admin/dashboard" class="text-white-50 text-decoration-none small">
-                ← Volver al Panel de Control
+        <div class="text-center mt-5">
+            <a href="/admin/dashboard" class="btn-back-link">
+                ← Volver al Panel de Operaciones
             </a>
         </div>
     </div>
 </div>
-
-<style>
-    .card-atrium {
-        background-color: #161b22;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-    }
-    .table-hover tbody tr:hover {
-        background-color: rgba(249, 115, 22, 0.05) !important;
-    }
-</style>
 
 <%- include('../partials/footer') %>
