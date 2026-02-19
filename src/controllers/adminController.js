@@ -483,6 +483,65 @@ const AdminController = {
             return next();
         }
         res.redirect('/admin/dashboard?error=Acceso restringido: Solo los Superadministradores pueden crear nuevas cuentas.');
+    },
+
+    listarAdmins: async (req, res) => {
+        try {
+            if (req.session.usuario.rol !== 3) {
+                return res.redirect('/galeria?error=No tienes permisos para ver esta lista');
+            }
+
+            const admins = await UsuarioModel.obtenerTodosLosAdmins();
+            
+            res.render('admin/lista-admins', { 
+                admins, 
+                mensaje: req.query.success || null,
+                error: req.query.error || null
+            });
+        } catch (error) {
+            console.error(error);
+            res.redirect('/admin/dashboard?error=Error al cargar la lista de administradores');
+        }
+    },
+
+
+    mostrarEditarAdmin: async (req, res) => {
+        try {
+            const idParaEditar = req.params.id;
+            const adminData = await UsuarioModel.obtenerPerfilCompleto(idParaEditar);
+
+            if (!adminData) {
+                return res.redirect('/admin/lista-admins?error=Administrador no encontrado');
+            }
+
+            res.render('admin/editar-admin', { 
+                admin: adminData, 
+                mensaje: null, 
+                error: null 
+            });
+        } catch (error) {
+            console.error(error);
+            res.redirect('/admin/lista-admins?error=Error al cargar datos');
+        }
+    },
+
+    actualizarAdmin: async (req, res) => {
+        const idParaEditar = req.params.id;
+        const { nombre, apellido, gmail, login, rol_id } = req.body;
+
+        try {
+            const datosActualizados = { nombre, apellido, gmail, login, rol_id };
+            await UsuarioModel.actualizarDesdeAdmin(idParaEditar, datosActualizados);
+            res.redirect('/admin/lista-admins?success=Administrador actualizado correctamente');
+        } catch (error) {
+            console.error(error);
+            const adminData = await UsuarioModel.obtenerPerfilCompleto(idParaEditar);
+            res.render('admin/editar-admin', { 
+                admin: adminData, 
+                mensaje: null, 
+                error: 'Error al actualizar. El correo o usuario podrían estar duplicados.' 
+            });
+        }
     }
 };
 

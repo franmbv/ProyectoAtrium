@@ -38,7 +38,10 @@
                     <span role="img">👤</span><%= usuario.nombre %>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2" style="background-color: #1f2937; border-radius: 12px;">
-                    <!-- OPCIÓN AGREGADA: DAR DE BAJA -->
+                    <li><a class="dropdown-item text-white fw-semibold py-2" href="/usuario/perfil">Mi perfil</a></li>
+                    <li><hr class="dropdown-divider border-secondary" style="opacity: 0.3; margin: 0.5rem 1rem;"></li>
+
+                      <!-- OPCIÓN AGREGADA: DAR DE BAJA -->
                     <li>
                         <form action="/auth/dar-de-baja" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas darte de baja? Tu cuenta quedará inactiva y se cerrará la sesión.')">
                             <button type="submit" class="dropdown-item text-warning fw-bold" style="font-size: 0.85rem; background: none; border: none; width: 100%; text-align: left;">
@@ -47,6 +50,7 @@
                         </form>
                     </li>
                     <li><hr class="dropdown-divider border-secondary opacity-25"></li>
+
                     <li><a class="dropdown-item text-danger fw-bold" href="/auth/logout">Cerrar Sesión</a></li>
                 </ul>
             </li>
