@@ -170,7 +170,7 @@
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <label class="form-label-custom">Precio Base ($)</label>
-                        <input type="number" name="precioObra" class="form-control input-custom" value="<%= obra.precioObra %>" required>
+                        <input type="number" name="precioObra" class="form-control input-custom" value="<%= obra.precioObra %>" required min="0" step="0.01" inputmode="decimal">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label-custom">% Ganancia Museo</label>
@@ -268,6 +268,42 @@
             });
         };
 
+        const setupPriceField = (input) => {
+            if (!input) return;
+
+            const normalizeValue = () => {
+                if (!input.value) {
+                    input.setCustomValidity('');
+                    return;
+                }
+
+                input.value = input.value.replace(',', '.');
+                const valueNumber = Number(input.value);
+
+                if (!Number.isFinite(valueNumber) || valueNumber < 0) {
+                    input.setCustomValidity('No se puede ingresar montos negativos.');
+                    return;
+                }
+
+                const parts = input.value.split('.');
+                if (parts[1] && parts[1].length > 2) {
+                    input.value = `${parts[0]}.${parts[1].slice(0, 2)}`;
+                }
+
+                const isValid = /^\d+(\.\d{0,2})?$/.test(input.value);
+                input.setCustomValidity(isValid ? '' : 'Solo se permiten 2 decimales.');
+            };
+
+            input.addEventListener('input', normalizeValue);
+            input.addEventListener('blur', () => {
+                if (!input.value) return;
+                const valueNumber = Number(input.value);
+                if (Number.isFinite(valueNumber)) {
+                    input.value = valueNumber.toFixed(2);
+                }
+            });
+        };
+
         const toggleBloques = () => {
             const generoId = generoSelect.value;
             bloques.forEach((block) => {
@@ -279,6 +315,7 @@
 
         generoSelect.addEventListener('change', toggleBloques);
         toggleBloques(); // Ejecutar al cargar para mostrar el género actual
+        setupPriceField(document.querySelector('input[name="precioObra"]'));
     })();
 </script>
 

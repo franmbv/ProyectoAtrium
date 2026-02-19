@@ -271,7 +271,7 @@
                                                                 <td class="text-warning small font-monospace fw-bold"><%= f.codigoDeFactura %></td>
                                                                 <td class="text-white-50"><%= new Date(f.fechaDeVenta).toLocaleDateString() %></td>
                                                                 <td class="text-white"><%= f.nombre_obra %></td>
-                                                                <td class="fw-bold text-success">$<%= parseFloat(f.precioFinalVenta).toLocaleString() %></td>
+                                                                <td class="fw-bold text-success">$<%= parseFloat(f.precioFinalVenta).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                                                                 <td><a href="/admin/facturas/<%= f.id %>" class="btn-detail-soft">Ver Detalle</a></td>
                                                             </tr>
                                                         <% }) %>
