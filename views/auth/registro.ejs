@@ -315,6 +315,49 @@
                     </div>
                 </div>
 
+                <h5 class="mt-4 mb-3 text-start w-100" style="color: var(--at-orange); font-size: 0.85rem; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Dirección</h5>
+
+                <div class="row w-100">
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">País</label>
+                            <select name="pais" class="form-control input-custom" required>
+                                <option value="Venezuela" selected>Venezuela</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Estado / Provincia</label>
+                            <input type="text" name="estado_residencia" class="form-control input-custom" required placeholder="Ej: Bolívar">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row w-100">
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Ciudad</label>
+                            <input type="text" name="ciudad" class="form-control input-custom" required placeholder="Ej: Puerto Ordaz">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Municipio</label>
+                            <input type="text" name="municipio" class="form-control input-custom" required placeholder="Ej: Caroní">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row w-100 mb-2">
+                    <div class="col-12">
+                        <div class="form-group-custom">
+                            <label class="form-label-custom">Calle / Urb / Nro. Casa</label>
+                            <input type="text" name="calle" class="form-control input-custom" required placeholder="Ej: Urb. Los Olivos, Calle Roma, Casa #12">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="button-group">
                     <button type="button" class="btn-atrium-main" onclick="cambiarPaso(1, 2)">
                         Continuar a Seguridad ➔

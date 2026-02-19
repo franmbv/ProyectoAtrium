@@ -23,8 +23,9 @@ const AuthController = {
 
     // --- 2. PROCESAR REGISTRO (POST) ---
     registrar: async (req, res) => {
+        let idUsuarioCreado = null;
         try {
-            const { nombre, apellido, cedula, gmail, login, password, preguntasIds, respuestas, nroTarjeta, cvv} = req.body;
+            const { nombre, apellido, cedula, gmail, login, password, preguntasIds, respuestas, nroTarjeta, cvv, pais, estado_residencia, ciudad, municipio, calle} = req.body;
 
             const preguntas = await UsuarioModel.obtenerCatalogoPreguntas();
 
@@ -38,8 +39,13 @@ const AuthController = {
                 return res.render('auth/registro', { error: 'El Correo ya está registrado', preguntas });
             }
 
-            if (nroTarjeta.length < 15 || cvv.length < 3) {
-                return res.render('auth/registro', { error: 'Datos de tarjeta inválidos', preguntas });
+            const tarjetaLimpia = nroTarjeta ? nroTarjeta.replace(/\s+/g, '') : '';
+            const cvvLimpio = cvv ? cvv.trim() : '';
+            const regexTarjeta = /^\d{15,19}$/;
+            const regexCVV = /^\d{3,4}$/;
+
+            if (!regexTarjeta.test(tarjetaLimpia) || !regexCVV.test(cvvLimpio)) {
+                return res.render('auth/registro', { error: 'Datos de tarjeta inválidos. Verifica que los números sean correctos.', preguntas });
             }
 
             const passwordEncriptado = await bcrypt.hash(password, 10);
@@ -53,7 +59,7 @@ const AuthController = {
 
             const numeroAleatorio = Math.floor(Math.random() * 1000); 
             const codigoSeguridad = numeroAleatorio.toString().padStart(3, '0');
-            const tarjetaSegura = nroTarjeta.slice(-4);
+            const tarjetaSegura = tarjetaLimpia.slice(-4);
 
             const nuevoUsuario = {
                 nombre, 
@@ -64,8 +70,10 @@ const AuthController = {
                 password: passwordEncriptado 
             };
 
+            const direccionFisica = { pais, estado_residencia, ciudad, municipio, calle };
+
             const idUsuario = await UsuarioModel.crear(nuevoUsuario, 2);
-            await InfoCompradorModel.crear(idUsuario, codigoSeguridad, tarjetaSegura);
+            await InfoCompradorModel.crear(idUsuario, codigoSeguridad, tarjetaSegura, direccionFisica);
             await UsuarioModel.guardarRespuestas(idUsuario, preguntasIds, respuestasHasheadas);
             
             // --- ENVÍO DE CORREO REAL ---

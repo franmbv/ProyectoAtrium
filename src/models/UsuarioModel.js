@@ -91,6 +91,58 @@ class UsuarioModel {
             throw error;
         }
     }
+
+    // 8. Actualizar datos básicos del usuario (Nombre, Apellido, Gmail, Login y Password)
+    static async actualizarDatosBasicos(id, datos) {
+        let sql = `UPDATE usuario SET nombre=?, apellido=?, gmail=?, login=? WHERE id=?`;
+        let params = [datos.nombre, datos.apellido, datos.gmail, datos.login, id];
+
+        if (datos.password) {
+            sql = `UPDATE usuario SET nombre=?, apellido=?, gmail=?, login=?, password=? WHERE id=?`;
+            params = [datos.nombre, datos.apellido, datos.gmail, datos.login, datos.password, id];
+        }
+
+        await db.execute(sql, params);
+        return true;
+    }
+
+    // 9. Obtener perfil completo (Datos básicos + Dirección)
+    static async obtenerPerfilCompleto(idUsuario) {
+        const sql = `
+            SELECT 
+                u.id, u.nombre, u.apellido, u.cedula, u.gmail, u.login, u.password, u.rol_id,
+                i.pais, i.estado_residencia, i.ciudad, i.municipio, i.calle
+            FROM usuario u
+            LEFT JOIN info_comprador i ON u.id = i.comprador_id
+            WHERE u.id = ?
+        `;
+        const [rows] = await db.execute(sql, [idUsuario]);
+        return rows[0];
+    }
+
+    // 10. Obtener todos los usuarios con rol de Super Admin
+    static async obtenerTodosLosAdmins() {
+        const sql = `
+            SELECT id, nombre, apellido, cedula, gmail, login, rol_id 
+            FROM usuario 
+            WHERE rol_id IN (1, 3)
+            ORDER BY rol_id ASC, apellido ASC
+        `;
+        const [rows] = await db.execute(sql);
+        return rows;
+    }
+
+    // 11. Actualizar datos de otro admin desde el panel de Super Admin (sin cambiar contraseña)
+    static async actualizarDesdeAdmin(id, datos) {
+        const sql = `
+            UPDATE usuario 
+            SET nombre = ?, apellido = ?, gmail = ?, login = ?, rol_id = ? 
+            WHERE id = ?
+        `;
+        const params = [datos.nombre, datos.apellido, datos.gmail, datos.login, datos.rol_id, id];
+        await db.execute(sql, params);
+        return true;
+    }
 }
 
 module.exports = UsuarioModel;

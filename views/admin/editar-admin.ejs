@@ -1,0 +1,64 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="perfil-container" style="min-height: calc(100vh - 70px); background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); padding: 50px 20px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <h1 class="text-center mb-5" style="font-family: 'Playfair Display', serif; color: white;">
+                    Editar <span style="color: #f97316;">Acceso</span>
+                </h1>
+
+                <div class="card card-atrium shadow-lg">
+                    <div class="card-header-atrium">✏️ Modificar Administrador</div>
+                    <div class="card-body p-4">
+                        <form action="/admin/editar-usuario/<%= admin.id %>" method="POST">
+                            
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="form-label">Nombre</label>
+                                    <input type="text" name="nombre" class="form-control form-control-atrium" value="<%= admin.nombre %>" required>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label">Apellido</label>
+                                    <input type="text" name="apellido" class="form-control form-control-atrium" value="<%= admin.apellido %>" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Correo Electrónico</label>
+                                <input type="email" name="gmail" class="form-control form-control-atrium" value="<%= admin.gmail %>" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Nombre de Usuario</label>
+                                <input type="text" name="login" class="form-control form-control-atrium" value="<%= admin.login %>" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label" style="color: #f97316;">Nivel de Rango (Rol)</label>
+                                <select name="rol_id" class="form-control form-control-atrium" required>
+                                    <option value="1" <%= admin.rol_id == 1 ? 'selected' : '' %>>Admin (Gestión de Obras)</option>
+                                    <option value="3" <%= admin.rol_id == 3 ? 'selected' : '' %>>Super Administrador (Control Total)</option>
+                                </select>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-save">Guardar Cambios</button>
+                                <a href="/admin/lista-admins" class="btn btn-outline-secondary rounded-pill border-0 text-white-50">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-atrium { background-color: #161b22; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; }
+    .card-header-atrium { border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 20px; color: #f97316; font-weight: 700; font-size: 1.2rem; }
+    .form-control-atrium { background-color: #0d1117; border: 1px solid rgba(255, 255, 255, 0.1); color: white; border-radius: 10px; }
+</style>
+
+<%- include('../partials/footer') %>

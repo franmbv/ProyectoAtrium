@@ -52,5 +52,8 @@ router.get('/reportes-membresia', adminController.reporteMembresias);
 // Gestión de Usuarios
 router.get('/usuarios/crear', adminController.verificarSuperAdmin, adminController.mostrarCrearAdmin);
 router.post('/usuarios/crear', adminController.verificarSuperAdmin, adminController.procesarCrearAdmin);
+router.get('/lista-admins', AuthController.verificarSesion, adminController.listarAdmins);
+router.get('/editar-usuario/:id', AuthController.verificarSesion, adminController.mostrarEditarAdmin);
+router.post('/editar-usuario/:id', AuthController.verificarSesion, adminController.actualizarAdmin);
 
 module.exports = router;
