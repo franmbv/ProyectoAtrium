@@ -1,0 +1,172 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+    .perfil-container {
+        min-height: calc(100vh - 70px);
+        background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+        padding: 50px 20px;
+        color: white;
+    }
+    .card-atrium {
+        background-color: #161b22;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .card-header-atrium {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: #f97316; /* Naranja Atrium */
+    }
+    .form-label {
+        color: #94a3b8;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+    .form-control-atrium {
+        background-color: #0d1117;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        border-radius: 10px;
+        padding: 10px 15px;
+    }
+    .form-control-atrium:focus {
+        background-color: #0d1117;
+        color: white;
+        border-color: #f97316;
+        box-shadow: 0 0 10px rgba(249, 115, 22, 0.2);
+    }
+    .btn-save {
+        background-color: #f97316;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 30px;
+        font-weight: 800;
+        text-transform: uppercase;
+        transition: all 0.3s;
+    }
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+        background-color: #ea580c;
+        color: white;
+    }
+</style>
+
+<div class="perfil-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                
+                <h1 class="text-center mb-5" style="font-family: 'Playfair Display', serif;">Mi Perfil <span style="color: #f97316;">Atrium</span></h1>
+
+                <% if (mensaje) { %>
+                    <div class="alert alert-success text-center mb-4 border-0" style="background: rgba(34, 197, 94, 0.2); color: #86efac;">
+                        ✨ <%= mensaje %>
+                    </div>
+                <% } %>
+                <% if (error) { %>
+                    <div class="alert alert-danger text-center mb-4 border-0" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">
+                        ⚠️ <%= error %>
+                    </div>
+                <% } %>
+
+                <form action="/usuario/perfil" method="POST">
+                    <div class="row g-4 justify-content-center">
+                        
+                        <div class="<%= (usuario.rol_id == 1 || usuario.rol_id == 3) ? 'col-md-8 col-lg-7' : 'col-md-6' %>">
+                            <div class="card card-atrium h-100">
+                                <div class="card-header-atrium">
+                                    👤 Datos Personales
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Nombre</label>
+                                        <input type="text" name="nombre" class="form-control form-control-atrium" value="<%= usuario.nombre %>" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Apellido</label>
+                                        <input type="text" name="apellido" class="form-control form-control-atrium" value="<%= usuario.apellido %>" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Cédula (No editable)</label>
+                                        <input type="text" class="form-control form-control-atrium" value="<%= usuario.cedula %>" disabled style="opacity: 0.6;">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Correo Electrónico</label>
+                                        <input type="email" name="gmail" class="form-control form-control-atrium" value="<%= usuario.gmail %>" required>
+                                    </div>
+                                    <hr class="border-secondary my-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Usuario / Login</label>
+                                        <input type="text" name="login" class="form-control form-control-atrium" value="<%= usuario.login %>" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-info small fw-bold">Contraseña Actual</label>
+                                        <input type="password" name="oldPassword" class="form-control form-control-atrium" placeholder="••••••••">
+                                        <small class="text-white-50 d-block mt-1" style="font-size: 0.7rem;">Obligatorio si deseas cambiar tu clave.</small>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label text-warning small fw-bold">Nueva Contraseña</label>
+                                        <input type="password" name="password" class="form-control form-control-atrium" placeholder="••••••••">
+                                        <small class="text-white-50 d-block mt-1" style="font-size: 0.7rem;">Déjalo vacío si no deseas cambiarla.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    <% if (usuario.rol_id != 1 && usuario.rol_id != 3) { %>
+                        <div class="col-md-6">
+                            <div class="card card-atrium h-100">
+                                <div class="card-header-atrium">📍 Dirección de Envío</div>
+                                <div class="card-body p-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">País</label>
+                                        <select name="pais" class="form-control form-control-atrium">
+                                            <option value="Venezuela" <%= usuario.pais === 'Venezuela' ? 'selected' : '' %>>Venezuela</option>
+                                        </select>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label">Estado</label>
+                                            <input type="text" name="estado_residencia" class="form-control form-control-atrium" value="<%= usuario.estado_residencia %>" required>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label">Ciudad</label>
+                                            <input type="text" name="ciudad" class="form-control form-control-atrium" value="<%= usuario.ciudad %>" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Municipio</label>
+                                        <input type="text" name="municipio" class="form-control form-control-atrium" value="<%= usuario.municipio %>" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Calle / Avenida / Casa</label>
+                                        <textarea name="calle" rows="4" class="form-control form-control-atrium" required><%= usuario.calle %></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+
+                    </div> <div class="text-center mt-5">
+                        <button type="submit" class="btn btn-save px-5">
+                            Guardar Cambios 💾
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
