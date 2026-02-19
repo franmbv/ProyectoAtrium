@@ -403,6 +403,20 @@ class ObraModel {
         return rows;
     }
 
+    // Método para alimentar al Curador Virtual (IA)
+    static async obtenerCatalogoParaIA() {
+        const sql = `
+            SELECT o.nombre, o.precioObra, g.nombre AS genero, a.nombre AS artista_nombre, a.apellido AS artista_apellido
+            FROM obra o
+            JOIN genero g ON o.genero_id = g.Id
+            JOIN artista a ON o.autor_id = a.id
+            WHERE o.estatus = 'Disponible'
+        `;
+        const [rows] = await db.execute(sql);
+        return rows;
+    }
+
+
 }
 
 module.exports = ObraModel;

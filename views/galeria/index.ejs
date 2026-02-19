@@ -331,7 +331,7 @@
                                             </a>
                                         </p>
                                         <!-- MODIFICADO: Notación Compacta Aplicada -->
-                                        <div class="obra-price text-start">$<%= shortFormat.format(parseFloat(obra.precioObra || 0)) %></div>
+                                        <div class="obra-price text-start">$<%= shortFormat.format(parseFloat(obra.precio_obra || obra.precioObra || 0)) %></div>
                                         
                                         <a href="/galeria/detalle/<%= obra.id %>" class="btn-atrium-pill">
                                             Ver Detalles
@@ -356,9 +356,61 @@
     </div>
 </div>
 
+<!-- NUEVO: BOTÓN FLOTANTE IA -->
+<button type="button" class="btn shadow-lg" data-bs-toggle="modal" data-bs-target="#modalIA" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000; background: #f97316; border-radius: 50px; padding: 15px 25px; color: white; font-weight: 800; border: none;">
+    ✨ ¿QUÉ ME RECOMIENDAS?
+</button>
+
+<!-- NUEVO: MODAL DEL CURADOR -->
+<div class="modal fade" id="modalIA" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: #161b22; border: 1px solid #f97316; border-radius: 20px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white">🏛️ Curador Virtual Atrium</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="chatResponse" class="mb-4 text-white-50 small" style="min-height: 50px; border-left: 2px solid #f97316; padding-left: 15px;">
+                    Hola, soy el curador del museo. ¿Qué tipo de arte estás buscando hoy? (Ej: "Busco algo moderno y económico" o "Me gustan las esculturas").
+                </div>
+                <div class="input-group">
+                    <input type="text" id="userQuery" class="form-control bg-dark text-white border-secondary" placeholder="Escribe tu preferencia...">
+                    <button class="btn btn-warning" type="button" onclick="consultarCurador()" id="btnSendIA">Preguntar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <%- include('../partials/footer') %>
 
 <script>
+    // NUEVO: Lógica del Curador IA
+    async function consultarCurador() {
+        const pregunta = document.getElementById('userQuery').value;
+        const responseDiv = document.getElementById('chatResponse');
+        const btn = document.getElementById('btnSendIA');
+
+        if (!pregunta) return;
+
+        btn.disabled = true;
+        responseDiv.innerText = "⌛ Analizando el catálogo del museo...";
+
+        try {
+            const res = await fetch('/admin/ia/curador', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pregunta })
+            });
+            const data = await res.json();
+            responseDiv.innerText = data.respuesta;
+        } catch (e) {
+            responseDiv.innerText = "Lo siento, hubo un error al consultar el catálogo.";
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const searchInput = document.getElementById('realTimeSearch');
         const artItems = document.querySelectorAll('.art-item');

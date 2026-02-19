@@ -638,7 +638,49 @@ const AdminController = {
             console.error(error);
             res.status(500).send("Error al exportar datos");
         }
+    },
+
+    respaldarBD: async (req, res) => {
+        try {
+            // Solo el SuperAdmin (rol 3) puede hacer esto
+            if (req.session.usuario.rol !== 3) {
+                return res.redirect('/admin/dashboard?error=Acceso denegado');
+            }
+
+            const tablas = ['usuario', 'artista', 'genero', 'obra', 'venta', 'membresia', 'info_comprador'];
+            let contenidoSQL = `-- RESPALDO LÓGICO MUSEO ATRIUM \n-- Fecha: ${new Date().toLocaleString()}\n\n`;
+            contenidoSQL += "SET FOREIGN_KEY_CHECKS = 0;\n\n"; // Desactivar llaves foráneas para evitar errores al importar
+
+            for (const tabla of tablas) {
+                const [rows] = await db.execute(`SELECT * FROM ${tabla}`);
+                if (rows.length > 0) {
+                    contenidoSQL += `-- Datos de la tabla: ${tabla}\n`;
+                    rows.forEach(row => {
+                        const columnas = Object.keys(row).join(', ');
+                        const valores = Object.values(row).map(v => {
+                            if (v === null) return 'NULL';
+                            return typeof v === 'string' ? `'${v.replace(/'/g, "''")}'` : v;
+                        }).join(', ');
+                        contenidoSQL += `INSERT INTO ${tabla} (${columnas}) VALUES (${valores});\n`;
+                    });
+                    contenidoSQL += "\n";
+                }
+            }
+
+            contenidoSQL += "SET FOREIGN_KEY_CHECKS = 1;";
+
+            // Configurar descarga del archivo
+            const fileName = `Backup_Atrium_${Date.now()}.sql`;
+            res.setHeader('Content-Type', 'text/sql');
+            res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+            return res.send(contenidoSQL);
+
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al generar el respaldo");
+        }
     }
+
 };
 
 module.exports = AdminController;

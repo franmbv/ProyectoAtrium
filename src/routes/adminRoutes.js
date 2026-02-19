@@ -66,4 +66,8 @@ router.post('/ia/generar-biografia', IAController.generarBiografia);
 //Exportación a Excel:
 router.get('/exportar-ventas', adminController.exportarVentasExcel);
 
+router.get('/respaldar-db', AuthController.verificarSesion, adminController.verificarSuperAdmin, adminController.respaldarBD);
+
+router.post('/ia/curador', IAController.curadorVirtual);
+
 module.exports = router;

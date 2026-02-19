@@ -49,7 +49,56 @@ const IAController = {
             }
             res.status(500).json({ error: "La IA de Groq no respondió correctamente." });
         }
+    },
+
+    curadorVirtual: async (req, res) => {
+        try {
+            const { pregunta } = req.body;
+            const apiKey = process.env.GROQ_API_KEY;
+
+            // 1. Consultamos la base de datos real
+            const ObraModel = require('../models/ObraModel');
+            const inventario = await ObraModel.obtenerCatalogoParaIA();
+
+            // 2. Preparamos el contexto para la IA
+            const listaObras = inventario.map(o => 
+                `- "${o.nombre}" (${o.genero}) por ${o.artista_nombre} ${o.artista_apellido}. Precio: $${o.precioObra}`
+            ).join('\n');
+
+            const response = await axios.post(
+                'https://api.groq.com/openai/v1/chat/completions',
+                {
+                    model: "llama-3.1-8b-instant",
+                    messages: [
+                        {
+                            role: "system",
+                            content: `Eres el Curador Virtual del Museo Atrium. Tu objetivo es vender obras de arte. 
+                            Este es nuestro catálogo disponible:
+                            ${listaObras}
+                            
+                            Responde de forma elegante, breve y amable. Sugiere máximo 2 obras que encajen con lo que el usuario pide. Si no hay nada que encaje, ofrece las más destacadas.`
+                        },
+                        {
+                            role: "user",
+                            content: `El cliente dice: "${pregunta}"`
+                        }
+                    ],
+                    temperature: 0.6
+                },
+                {
+                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
+                }
+            );
+
+            res.json({ respuesta: response.data.choices[0].message.content });
+
+        } catch (error) {
+            console.error("Error Curador:", error);
+            res.status(500).json({ error: "El curador está ocupado en una subasta. Intente luego." });
+        }
     }
+
+
 };
 
 module.exports = IAController;
