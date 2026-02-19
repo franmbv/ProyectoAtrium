@@ -5,6 +5,9 @@ const adminController = require('../controllers/adminController');
 const AuthController = require('../controllers/AuthController');
 const upload = require('../config/multer');
 
+//IA
+const IAController = require('../controllers/IAController'); 
+
 // Proteger todas las rutas de admin
 router.use(AuthController.verificarSesion);
 
@@ -52,5 +55,9 @@ router.get('/reportes-membresia', adminController.reporteMembresias);
 // Gestión de Usuarios
 router.get('/usuarios/crear', adminController.verificarSuperAdmin, adminController.mostrarCrearAdmin);
 router.post('/usuarios/crear', adminController.verificarSuperAdmin, adminController.procesarCrearAdmin);
+
+
+// Línea 60: Asegúrate de que el nombre IAController.generarBiografia coincida con el controlador
+router.post('/ia/generar-biografia', IAController.generarBiografia);
 
 module.exports = router;

@@ -15,8 +15,8 @@
         --at-yellow-text: #fcd34d;
         --at-red-soft: rgba(239, 68, 68, 0.12);    
         --at-red-text: #fca5a5;
-        --at-green-soft: rgba(34, 197, 94, 0.12); /* Nuevo color verde */
-        --at-green-text: #4ade80; /* Texto verde */
+        --at-green-soft: rgba(34, 197, 94, 0.12); 
+        --at-green-text: #4ade80; 
         --at-border: rgba(255, 255, 255, 0.1);
     }
 
@@ -70,7 +70,7 @@
 
     /* Botón examinar en Gris Original */
     .input-custom::file-selector-button {
-        background-color: #6c757d; /* Gris estándar */
+        background-color: #6c757d; 
         color: white;
         border: none;
         border-right: 1px solid var(--at-border);
@@ -86,7 +86,7 @@
     }
 
     .input-custom::file-selector-button:hover {
-        background-color: #5a6268; /* Gris más oscuro al hover */
+        background-color: #5a6268; 
     }
 
     .btn-atrium-orange {
@@ -118,7 +118,6 @@
         border-style: solid;
     }
 
-    /* TABLA */
     .table-atrium { color: white !important; margin-bottom: 0; }
     .table-atrium thead th {
         background-color: var(--at-orange) !important;
@@ -168,7 +167,6 @@
         text-decoration: none;
     }
 
-    /* NUEVO DISEÑO DE ESTADO (Punto + Texto) */
     .status-indicator-text {
         display: inline-flex;
         align-items: center;
@@ -179,15 +177,10 @@
         letter-spacing: 0.5px;
     }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-
-    /* Estado Activo (Verde Neón) */
     .st-active { color: var(--at-green-text); }
     .st-active .status-dot { background-color: var(--at-green-text); box-shadow: 0 0 8px var(--at-green-text); }
-
-    /* Estado Inactivo (Rojo Suave) */
     .st-inactive { color: var(--at-red-text); }
     .st-inactive .status-dot { background-color: var(--at-red-text); box-shadow: 0 0 8px var(--at-red-text); }
-
 
     .btn-back-atrium {
         background: transparent;
@@ -206,10 +199,24 @@
         border: 2px solid rgba(255,255,255,0.1);
     }
 
-      .input-custom::placeholder {
+    .input-custom::placeholder {
         color: #cbd5e1 !important;
         opacity: 1;
     }
+
+    /* ESTILO BOTÓN IA */
+    .btn-ia-atrium {
+        background: #6366f1;
+        color: white !important;
+        border-radius: 8px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        border: none;
+        padding: 5px 12px;
+        transition: 0.3s;
+    }
+    .btn-ia-atrium:hover { background: #4f46e5; transform: scale(1.05); }
+
 </style>
 
 <div class="admin-page-wrapper">
@@ -228,16 +235,20 @@
             <div class="admin-card">
                 <h4 class="text-white mb-4 fw-bold">Registrar Nuevo Maestro</h4>
                 <form action="/admin/guardar-artista" method="POST" enctype="multipart/form-data" class="row g-4">
-                    <div class="col-md-6"><label class="form-label-custom">Nombre</label><input type="text" name="nombre" class="form-control input-custom" required></div>
-                    
-                    <!-- Inputs Homogéneos -->
-                    <div class="col-md-6"><label class="form-label-custom">Apellido</label><input type="text" name="apellido" class="form-control input-custom"></div>
-                    
-                    <div class="col-md-4"><label class="form-label-custom">Nacionalidad</label><input type="text" name="nacionalidad" class="form-control input-custom" required></div>
-                    
+                    <div class="col-md-6"><label class="form-label-custom">Nombre</label><input type="text" name="nombre" id="nombreArt" class="form-control input-custom" required></div>
+                    <div class="col-md-6"><label class="form-label-custom">Apellido</label><input type="text" name="apellido" id="apellidoArt" class="form-control input-custom"></div>
+                    <div class="col-md-4"><label class="form-label-custom">Nacionalidad</label><input type="text" name="nacionalidad" id="nacArt" class="form-control input-custom" required></div>
                     <div class="col-md-4"><label class="form-label-custom">Nacimiento</label><input type="date" name="fechaNac" class="form-control input-custom"></div>
                     <div class="col-md-4"><label class="form-label-custom">Fallecimiento</label><input type="date" name="fechaFal" class="form-control input-custom"></div>
-                    <div class="col-12"><label class="form-label-custom">Biografía</label><textarea name="biografia" class="form-control input-custom" rows="3"></textarea></div>
+                    
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label-custom m-0">Biografía</label>
+                            <button type="button" class="btn-ia-atrium" onclick="generarIA()">✨ AUTO-GENERAR BIOGRAFÍA</button>
+                        </div>
+                        <textarea name="biografia" id="biografiaInput" class="form-control input-custom" rows="3"></textarea>
+                    </div>
+
                     <div class="col-md-12"><label class="form-label-custom">Fotografía</label><input type="file" name="foto" class="form-control input-custom" accept="image/*" style="padding: 8px !important;"></div>
                     <div class="col-12 text-end"><button type="submit" class="btn btn-atrium-orange px-5">Guardar Artista</button></div>
                 </form>
@@ -268,13 +279,12 @@
                             <th style="width: 100px;">Perfil</th>
                             <th>Nombre Completo</th>
                             <th>Nacionalidad</th>
-                            <th>Estado</th> <!-- Columna Estado -->
+                            <th>Estado</th> 
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="artistTableBody">
                         <% artistas.forEach(a => { %>
-                            <!-- Atributos de búsqueda para el JS -->
                             <tr class="artist-row" 
                                 data-name="<%= a.nombre.toLowerCase() %> <%= a.apellido.toLowerCase() %>"
                                 data-nat="<%= a.nacionalidad.toLowerCase() %>">
@@ -292,8 +302,6 @@
                                 <td>
                                     <span class="badge bg-dark border border-secondary text-white-50 px-3 py-2"><%= a.nacionalidad %></span>
                                 </td>
-                                
-                                <!-- MODIFICADO: Estado con diseño de Punto + Texto -->
                                 <td> 
                                     <% if (a.estado === 'Activo') { %>
                                         <div class="status-indicator-text st-active">
@@ -305,11 +313,9 @@
                                         </div>
                                     <% } %>
                                 </td>
-
                                 <td>
                                     <div class="d-flex gap-2 justify-content-center">
                                         <a href="/admin/editar-artista/<%= a.id %>" class="btn-edit-soft">Editar</a>
-                                        
                                         <% if (a.estado === 'Activo') { %>
                                             <a href="/admin/eliminar-artista/<%= a.id %>" class="btn-delete-soft" onclick="return confirm('¿Inactivar artista?')">Inactivar</a>
                                         <% } else { %>
@@ -336,6 +342,54 @@
 <%- include('../partials/footer') %>
 
 <script>
+    async function generarIA() {
+        // 1. Obtener valores
+        const nombre = document.getElementById('nombreArt').value;
+        const apellido = document.getElementById('apellidoArt').value;
+        const nacionalidad = document.getElementById('nacArt').value;
+        const btn = event.target; // Referencia al botón
+
+        // 2. Validar
+        if(!nombre) return alert("Por favor escribe al menos el nombre del artista.");
+
+        // 3. Estado de carga visual
+        const textoOriginal = btn.innerText;
+        btn.innerText = "✨ PENSANDO...";
+        btn.disabled = true;
+        btn.style.opacity = "0.7";
+
+        try {
+            // 4. Petición al servidor (Ruta CORREGIDA)
+            const res = await fetch('/admin/ia/generar-biografia', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ nombre, apellido, nacionalidad })
+            });
+
+            // 5. Manejo de respuesta
+            if (!res.ok) throw new Error("Error en la respuesta del servidor");
+            
+            const data = await res.json();
+            
+            if (data.resultado) {
+                // Efecto de tipeo simple o inserción directa
+                document.getElementById('biografiaInput').value = data.resultado;
+            } else {
+                alert("La IA no pudo generar el texto en este momento.");
+            }
+
+        } catch (e) {
+            console.error(e);
+            alert("Ocurrió un error al conectar con la IA. Revisa la consola.");
+        } finally {
+            // 6. Restaurar botón
+            btn.innerText = textoOriginal;
+            btn.disabled = false;
+            btn.style.opacity = "1";
+        }
+    }
+
+    // ... (tu código de búsqueda y filtros se mantiene igual) ...
     document.addEventListener('DOMContentLoaded', () => {
         const searchInput = document.getElementById('artistSearch');
         const btnClear = document.getElementById('btnClearArtistFilters');
@@ -343,11 +397,9 @@
 
         function filterArtists() {
             const term = searchInput.value.toLowerCase().trim();
-            
             rows.forEach(row => {
                 const name = row.getAttribute('data-name');
                 const nat = row.getAttribute('data-nat');
-                
                 if (name.includes(term) || nat.includes(term)) {
                     row.style.display = '';
                 } else {
@@ -355,9 +407,7 @@
                 }
             });
         }
-
         searchInput.addEventListener('input', filterArtists);
-
         btnClear.addEventListener('click', () => {
             searchInput.value = '';
             filterArtists();
