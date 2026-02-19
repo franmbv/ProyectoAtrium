@@ -41,12 +41,14 @@ const authRoutes = require('./src/routes/authRoutes');
 const pagoRoutes = require('./src/routes/pagoRoutes');
 const galeriaRoutes = require('./src/routes/galeriaRoutes'); 
 const adminRoutes = require('./src/routes/adminRoutes');
+const usuarioRoutes = require('./src/routes/usuarioRoutes'); // Importamos tus rutas de usuario
 
 // --- 4. USO DE RUTAS ---
 app.use('/auth', authRoutes);  
 app.use('/pagos', pagoRoutes);
 app.use('/galeria', galeriaRoutes); 
 app.use('/admin', adminRoutes);
+app.use('/usuario', usuarioRoutes); 
 
 app.use((req, res) => {
     res.status(404).send('Página no encontrada (404)');
