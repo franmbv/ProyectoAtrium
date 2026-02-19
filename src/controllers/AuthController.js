@@ -114,6 +114,13 @@ const AuthController = {
                 return res.render('auth/login', { error: 'Credenciales inválidas (Contraseña incorrecta)' });
             }
 
+            // En AuthController.js, dentro de login (Éxito):
+                req.session.flash = { 
+                    type: 'success', 
+                    message: `👋 ¡Bienvenido, ${usuario.nombre}!` 
+                    };
+
+
             req.session.usuario = {
                 id: usuario.id,
                 nombre: usuario.nombre,

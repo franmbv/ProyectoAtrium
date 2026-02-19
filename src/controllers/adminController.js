@@ -15,26 +15,35 @@ const path = require('path');
 const fs = require('fs');
 
 
+//Librerias de Excel
+const { Parser } = require('json2csv');
+
 const AdminController = {
 
     // 1. DASHBOARD PRINCIPAL
-    dashboard: async (req, res) => {
+   dashboard: async (req, res) => {
         try {
-            const [totalObras, recaudado, gananciaMuseo, membresias] = await Promise.all([
+            // Asegúrate de que Promise.all reciba y asigne las 6 variables
+            const [totalObras, recaudado, gananciaMuseo, membresias, statsGeneros, statsEstatus] = await Promise.all([
                 ObraModel.contarInventarioActivo(),
                 VentaModel.totalRecaudado(),
                 VentaModel.totalGananciaMuseo(),
-                InfoCompradorModel.contarActivas()
+                InfoCompradorModel.contarActivas(),
+                ObraModel.obtenerEstadisticasGeneros(), // Variable statsGeneros
+                ObraModel.obtenerEstadisticasEstatus()  // Variable statsEstatus
             ]);
 
             res.render('admin/dashboard', {
                 stats: { totalObras, recaudado, gananciaMuseo, membresias },
+                charts: { generos: statsGeneros, estatus: statsEstatus }, // Ahora sí existen
                 errorMsg: null
             });
         } catch (error) {
             console.error('Error en Dashboard:', error);
+            // En caso de error, pasamos arrays vacíos para que no falle la vista
             res.render('admin/dashboard', {
                 stats: { totalObras: 0, recaudado: 0, gananciaMuseo: 0, membresias: 0 },
+                charts: { generos: [], estatus: [] },
                 errorMsg: 'Error de conexión con la base de datos.'
             });
         }
@@ -586,8 +595,42 @@ const AdminController = {
                 mensaje: null, 
                 error: 'Error al actualizar. El correo o usuario podrían estar duplicados.' 
             });
-        }
+        }    
+    },
+
+//NUEVO EXPORTACIÓN A EXCEL:
+    exportarVentasExcel: async (req, res) => {
+    try {
+        // Buscamos todas las ventas (puedes reusar tu método de VentaModel)
+        const ventas = await VentaModel.obtenerVentasPorPeriodo(); 
+
+        // Formateamos los datos para que el Excel sea "humano"
+        const datosFormateados = ventas.map(v => ({
+            "Factura": v.codigoDeFactura,
+            "Fecha": new Date(v.fechaDeVenta).toLocaleDateString(),
+            "Obra": v.nombre_obra,
+            "Comprador": `${v.nombre_comprador} ${v.nombre_apellido}`,
+            "Precio Base": v.precioFinalVenta - v.iva - v.gananciaMuseoDolares,
+            "IVA (16%)": v.iva,
+            "Comision Museo": v.gananciaMuseoDolares,
+            "Total Final": v.precioFinalVenta
+        }));
+
+        // Convertimos a CSV (que Excel abre automáticamente)
+        const json2csvParser = new Parser();
+        const csv = json2csvParser.parse(datosFormateados);
+
+        // Configuramos la respuesta para que el navegador lo descargue
+        res.header('Content-Type', 'text/csv');
+        res.attachment(`Reporte_Ventas_Atrium_${Date.now()}.csv`);
+        return res.send(csv);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error al exportar datos");
     }
+    }
+
 };
 
 module.exports = AdminController;

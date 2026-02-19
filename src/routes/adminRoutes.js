@@ -56,4 +56,7 @@ router.get('/lista-admins', AuthController.verificarSesion, adminController.list
 router.get('/editar-usuario/:id', AuthController.verificarSesion, adminController.mostrarEditarAdmin);
 router.post('/editar-usuario/:id', AuthController.verificarSesion, adminController.actualizarAdmin);
 
+//Exportación a Excel:
+router.get('/exportar-ventas', adminController.exportarVentasExcel);
+
 module.exports = router;

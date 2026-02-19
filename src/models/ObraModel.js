@@ -395,6 +395,30 @@ class ObraModel {
         const [rows] = await db.execute(sql, [autorId]);
         return rows;
     }
+
+    // ESTADÍSTICAS 1: Obras por Género
+    static async obtenerEstadisticasGeneros() {
+        const sql = `
+            SELECT g.nombre, COUNT(o.id) as total 
+            FROM genero g
+            LEFT JOIN obra o ON o.genero_id = g.Id
+            GROUP BY g.nombre
+        `;
+        const [rows] = await db.execute(sql);
+        return rows;
+    }
+
+    // ESTADÍSTICAS 2: Obras por Estatus
+    static async obtenerEstadisticasEstatus() {
+        const sql = `
+            SELECT estatus, COUNT(id) as total 
+            FROM obra 
+            GROUP BY estatus
+        `;
+        const [rows] = await db.execute(sql);
+        return rows;
+    }
+
 }
 
 module.exports = ObraModel;
