@@ -8,6 +8,12 @@ const bcrypt = require('bcryptjs');
 const UsuarioModel = require('../models/UsuarioModel');
 const { sendReservaAceptada } = require('../config/mailer');
 
+// LIBRERÍAS PARA EL PDF
+const puppeteer = require('puppeteer-core');
+const ejs = require('ejs');
+const path = require('path');
+const fs = require('fs');
+
 
 const AdminController = {
 
@@ -38,7 +44,7 @@ const AdminController = {
     gestionObras: async (req, res) => {
         try {
             const generos = await ObraModel.obtenerGeneros();
-            const artistas = await ArtistaModel.listarActivos(); // <--- Solo los activos - // En adminController.js, dentro de gestionObras:
+            const artistas = await ArtistaModel.listarActivos(); 
             res.render('admin/gestion-obras', { generos, artistas });
         } catch (error) {
             console.error(error);
@@ -166,7 +172,6 @@ const AdminController = {
     },
 
     // 3. GESTION DE ARTISTAS
-    // Listar y Crear
     gestionArtistas: async (req, res) => {
         try {
             const artistas = await ArtistaModel.listar();
@@ -181,12 +186,9 @@ const AdminController = {
         try {
             const { nombre, apellido } = req.body;
             
-            // VALIDACIÓN DE DUPLICADOS
             const duplicado = await ArtistaModel.existeNombreCompleto(nombre, apellido);
             
             if (duplicado) {
-                // Si existe, podrías enviar un mensaje de error. 
-                // Para no complicar la vista, redirigimos con un mensaje simple o alerta.
                 return res.send("<script>alert('Error: Ya existe un artista registrado con ese nombre y apellido.'); window.location.href='/admin/gestion-artistas';</script>");
             }
 
@@ -200,7 +202,6 @@ const AdminController = {
         }
     },
 
-    // Formulario de Edicion
     editarArtista: async (req, res) => {
         try {
             const artista = await ArtistaModel.obtenerPorId(req.params.id);
@@ -213,7 +214,6 @@ const AdminController = {
         }
     },
 
-    // Accion Actualizar
     actualizarArtista: async (req, res) => {
         try {
             const id = req.params.id;
@@ -228,21 +228,18 @@ const AdminController = {
         }
     },
 
-    //Activar artista
     activarArtista: async (req, res) => {
-    try {
-        await ArtistaModel.activarLogico(req.params.id);
-        res.redirect('/admin/gestion-artistas');
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Error al activar el artista');
-    }
-},
+        try {
+            await ArtistaModel.activarLogico(req.params.id);
+            res.redirect('/admin/gestion-artistas');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Error al activar el artista');
+        }
+    },
 
-    //Desactivar(Eliminar) artista
     eliminarArtista: async (req, res) => {
         try {
-            // En lugar de ArtistaModel.eliminar (físico), usamos el lógico
             await ArtistaModel.eliminarLogico(req.params.id);
             req.session.flash = { type: 'warning', message: '🔒 Artista inactivado correctamente' };
             res.redirect('/admin/gestion-artistas');
@@ -287,10 +284,10 @@ const AdminController = {
             const compradorIdStr = String(comprador_id || '').trim();
             if (!compradorIdStr) return res.status(400).send('Comprador inválido');
 
-            const obra = await ObraModel.obtenerPorId(obra_id);
-            const estatus = String(obra?.estatus || '').trim().toLowerCase();
-            const reservadoPor = obra?.reservado_por == null ? '' : String(obra.reservado_por).trim();
-            if (!obra || estatus !== 'reservada' || reservadoPor !== compradorIdStr) {
+            const obraObj = await ObraModel.obtenerPorId(obra_id);
+            const estatus = String(obraObj?.estatus || '').trim().toLowerCase();
+            const reservadoPor = obraObj?.reservado_por == null ? '' : String(obraObj.reservado_por).trim();
+            if (!obraObj || estatus !== 'reservada' || reservadoPor !== compradorIdStr) {
                 return res.status(400).send('Reserva inválida');
             }
 
@@ -325,15 +322,72 @@ const AdminController = {
 
             await ObraModel.marcarComoVendida(obra_id);
 
-            const comprador = await UsuarioModel.buscarPorId(comprador_id);
-            if (comprador && comprador.gmail) {
-                try {
-                    const result = await sendReservaAceptada(comprador.gmail, obra.nombre, codigo);
-                    console.log('Correo de reserva aceptada enviado. Preview:', result.previewUrl || result.info?.messageId);
-                } catch (mailErr) {
-                    console.error('Error al enviar correo de reserva aceptada:', mailErr);
+            // --- LÓGICA DE GENERACIÓN DE PDF AUTOMÁTICA CON AUTO-DETECCIÓN ---
+            try {
+                const facturaData = await VentaModel.obtenerFacturaPorCodigo(codigo);
+                const compradorData = await UsuarioModel.buscarPorId(comprador_id);
+
+                if (compradorData && compradorData.gmail) {
+                    
+                    // --- PROCESAR IMAGEN PARA PDF (BASE64) ---
+                    let fotoPDF = "";
+                    try {
+                        const imagePath = path.join(__dirname, '../../public/uploads', facturaData.foto);
+                        if (fs.existsSync(imagePath)) {
+                            const bitmap = fs.readFileSync(imagePath);
+                            fotoPDF = `data:image/png;base64,${bitmap.toString('base64')}`;
+                        }
+                    } catch (e) { console.error("Error cargando imagen para PDF"); }
+
+                    const htmlFactura = await ejs.renderFile(
+                        path.join(__dirname, '../../views/admin/factura-detalle.ejs'), 
+                        { factura: facturaData, fotoPDF: fotoPDF }
+                    );
+
+                    // ALGORITMO DE BÚSQUEDA DE NAVEGADORES (Windows / Linux)
+                    const appData = process.env.LOCALAPPDATA;
+                    const progFiles = process.env.PROGRAMFILES;
+                    const progFiles86 = process.env["ProgramFiles(x86)"];
+
+                    const commonPaths = [
+                        path.join(progFiles, 'Google/Chrome/Application/chrome.exe'),
+                        path.join(progFiles86, 'Google/Chrome/Application/chrome.exe'),
+                        path.join(progFiles86, 'Microsoft/Edge/Application/msedge.exe'),
+                        path.join(appData, 'Programs/Opera GX/opera.exe'),
+                        path.join(appData, 'Programs/Opera/opera.exe'),
+                        path.join(progFiles, 'BraveSoftware/Brave-Browser/Application/brave.exe'),
+                        path.join(progFiles, 'Mozilla Firefox/firefox.exe'),
+                        path.join(appData, 'Programs/Zen/zen.exe'),
+                        '/usr/bin/google-chrome',
+                        '/usr/bin/firefox'
+                    ];
+
+                    const executablePath = commonPaths.find(p => p && fs.existsSync(p));
+                    if (!executablePath) throw new Error("No se detectó ningún navegador instalado.");
+
+                    const browser = await puppeteer.launch({
+                        executablePath: executablePath,
+                        headless: "new",
+                        args: ['--no-sandbox', '--disable-setuid-sandbox']
+                    });
+
+                    const page = await browser.newPage();
+                    await page.setContent(htmlFactura, { waitUntil: 'networkidle0' });
+                    
+                    const pdfBuffer = await page.pdf({
+                        format: 'A4',
+                        printBackground: true,
+                        margin: { top: '0.5cm', bottom: '0.5cm', left: '0.5cm', right: '0.5cm' }
+                    });
+
+                    await browser.close();
+                    await sendReservaAceptada(compradorData.gmail, obraObj.nombre, codigo, pdfBuffer);
+                    console.log('✅ Factura PDF generada y enviada satisfactoriamente.');
                 }
+            } catch (errPdf) {
+                console.error('❌ Error crítico en generación de PDF:', errPdf.message);
             }
+            
             req.session.flash = { type: 'success', message: '📄 Factura generada y enviada correctamente' };
             res.redirect('/admin/reportes-ventas');
 
