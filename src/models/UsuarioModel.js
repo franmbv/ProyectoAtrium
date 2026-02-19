@@ -119,6 +119,30 @@ class UsuarioModel {
         const [rows] = await db.execute(sql, [idUsuario]);
         return rows[0];
     }
+
+    // 10. Obtener todos los usuarios con rol de Super Admin
+    static async obtenerTodosLosAdmins() {
+        const sql = `
+            SELECT id, nombre, apellido, cedula, gmail, login, rol_id 
+            FROM usuario 
+            WHERE rol_id IN (1, 3)
+            ORDER BY rol_id ASC, apellido ASC
+        `;
+        const [rows] = await db.execute(sql);
+        return rows;
+    }
+
+    // 11. Actualizar datos de otro admin desde el panel de Super Admin (sin cambiar contraseña)
+    static async actualizarDesdeAdmin(id, datos) {
+        const sql = `
+            UPDATE usuario 
+            SET nombre = ?, apellido = ?, gmail = ?, login = ?, rol_id = ? 
+            WHERE id = ?
+        `;
+        const params = [datos.nombre, datos.apellido, datos.gmail, datos.login, datos.rol_id, id];
+        await db.execute(sql, params);
+        return true;
+    }
 }
 
 module.exports = UsuarioModel;

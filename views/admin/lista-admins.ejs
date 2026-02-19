@@ -1,0 +1,69 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<div class="perfil-container" style="min-height: calc(100vh - 70px); background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); padding: 50px 20px;">
+    <div class="container">
+        <h1 class="text-center mb-5" style="font-family: 'Playfair Display', serif; color: white;">
+            Gestión de <span style="color: #f97316;">Administradores</span>
+        </h1>
+
+        <div class="card card-atrium p-4">
+            <div class="table-responsive">
+                <table class="table table-hover table-dark mb-0" style="background-color: transparent;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #f97316; color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
+                            <th>Rol</th>
+                            <th>Nombre Completo</th>
+                            <th>Usuario</th>
+                            <th>Correo</th>
+                            <th>Cédula</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 0.9rem;">
+                        <% admins.forEach(admin => { %>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle;">
+                                <td>
+                                    <span class="badge <%= admin.rol_id == 1 ? 'bg-danger' : 'bg-warning text-dark' %>" style="font-size: 0.7rem;">
+                                        <%= admin.rol_id == 3 ? 'SUPER ADMIN' : 'ADMIN' %>
+                                    </span>
+                                </td>
+                                <td class="text-white fw-bold"><%= admin.nombre %> <%= admin.apellido %></td>
+                                <td class="text-white-50">@<%= admin.login %></td>
+                                <td class="text-white-50"><%= admin.gmail %></td>
+                                <td class="text-white-50"><%= admin.cedula %></td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <a href="/admin/editar-usuario/<%= admin.id %>" class="btn btn-sm btn-outline-info" title="Editar">
+                                            ✏️
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/admin/dashboard" class="text-white-50 text-decoration-none small">
+                ← Volver al Panel de Control
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-atrium {
+        background-color: #161b22;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(249, 115, 22, 0.05) !important;
+    }
+</style>
+
+<%- include('../partials/footer') %>
