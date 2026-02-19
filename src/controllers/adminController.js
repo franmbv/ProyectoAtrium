@@ -46,7 +46,7 @@ const AdminController = {
         }
     },
 
-    guardarObra: async (req, res) => {
+   guardarObra: async (req, res) => {
         try {
             const foto = req.file ? req.file.filename : null;
             if (req.body.obra_id) {
@@ -54,13 +54,17 @@ const AdminController = {
                 if (!actualizada) {
                     return res.status(404).send('Obra no encontrada');
                 }
+                req.session.flash = { type: 'success', message: '✅ Obra actualizada correctamente' };
                 return res.redirect('/admin/inventario');
             }
+            
 
             await ObraModel.crear(req.body, foto);
+            req.session.flash = { type: 'success', message: '✅ Obra guardada exitosamente' };
             res.redirect('/admin/gestion-obras');
         } catch (error) {
             console.error(error);
+            req.session.flash = { type: 'error', message: '❌ Error al guardar la obra' };
             res.status(500).send('Error al guardar la obra');
         }
     },
@@ -188,6 +192,7 @@ const AdminController = {
 
             const foto = req.file ? req.file.filename : null;
             await ArtistaModel.crear(req.body, foto);
+            req.session.flash = { type: 'success', message: '👨‍🎨 Maestro registrado en el sistema' };
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
             console.error(error);
@@ -215,6 +220,7 @@ const AdminController = {
             const foto = req.file ? req.file.filename : null;
             
             await ArtistaModel.actualizar(id, req.body, foto);
+            req.session.flash = { type: 'success', message: '✏️ Datos del artista actualizados' };
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
             console.error(error);
@@ -238,6 +244,7 @@ const AdminController = {
         try {
             // En lugar de ArtistaModel.eliminar (físico), usamos el lógico
             await ArtistaModel.eliminarLogico(req.params.id);
+            req.session.flash = { type: 'warning', message: '🔒 Artista inactivado correctamente' };
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
             console.error(error);
@@ -327,10 +334,12 @@ const AdminController = {
                     console.error('Error al enviar correo de reserva aceptada:', mailErr);
                 }
             }
+            req.session.flash = { type: 'success', message: '📄 Factura generada y enviada correctamente' };
             res.redirect('/admin/reportes-ventas');
 
         } catch (error) {
             console.error('Error al facturar:', error);
+            req.session.flash = { type: 'error', message: '❌ Error al procesar la factura' };
             res.status(500).send("Error al procesar la venta");
         }
     },

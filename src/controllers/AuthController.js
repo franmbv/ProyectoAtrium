@@ -125,6 +125,7 @@ const AuthController = {
                 req.session.idReactivacion = usuario.id; 
                 req.session.emailReactivacion = usuario.gmail; // Para mostrarlo en la vista
                 
+                req.session.flash = { type: 'info', message: '🔐 Se ha enviado un código a su correo para reactivar la cuenta.' };
                 return res.redirect('/auth/reactivar-cuenta');
             }
             // ----------------------------(NUEVO)
@@ -135,6 +136,12 @@ const AuthController = {
                 rol: usuario.rol_id, 
                 login: usuario.login
             };
+
+            // En AuthController.js, dentro de login (Éxito):
+                req.session.flash = { 
+                    type: 'success', 
+                    message: `👋 ¡Bienvenido, ${usuario.nombre}!` 
+                    };
 
             if (usuario.rol_id === 1 || usuario.rol_id === 3) {
                 res.redirect('/admin/dashboard');
@@ -147,7 +154,6 @@ const AuthController = {
             res.render('auth/login', { error: 'Error al iniciar sesión' });
         }
     },
-
     //==============================(NUEVO-NUEVO-NUEVO-NUEVO-)==========
     // Mostrar pantalla de aviso de reactivación
     // 1. GET: Mostrar la pantalla pidiendo el PIN
@@ -187,30 +193,31 @@ const AuthController = {
         }
     },
 
-    // 3. Procesar la Baja Voluntaria
   procesarBaja: async (req, res) => {
-    try {
-        const usuarioId = req.session.usuario?.id; // Usamos el ? por seguridad
-        
-        if (!usuarioId) {
-            return res.redirect('/auth/login?error=Sesión expirada');
+        try {
+            const usuarioId = req.session.usuario?.id; // Usamos el ? por seguridad
+            
+            if (!usuarioId) {
+                return res.redirect('/auth/login?error=Sesión expirada');
+            }
+
+            // Llamamos al modelo
+            await UsuarioModel.cambiarEstado(usuarioId, 'Inactivo');
+
+            req.session.flash = { type: 'warning', message: '📉 Tu cuenta ha sido dada de baja correctamente.' };
+
+            // Destruimos la sesión para que el usuario salga
+            req.session.destroy((err) => {
+                if (err) console.error("Error al destruir sesión:", err);
+                res.clearCookie('connect.sid'); // Limpiamos la cookie del navegador
+                res.redirect('/auth/login?success=Tu cuenta ha sido desactivada correctamente.');
+            });
+
+        } catch (error) {
+            console.error("Error en procesarBaja:", error);
+            res.status(500).send("Error interno al procesar la baja");
         }
-
-        // Llamamos al modelo
-        await UsuarioModel.cambiarEstado(usuarioId, 'Inactivo');
-
-        // Destruimos la sesión para que el usuario salga
-        req.session.destroy((err) => {
-            if (err) console.error("Error al destruir sesión:", err);
-            res.clearCookie('connect.sid'); // Limpiamos la cookie del navegador
-            res.redirect('/auth/login?success=Tu cuenta ha sido desactivada correctamente.');
-        });
-
-    } catch (error) {
-        console.error("Error en procesarBaja:", error);
-        res.status(500).send("Error interno al procesar la baja");
-    }
-},
+    },
 //==============================(NUEVO-NUEVO-NUEVO-NUEVO-)==========
 
 

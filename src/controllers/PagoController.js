@@ -123,6 +123,7 @@ const PagoController = {
             const obra = await ObraModel.findByNombre(obraNombreRaw);
 
             if (!obra) {
+                req.session.flash = { type: 'error', message: 'La obra solicitada no existe.' };
                 req.session.message = { 
                     type: 'error', 
                     text: `La obra "${obraNombreRaw}" no existe en el catálogo.` 
@@ -131,6 +132,7 @@ const PagoController = {
             }
 
             if (obra.estatus && obra.estatus.toLowerCase() !== 'disponible') {
+                req.session.flash = { type: 'warning', message: 'Esta obra ya no se encuentra disponible.' };
                 req.session.message = { 
                     type: 'error', 
                     text: `Lo sentimos, la obra "${obraNombreRaw}" ya ha sido vendida o reservada.` 
@@ -146,12 +148,14 @@ const PagoController = {
             const reservado = await ObraModel.reservarById(obra.id, compradorId);
             
             if (reservado) {
+               req.session.flash = { type: 'success', message: '🖼️ ¡Reserva realizada! Un administrador la revisará pronto.' };
                req.session.message = {
                     type: 'success',
                     text: `¡Felicidades! La obra "${obraNombreRaw}" ha sido reservada con éxito y está a la espera de la aprobación de un administrador.`
                 };
                 return res.redirect('/galeria');
             } else {
+                req.session.flash = { type: 'error', message: 'La obra fue reservada por alguien más hace un momento.' };
                 req.session.message = { 
                     type: 'error', 
                     text: `La obra "${obraNombreRaw}" fue reservada por otra persona hace un instante.` 
@@ -168,7 +172,6 @@ const PagoController = {
             });
         }
     },
-
     // API JSON: Verificar Status 
     verificarStatusAPI: async (req, res) => {
         const codigoRaw = req.body.codigoSeguridad ? String(req.body.codigoSeguridad).trim() : '';

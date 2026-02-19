@@ -29,6 +29,13 @@ app.use((req, res, next) => {
     next();
 });
 
+// Middleware para capturar mensajes flash (Añadir después de app.use(session(...)))
+app.use((req, res, next) => {
+    res.locals.flash = req.session.flash;
+    delete req.session.flash; // Se borra después de mostrarse una vez
+    next();
+});
+
 
 // --- RUTA RAÍZ ---
 app.get('/', (req, res) => {
