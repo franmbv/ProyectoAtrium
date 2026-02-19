@@ -246,7 +246,7 @@
                                         <td class="fw-bold text-white"><%= o.nombre %></td>
                                         <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
                                         <td><div class="status-indicator st-available"><span class="status-dot"></span><%= o.estatus %></div></td>
-                                        <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString() %></td>
+                                        <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                                         <td>
                                             <div class="d-flex gap-2 justify-content-center">
                                                 <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-edit-soft">Editar</a>
@@ -291,7 +291,7 @@
                                         <td class="fw-bold text-white"><%= o.nombre %></td>
                                         <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
                                         <td><div class="status-indicator st-reserved"><span class="status-dot"></span><%= o.estatus %></div></td>
-                                        <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString() %></td>
+                                        <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                                         <td>
                                             <div class="d-flex gap-2 justify-content-center">
                                                 <a href="/admin/obras/<%= o.id %>/editar" class="btn btn-edit-soft">Editar</a>
