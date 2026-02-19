@@ -4,20 +4,17 @@ const router = express.Router();
 const adminController = require('../controllers/adminController'); 
 const AuthController = require('../controllers/AuthController');
 const upload = require('../config/multer');
-
-//IA
 const IAController = require('../controllers/IAController'); 
 
-// Proteger todas las rutas de admin
-router.use(AuthController.verificarSesion);
+// --- RUTA PÚBLICA (IMPORTANTE: Debe ir PRIMERO) ---
+// Esta ruta permite que la galería consulte a la IA sin iniciar sesión
+router.post('/ia/curador', IAController.curadorVirtual);
 
-// Verificar que el usuario tenga acceso al panel de administración
+// --- A PARTIR DE AQUÍ, TODO REQUIERE SESIÓN ---
+router.use(AuthController.verificarSesion);
 router.use(adminController.verificarAccesoPanel);
 
-// Redirigir /admin al dashboard
-router.get('/', (req, res) => {
-	res.redirect('/admin/dashboard');
-});
+router.get('/', (req, res) => { res.redirect('/admin/dashboard'); });
 
 // Dashboard e Inventario
 router.get('/dashboard', adminController.dashboard);
@@ -59,15 +56,9 @@ router.get('/lista-admins', AuthController.verificarSesion, adminController.list
 router.get('/editar-usuario/:id', AuthController.verificarSesion, adminController.mostrarEditarAdmin);
 router.post('/editar-usuario/:id', AuthController.verificarSesion, adminController.actualizarAdmin);
 
-
-// Línea 60: Asegúrate de que el nombre IAController.generarBiografia coincida con el controlador
+// Rutas internas (IA Biografía y Excel)
 router.post('/ia/generar-biografia', IAController.generarBiografia);
-
-//Exportación a Excel:
 router.get('/exportar-ventas', adminController.exportarVentasExcel);
-
-router.get('/respaldar-db', AuthController.verificarSesion, adminController.verificarSuperAdmin, adminController.respaldarBD);
-
-router.post('/ia/curador', IAController.curadorVirtual);
+router.get('/respaldar-db', adminController.verificarSuperAdmin, adminController.respaldarBD);
 
 module.exports = router;

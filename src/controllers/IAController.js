@@ -2,67 +2,39 @@ const axios = require('axios');
 require('dotenv').config();
 
 const IAController = {
+    // Generador de biografías (Gestión Artistas)
     generarBiografia: async (req, res) => {
         try {
             const { nombre, apellido, nacionalidad } = req.body;
             const apiKey = process.env.GROQ_API_KEY;
 
-            if (!apiKey) return res.status(500).json({ error: "Falta la API KEY de Groq." });
+            if (!apiKey) return res.status(500).json({ error: "Falta API KEY" });
 
-            const response = await axios.post(
-                'https://api.groq.com/openai/v1/chat/completions',
-                {
-                    model: "llama-3.1-8b-instant", // Modelo ultra rápido y estable
-                    messages: [
-                        {
-                            role: "system",
-                            content: "Eres un experto curador de arte. Escribe biografías elegantes, breves y profesionales."
-                        },
-                        {
-                            role: "user",
-                            content: `Escribe una biografía de máximo 50 palabras para el artista ${nombre} ${apellido} de nacionalidad ${nacionalidad}. Solo devuelve el texto de la biografía, sin saludos.`
-                        }
-                    ],
-                    temperature: 0.7
-                },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+                model: "llama-3.1-8b-instant",
+                messages: [
+                    { role: "system", content: "Eres un curador de arte." },
+                    { role: "user", content: `Escribe biografía breve (50 palabras) para: ${nombre} ${apellido}, ${nacionalidad}.` }
+                ]
+            }, { headers: { 'Authorization': `Bearer ${apiKey}` } });
 
-            if (response.data && response.data.choices[0]) {
-                const biografia = response.data.choices[0].message.content;
-                res.json({ resultado: biografia.trim() });
-            } else {
-                throw new Error("Respuesta inesperada de la IA");
-            }
-
-        } catch (error) {
-            console.error("--- ERROR EN GROQ ---");
-            if (error.response) {
-                console.error(error.response.data);
-            } else {
-                console.error(error.message);
-            }
-            res.status(500).json({ error: "La IA de Groq no respondió correctamente." });
-        }
+            res.json({ resultado: response.data.choices[0].message.content });
+        } catch (e) { res.status(500).json({ error: "Error IA" }); }
     },
 
+    // BUSCADOR INTELIGENTE (Galería)
     curadorVirtual: async (req, res) => {
         try {
             const { pregunta } = req.body;
             const apiKey = process.env.GROQ_API_KEY;
 
-            // 1. Consultamos la base de datos real
+            // Consultar inventario real
             const ObraModel = require('../models/ObraModel');
             const inventario = await ObraModel.obtenerCatalogoParaIA();
 
-            // 2. Preparamos el contexto para la IA
+            // Preparar el contexto enriquecido (Incluimos Nacionalidad explícitamente)
             const listaObras = inventario.map(o => 
-                `- "${o.nombre}" (${o.genero}) por ${o.artista_nombre} ${o.artista_apellido}. Precio: $${o.precioObra}`
+                `- Título: "${o.nombre}", Género: ${o.genero}, Autor: ${o.artista_nombre} ${o.artista_apellido} (Nacionalidad del autor conocida por ti), Precio: $${o.precioObra}`
             ).join('\n');
 
             const response = await axios.post(
@@ -72,33 +44,61 @@ const IAController = {
                     messages: [
                         {
                             role: "system",
-                            content: `Eres el Curador Virtual del Museo Atrium. Tu objetivo es vender obras de arte. 
-                            Este es nuestro catálogo disponible:
-                            ${listaObras}
+                            content: `Eres un motor de recomendación de arte inteligente y flexible.
                             
-                            Responde de forma elegante, breve y amable. Sugiere máximo 2 obras que encajen con lo que el usuario pide. Si no hay nada que encaje, ofrece las más destacadas.`
+                            TU CATÁLOGO DE OBRAS DISPONIBLES:
+                            ${listaObras}
+
+                            TU MISIÓN:
+                            Analiza la petición del usuario y devuelve un Array JSON con los títulos de las obras que coincidan.
+                            
+                            REGLAS DE BÚSQUEDA (IMPORTANTE):
+                            1. Si el usuario menciona un PAÍS (ej: "Arte Venezolano"), debes usar tu conocimiento general para identificar si los autores de la lista son de ese país (Ej: Soto, Cruz-Diez, Reverón son venezolanos).
+                            2. Si menciona un ESTILO o SENTIMIENTO, asocia las obras por su título o género.
+                            3. Si la coincidencia no es exacta, devuelve las obras "más cercanas" o relevantes. ¡Nunca devuelvas un array vacío si puedes sugerir algo bueno!
+                            
+                            FORMATO DE RESPUESTA ÚNICO:
+                            ["Título Exacto 1", "Título Exacto 2"]
+                            (Solo el array JSON, sin texto extra).`
                         },
                         {
                             role: "user",
-                            content: `El cliente dice: "${pregunta}"`
+                            content: `Recomiéndame obras para esta petición: "${pregunta}"`
                         }
                     ],
-                    temperature: 0.6
+                    temperature: 0.3 // Subimos un poco la temperatura para darle creatividad en la asociación
                 },
                 {
                     headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
                 }
             );
 
-            res.json({ respuesta: response.data.choices[0].message.content });
+            let respuestaIA = response.data.choices[0].message.content.trim();
+            
+            // Extracción segura del JSON
+            let arrayNombres = [];
+            const jsonMatch = respuestaIA.match(/\[[\s\S]*\]/); 
+
+            if (jsonMatch) {
+                try {
+                    arrayNombres = JSON.parse(jsonMatch[0]);
+                } catch (e) { console.error("Error parsing IA response"); }
+            }
+
+            // Fallback de Ingeniería: Si la IA falla y devuelve vacío, devolvemos todo el catálogo (o una selección random)
+            // para que la galería no se quede en blanco por error.
+            if (arrayNombres.length === 0) {
+                // Opcional: Si quieres que siempre muestre algo, descomenta la siguiente línea:
+                // arrayNombres = inventario.slice(0, 3).map(o => o.nombre); 
+            }
+
+            res.json({ recomendaciones: arrayNombres });
 
         } catch (error) {
-            console.error("Error Curador:", error);
-            res.status(500).json({ error: "El curador está ocupado en una subasta. Intente luego." });
+            console.error("Error Curador:", error.message);
+            res.status(500).json({ error: "Fallo en la búsqueda semántica" });
         }
     }
-
-
 };
 
 module.exports = IAController;

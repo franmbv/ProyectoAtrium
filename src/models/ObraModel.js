@@ -402,8 +402,7 @@ class ObraModel {
         const [rows] = await db.execute(sql);
         return rows;
     }
-
-    // Método para alimentar al Curador Virtual (IA)
+// Método vital para la IA
     static async obtenerCatalogoParaIA() {
         const sql = `
             SELECT o.nombre, o.precioObra, g.nombre AS genero, a.nombre AS artista_nombre, a.apellido AS artista_apellido
