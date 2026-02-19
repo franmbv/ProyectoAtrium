@@ -18,23 +18,29 @@ const fs = require('fs');
 const AdminController = {
 
     // 1. DASHBOARD PRINCIPAL
-    dashboard: async (req, res) => {
+   dashboard: async (req, res) => {
         try {
-            const [totalObras, recaudado, gananciaMuseo, membresias] = await Promise.all([
+            // Asegúrate de que Promise.all reciba y asigne las 6 variables
+            const [totalObras, recaudado, gananciaMuseo, membresias, statsGeneros, statsEstatus] = await Promise.all([
                 ObraModel.contarInventarioActivo(),
                 VentaModel.totalRecaudado(),
                 VentaModel.totalGananciaMuseo(),
-                InfoCompradorModel.contarActivas()
+                InfoCompradorModel.contarActivas(),
+                ObraModel.obtenerEstadisticasGeneros(), // Variable statsGeneros
+                ObraModel.obtenerEstadisticasEstatus()  // Variable statsEstatus
             ]);
 
             res.render('admin/dashboard', {
                 stats: { totalObras, recaudado, gananciaMuseo, membresias },
+                charts: { generos: statsGeneros, estatus: statsEstatus }, // Ahora sí existen
                 errorMsg: null
             });
         } catch (error) {
             console.error('Error en Dashboard:', error);
+            // En caso de error, pasamos arrays vacíos para que no falle la vista
             res.render('admin/dashboard', {
                 stats: { totalObras: 0, recaudado: 0, gananciaMuseo: 0, membresias: 0 },
+                charts: { generos: [], estatus: [] },
                 errorMsg: 'Error de conexión con la base de datos.'
             });
         }
