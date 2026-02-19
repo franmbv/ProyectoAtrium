@@ -63,4 +63,7 @@ router.post('/editar-usuario/:id', AuthController.verificarSesion, adminControll
 // Línea 60: Asegúrate de que el nombre IAController.generarBiografia coincida con el controlador
 router.post('/ia/generar-biografia', IAController.generarBiografia);
 
+//Exportación a Excel:
+router.get('/exportar-ventas', adminController.exportarVentasExcel);
+
 module.exports = router;

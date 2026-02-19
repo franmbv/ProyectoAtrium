@@ -15,6 +15,9 @@ const path = require('path');
 const fs = require('fs');
 
 
+//Librerias de Excel
+const { Parser } = require('json2csv');
+
 const AdminController = {
 
     // 1. DASHBOARD PRINCIPAL
@@ -603,6 +606,8 @@ const AdminController = {
             });
         }
     }
-};
+}
+
+
 
 module.exports = AdminController;
