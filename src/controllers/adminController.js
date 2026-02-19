@@ -605,40 +605,40 @@ const AdminController = {
                 error: 'Error al actualizar. El correo o usuario podrían estar duplicados.' 
             });
         }
-    }
-}
+    },
 
-//NUEVO EXPORTACIÓN A EXCEL:
+    //NUEVO EXPORTACIÓN A EXCEL:
     exportarVentasExcel: async (req, res) => {
-    try {
-        // Buscamos todas las ventas (puedes reusar tu método de VentaModel)
-        const ventas = await VentaModel.obtenerVentasPorPeriodo(); 
+        try {
+            // Buscamos todas las ventas (puedes reusar tu método de VentaModel)
+            const ventas = await VentaModel.obtenerVentasPorPeriodo(); 
 
-        // Formateamos los datos para que el Excel sea "humano"
-        const datosFormateados = ventas.map(v => ({
-            "Factura": v.codigoDeFactura,
-            "Fecha": new Date(v.fechaDeVenta).toLocaleDateString(),
-            "Obra": v.nombre_obra,
-            "Comprador": `${v.nombre_comprador} ${v.nombre_apellido}`,
-            "Precio Base": v.precioFinalVenta - v.iva - v.gananciaMuseoDolares,
-            "IVA (16%)": v.iva,
-            "Comision Museo": v.gananciaMuseoDolares,
-            "Total Final": v.precioFinalVenta
-        }));
+            // Formateamos los datos para que el Excel sea "humano"
+            const datosFormateados = ventas.map(v => ({
+                "Factura": v.codigoDeFactura,
+                "Fecha": new Date(v.fechaDeVenta).toLocaleDateString(),
+                "Obra": v.nombre_obra,
+                "Comprador": `${v.nombre_comprador} ${v.nombre_apellido}`,
+                "Precio Base": v.precioFinalVenta - v.iva - v.gananciaMuseoDolares,
+                "IVA (16%)": v.iva,
+                "Comision Museo": v.gananciaMuseoDolares,
+                "Total Final": v.precioFinalVenta
+            }));
 
-        // Convertimos a CSV (que Excel abre automáticamente)
-        const json2csvParser = new Parser();
-        const csv = json2csvParser.parse(datosFormateados);
+            // Convertimos a CSV (que Excel abre automáticamente)
+            const json2csvParser = new Parser();
+            const csv = json2csvParser.parse(datosFormateados);
 
-        // Configuramos la respuesta para que el navegador lo descargue
-        res.header('Content-Type', 'text/csv');
-        res.attachment(`Reporte_Ventas_Atrium_${Date.now()}.csv`);
-        return res.send(csv);
+            // Configuramos la respuesta para que el navegador lo descargue
+            res.header('Content-Type', 'text/csv');
+            res.attachment(`Reporte_Ventas_Atrium_${Date.now()}.csv`);
+            return res.send(csv);
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Error al exportar datos");
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al exportar datos");
+        }
     }
-}
+};
 
 module.exports = AdminController;
