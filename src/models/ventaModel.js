@@ -53,7 +53,7 @@ class VentaModel {
         return rows[0];
     }
 
-    // 2. REPORTE: Listado detallado (Soporta filtrado opcional)
+    // 2. REPORTE: Listado detallado (Soporta filtrado por periodo)
     static async obtenerVentasPorPeriodo(fechaInicio, fechaFin) {
         let sql = `
             SELECT v.*, 
@@ -124,12 +124,12 @@ class VentaModel {
         return rows[0];
     }
 
-    // 4. DASHBOARD: Total histórico recaudado (ESTE FALTABA)
+    // 4. DASHBOARD: Total histórico recaudado por el museo (suma de precioFinalVenta)
     static async totalRecaudado() {
         // Sumamos todo lo que hay en la columna precioFinalVenta
         const sql = 'SELECT COALESCE(SUM(precioFinalVenta), 0) as total FROM venta';
         const [rows] = await db.execute(sql);
-        // Devolvemos el número limpio (ej: 5000.00)
+        // Devolvemos el número limpio 
         return rows[0].total;
     }
 
