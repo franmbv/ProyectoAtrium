@@ -262,13 +262,15 @@ const PagoController = {
                 return res.render('pagos/recuperar-codigo', {
                     error: null,
                     success: `¡Identidad verificada! Tu nuevo código ha sido enviado a tu correo.`,
-                    preguntas: []
+                    preguntas: [],
+                    message: null
                 });
             } else {
                 return res.render('pagos/recuperar-codigo', {
                     error: 'Una o más respuestas son incorrectas.',
                     success: null,
-                    preguntas: datosCorrectos
+                    preguntas: datosCorrectos,
+                    message: null
                 });
             }
 
