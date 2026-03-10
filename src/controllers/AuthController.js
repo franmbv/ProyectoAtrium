@@ -18,7 +18,21 @@ const AuthController = {
     },
 
     mostrarLogin: (req, res) => {
-        res.render('auth/login', { error: null });
+        const success = req.query.success ? String(req.query.success) : null;
+        res.render('auth/login', { error: null, success });
+    },
+
+    mostrarOlvidoPassword: (req, res) => {
+        if (req.session) {
+            delete req.session.passwordResetUserId;
+        }
+
+        res.render('auth/olvido-password', {
+            error: null,
+            preguntas: [],
+            login: '',
+            mostrarCambio: false
+        });
     },
 
     // --- 2. PROCESAR REGISTRO (POST) ---
@@ -137,6 +151,141 @@ const AuthController = {
         } catch (error) {
             console.error(error);
             res.render('auth/login', { error: 'Error al iniciar sesión' });
+        }
+    },
+
+    verificarUsuarioRecuperacion: async (req, res) => {
+        try {
+            const loginInput = req.body.login ? String(req.body.login).trim() : '';
+
+            if (!loginInput) {
+                return res.render('auth/olvido-password', {
+                    error: 'Debe indicar su usuario para continuar.',
+                    preguntas: [],
+                    login: '',
+                    mostrarCambio: false
+                });
+            }
+
+            const usuario = await UsuarioModel.buscarPorLogin(loginInput);
+
+            if (!usuario) {
+                return res.render('auth/olvido-password', {
+                    error: 'No existe una cuenta con ese usuario.',
+                    preguntas: [],
+                    login: loginInput,
+                    mostrarCambio: false
+                });
+            }
+
+            const preguntas = await UsuarioModel.obtenerPreguntasSeguridad(usuario.id);
+
+            if (!preguntas || preguntas.length === 0) {
+                return res.render('auth/olvido-password', {
+                    error: 'Esta cuenta no tiene preguntas de seguridad configuradas.',
+                    preguntas: [],
+                    login: loginInput,
+                    mostrarCambio: false
+                });
+            }
+
+            req.session.passwordResetUserId = usuario.id;
+
+            return res.render('auth/olvido-password', {
+                error: null,
+                preguntas,
+                login: loginInput,
+                mostrarCambio: true
+            });
+        } catch (error) {
+            console.error('Error en verificación de usuario para recuperación:', error);
+            return res.render('auth/olvido-password', {
+                error: 'No se pudo iniciar la recuperación en este momento.',
+                preguntas: [],
+                login: '',
+                mostrarCambio: false
+            });
+        }
+    },
+
+    cambiarPasswordPorRecuperacion: async (req, res) => {
+        try {
+            const usuarioId = req.session.passwordResetUserId;
+            const loginInput = req.body.login ? String(req.body.login).trim() : '';
+            const respuestasUsuario = Array.isArray(req.body.respuestas)
+                ? req.body.respuestas
+                : [req.body.respuestas];
+            const nuevaPassword = req.body.nuevaPassword ? String(req.body.nuevaPassword) : '';
+            const confirmarPassword = req.body.confirmarPassword ? String(req.body.confirmarPassword) : '';
+
+            if (!usuarioId) {
+                return res.redirect('/auth/olvido-password');
+            }
+
+            const preguntas = await UsuarioModel.obtenerPreguntasSeguridad(usuarioId);
+
+            if (!preguntas || preguntas.length === 0) {
+                return res.redirect('/auth/olvido-password');
+            }
+
+            if (!nuevaPassword || nuevaPassword.length < 6) {
+                return res.render('auth/olvido-password', {
+                    error: 'La nueva contraseña debe tener al menos 6 caracteres.',
+                    preguntas,
+                    login: loginInput,
+                    mostrarCambio: true
+                });
+            }
+
+            if (nuevaPassword !== confirmarPassword) {
+                return res.render('auth/olvido-password', {
+                    error: 'La confirmación no coincide con la nueva contraseña.',
+                    preguntas,
+                    login: loginInput,
+                    mostrarCambio: true
+                });
+            }
+
+            let respuestasCorrectas = true;
+
+            for (let i = 0; i < preguntas.length; i++) {
+                const hashGuardado = preguntas[i].respuesta;
+                const respuestaInput = respuestasUsuario[i] ? String(respuestasUsuario[i]).trim().toLowerCase() : '';
+                const coincide = await bcrypt.compare(respuestaInput, hashGuardado);
+
+                if (!coincide) {
+                    respuestasCorrectas = false;
+                    break;
+                }
+            }
+
+            if (!respuestasCorrectas) {
+                return res.render('auth/olvido-password', {
+                    error: 'Una o más respuestas de seguridad son incorrectas.',
+                    preguntas,
+                    login: loginInput,
+                    mostrarCambio: true
+                });
+            }
+
+            const hashNuevaPassword = await bcrypt.hash(nuevaPassword, 10);
+            await UsuarioModel.actualizarPassword(usuarioId, hashNuevaPassword);
+
+            delete req.session.passwordResetUserId;
+
+            return res.redirect('/auth/login?success=Contrase%C3%B1a%20actualizada.%20Ahora%20puede%20iniciar%20sesi%C3%B3n.');
+        } catch (error) {
+            console.error('Error al cambiar contraseña por recuperación:', error);
+
+            const usuarioId = req.session.passwordResetUserId;
+            const preguntas = usuarioId ? await UsuarioModel.obtenerPreguntasSeguridad(usuarioId) : [];
+
+            return res.render('auth/olvido-password', {
+                error: 'No se pudo actualizar la contraseña. Intente nuevamente.',
+                preguntas,
+                login: req.body.login || '',
+                mostrarCambio: true
+            });
         }
     },
 

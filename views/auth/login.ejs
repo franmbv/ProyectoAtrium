@@ -171,6 +171,31 @@
         margin-bottom: 25px;
         text-align: center;
     }
+
+    .alert-login-success {
+        width: 100%;
+        background: rgba(34, 197, 94, 0.12);
+        color: #bbf7d0;
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        border-radius: 10px;
+        font-size: 0.85rem;
+        padding: 12px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .forgot-password-link {
+        display: inline-block;
+        margin-top: 8px;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .forgot-password-link:hover {
+        color: var(--at-orange);
+    }
 </style>
 
 <div class="auth-page-container">
@@ -182,6 +207,12 @@
         <% if (locals.error) { %>
             <div class="alert alert-login" role="alert">
                 <%= error %>
+            </div>
+        <% } %>
+
+        <% if (locals.success) { %>
+            <div class="alert-login-success" role="alert">
+                <%= success %>
             </div>
         <% } %>
 
@@ -199,6 +230,10 @@
             <button type="submit" class="btn-atrium-login">
                 Entrar al Sistema
             </button>
+
+            <a href="/auth/olvido-password" class="forgot-password-link">
+                ¿Olvidó su contraseña?
+            </a>
         </form>
         
         <div class="register-footer">

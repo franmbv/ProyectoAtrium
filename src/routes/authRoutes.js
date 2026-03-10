@@ -19,13 +19,18 @@ router.get('/login', AuthController.mostrarLogin);
 // 4. Validar credenciales e iniciar sesión (POST)
 router.post('/login', AuthController.login);
 
+// 5. Flujo de recuperación de contraseña por preguntas de seguridad
+router.get('/olvido-password', AuthController.mostrarOlvidoPassword);
+router.post('/olvido-password/verificar-usuario', AuthController.verificarUsuarioRecuperacion);
+router.post('/olvido-password/cambiar', AuthController.cambiarPasswordPorRecuperacion);
+
 
 // --- RUTA DE SALIDA ---
 
-// 5. Cerrar sesión y destruir la cookie (GET)
+// 6. Cerrar sesión y destruir la cookie (GET)
 router.get('/logout', AuthController.logout);
 
-// 6. Verificar sesión para frontend (GET)
+// 7. Verificar sesión para frontend (GET)
 router.get('/check-session', AuthController.checkSession);
 
 module.exports = router;

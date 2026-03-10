@@ -143,6 +143,13 @@ class UsuarioModel {
         await db.execute(sql, params);
         return true;
     }
+
+    // 12. Actualizar únicamente la contraseña de un usuario
+    static async actualizarPassword(id, passwordHash) {
+        const sql = `UPDATE usuario SET password = ? WHERE id = ?`;
+        await db.execute(sql, [passwordHash, id]);
+        return true;
+    }
 }
 
 module.exports = UsuarioModel;
