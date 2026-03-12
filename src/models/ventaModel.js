@@ -156,13 +156,13 @@ class VentaModel {
         }
 
         if (fechaInicio && fechaFin) {
-            condiciones.push('v.fechaDeVenta BETWEEN ? AND ?');
+            condiciones.push('v.fechaDeVenta >= ? AND v.fechaDeVenta < DATE_ADD(?, INTERVAL 1 DAY)');
             params.push(fechaInicio, fechaFin);
         } else if (fechaInicio) {
             condiciones.push('v.fechaDeVenta >= ?');
             params.push(fechaInicio);
         } else if (fechaFin) {
-            condiciones.push('v.fechaDeVenta <= ?');
+            condiciones.push('v.fechaDeVenta < DATE_ADD(?, INTERVAL 1 DAY)');
             params.push(fechaFin);
         }
 

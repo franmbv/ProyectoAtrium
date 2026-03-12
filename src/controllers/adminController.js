@@ -483,7 +483,7 @@ const AdminController = {
                 return res.status(404).send('Factura no encontrada');
             }
 
-            res.render('admin/factura-detalle', { factura });
+            res.render('admin/factura-detalle', { factura, fotoPDF: '' });
         } catch (error) {
             console.error(error);
             res.status(500).send('Error al cargar la factura');

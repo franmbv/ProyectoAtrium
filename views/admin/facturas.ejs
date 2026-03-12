@@ -212,11 +212,11 @@
                 <!-- Las fechas siguen funcionando por URL para refrescar la DB si es necesario -->
                 <div class="col-md-2">
                     <label class="form-label-mini">Desde</label>
-                    <input type="date" name="fechaInicio" class="form-control input-custom" value="<%= filtros.fechaInicio %>" onchange="this.parentElement.parentElement.parentElement.submit()">
+                    <input type="date" name="fechaInicio" class="form-control input-custom" value="<%= filtros.fechaInicio %>" onchange="this.form.submit()">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label-mini">Hasta</label>
-                    <input type="date" name="fechaFin" class="form-control input-custom" value="<%= filtros.fechaFin %>" onchange="this.parentElement.parentElement.parentElement.submit()">
+                    <input type="date" name="fechaFin" class="form-control input-custom" value="<%= filtros.fechaFin %>" onchange="this.form.submit()">
                 </div>
                 <div class="col-md-3">
                     <a href="/admin/facturas" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px dashed rgba(239, 68, 68, 0.3); border-radius: 10px; text-decoration: none; display: block; text-align: center; padding: 10px; font-size: 0.75rem; font-weight: 700;">LIMPIAR FILTROS</a>
