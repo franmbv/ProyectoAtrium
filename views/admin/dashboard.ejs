@@ -158,10 +158,6 @@
             compactDisplay: 'short',
             maximumFractionDigits: 1
         });
-        const moneyFormat = new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
     %>
 
     <div class="dashboard-panel shadow-2xl">
@@ -206,13 +202,13 @@
             <div class="col-md-3">
                 <div class="card admin-kpi kpi-dark preserve-color">
                     <h5>Total Recaudado</h5>
-                    <p class="display-value">$<%= moneyFormat.format(stats.recaudado || 0) %></p>
+                    <p class="display-value">$<%= shortFormat.format(stats.recaudado || 0) %></p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card admin-kpi kpi-gray preserve-color">
                     <h5>Ganancia Museo</h5>
-                    <p class="display-value">$<%= moneyFormat.format(stats.gananciaMuseo || 0) %></p>
+                    <p class="display-value">$<%= shortFormat.format(stats.gananciaMuseo || 0) %></p>
                 </div>
             </div>
             <div class="col-md-3">

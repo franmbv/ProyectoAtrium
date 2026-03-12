@@ -188,11 +188,10 @@
 
 <div class="detail-wrapper">
     <% 
-        /* LÓGICA DE NOTACIÓN COMPACTA (K, M, B) */
-        const shortFormat = new Intl.NumberFormat('en-US', {
-            notation: 'compact',
-            compactDisplay: 'short',
-            maximumFractionDigits: 1
+        /* Precio completo para la vista de detalle */
+        const priceFormat = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         });
     %>
 
@@ -218,8 +217,8 @@
                         </a>
                     </p>
                     
-                    <!-- MODIFICADO: Notación Compacta Aplicada al Precio -->
-                    <div class="price-value-pano">$<%= parseFloat(obra.precioObra || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></div>
+                    <!-- Precio completo en la vista de detalle -->
+                    <div class="price-value-pano">$<%= priceFormat.format(parseFloat(obra.precioObra || 0)) %></div>
 
                     <!-- FICHA TÉCNICA -->
                     <div class="specs-box-modern">
