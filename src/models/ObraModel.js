@@ -2,6 +2,13 @@ const db = require('../config/db');
 
 class ObraModel {
 
+    static _toDecimal(value, decimals = 2) {
+        if (value === '' || value === null || value === undefined) return null;
+        const numberValue = Number(String(value).replace(',', '.'));
+        if (!Number.isFinite(numberValue)) return null;
+        return Number(numberValue.toFixed(decimals));
+    }
+
     // 1. Obtener Obras para la Galería (con Filtros)
   static async obtenerFiltradas(filtros) {
     let query = `
@@ -167,7 +174,7 @@ class ObraModel {
         
         const [result] = await db.execute(sqlObra, [
             datos.genero_id, datos.autor_id, datos.nombre, 
-            parseFloat(datos.precioObra), parseFloat(datos.porcentajeGanancia), fotoFilename
+            ObraModel._toDecimal(datos.precioObra), ObraModel._toDecimal(datos.porcentajeGanancia), fotoFilename
         ]);
         
         const obraId = result.insertId;
@@ -179,7 +186,14 @@ class ObraModel {
         } 
         else if (generoId === 2) { // Escultura
             await db.execute('INSERT INTO escultura (obra_id, material, peso, largo, ancho, profundidad) VALUES (?, ?, ?, ?, ?, ?)',
-                [obraId, datos.material, datos.peso, datos.largo, datos.ancho, datos.profundidad]);
+                [
+                    obraId,
+                    datos.material,
+                    ObraModel._toDecimal(datos.peso),
+                    ObraModel._toDecimal(datos.largo),
+                    ObraModel._toDecimal(datos.ancho),
+                    ObraModel._toDecimal(datos.profundidad)
+                ]);
         }
         else if (generoId === 3) { // Fotografia
             await db.execute('INSERT INTO fotografia (obra_id, tipo, papel, formato) VALUES (?, ?, ?, ?)',
@@ -187,7 +201,7 @@ class ObraModel {
         }
         else if (generoId === 4) { // Ceramica
             await db.execute('INSERT INTO ceramica (obra_id, tipoArcilla, temperaturaCoccion, tipoEsmalte) VALUES (?, ?, ?, ?)',
-                [obraId, datos.tipoArcilla, datos.temperaturaCoccion, datos.tipoEsmalte]);
+                [obraId, datos.tipoArcilla, ObraModel._toDecimal(datos.temperaturaCoccion), datos.tipoEsmalte]);
         }
         else if (generoId === 5) { // Orfebreria
             await db.execute('INSERT INTO orfebreria (obra_id, metal, pureza, piedraPreciosa) VALUES (?, ?, ?, ?)',
@@ -214,8 +228,8 @@ class ObraModel {
                 nuevoGeneroId,
                 datos.autor_id,
                 datos.nombre,
-                parseFloat(datos.precioObra),
-                parseFloat(datos.porcentajeGanancia),
+                ObraModel._toDecimal(datos.precioObra),
+                ObraModel._toDecimal(datos.porcentajeGanancia),
                 nuevaFoto,
                 id
             ]
@@ -259,7 +273,12 @@ class ObraModel {
             ]);
         } else if (generoId === 2) {
             await db.execute('INSERT INTO escultura (obra_id, material, peso, largo, ancho, profundidad) VALUES (?, ?, ?, ?, ?, ?)', [
-                obraId, datos.material, datos.peso, datos.largo, datos.ancho, datos.profundidad
+                obraId,
+                datos.material,
+                ObraModel._toDecimal(datos.peso),
+                ObraModel._toDecimal(datos.largo),
+                ObraModel._toDecimal(datos.ancho),
+                ObraModel._toDecimal(datos.profundidad)
             ]);
         } else if (generoId === 3) {
             await db.execute('INSERT INTO fotografia (obra_id, tipo, papel, formato) VALUES (?, ?, ?, ?)', [
@@ -267,7 +286,10 @@ class ObraModel {
             ]);
         } else if (generoId === 4) {
             await db.execute('INSERT INTO ceramica (obra_id, tipoArcilla, temperaturaCoccion, tipoEsmalte) VALUES (?, ?, ?, ?)', [
-                obraId, datos.tipoArcilla, datos.temperaturaCoccion, datos.tipoEsmalte
+                obraId,
+                datos.tipoArcilla,
+                ObraModel._toDecimal(datos.temperaturaCoccion),
+                datos.tipoEsmalte
             ]);
         } else if (generoId === 5) {
             await db.execute('INSERT INTO orfebreria (obra_id, metal, pureza, piedraPreciosa) VALUES (?, ?, ?, ?)', [
@@ -300,16 +322,23 @@ class ObraModel {
                     [
                         obraId,
                         normalize(datos.material),
-                        normalize(datos.peso),
-                        normalize(datos.largo),
-                        normalize(datos.ancho),
-                        normalize(datos.profundidad)
+                        ObraModel._toDecimal(datos.peso),
+                        ObraModel._toDecimal(datos.largo),
+                        ObraModel._toDecimal(datos.ancho),
+                        ObraModel._toDecimal(datos.profundidad)
                     ]
                 );
             } else {
                 await db.execute(
                     'UPDATE escultura SET material = COALESCE(NULLIF(?, \'\'), material), peso = COALESCE(NULLIF(?, \'\'), peso), largo = COALESCE(NULLIF(?, \'\'), largo), ancho = COALESCE(NULLIF(?, \'\'), ancho), profundidad = COALESCE(NULLIF(?, \'\'), profundidad) WHERE obra_id = ?',
-                    [datos.material, datos.peso, datos.largo, datos.ancho, datos.profundidad, obraId]
+                    [
+                        datos.material,
+                        ObraModel._toDecimal(datos.peso),
+                        ObraModel._toDecimal(datos.largo),
+                        ObraModel._toDecimal(datos.ancho),
+                        ObraModel._toDecimal(datos.profundidad),
+                        obraId
+                    ]
                 );
             }
         } else if (generoId === 3) {
@@ -338,14 +367,14 @@ class ObraModel {
                     [
                         obraId,
                         normalize(datos.tipoArcilla),
-                        normalize(datos.temperaturaCoccion),
+                        ObraModel._toDecimal(datos.temperaturaCoccion),
                         normalize(datos.tipoEsmalte)
                     ]
                 );
             } else {
                 await db.execute(
                     'UPDATE ceramica SET tipoArcilla = COALESCE(NULLIF(?, \'\'), tipoArcilla), temperaturaCoccion = COALESCE(NULLIF(?, \'\'), temperaturaCoccion), tipoEsmalte = COALESCE(NULLIF(?, \'\'), tipoEsmalte) WHERE obra_id = ?',
-                    [datos.tipoArcilla, datos.temperaturaCoccion, datos.tipoEsmalte, obraId]
+                    [datos.tipoArcilla, ObraModel._toDecimal(datos.temperaturaCoccion), datos.tipoEsmalte, obraId]
                 );
             }
         } else if (generoId === 5) {

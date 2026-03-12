@@ -368,7 +368,7 @@
 
                     <!-- BLOQUE 3: LA OBRA -->
                     <div class="work-focus-box">
-                        <img src="<%= factura.foto ? ('/uploads/' + factura.foto) : '/img/default_obra.jpg' %>" class="work-mini-img" alt="Obra">
+                        <img src="<%= fotoPDF || (factura.foto ? ('/uploads/' + factura.foto) : '/img/default_obra.jpg') %>" class="work-mini-img" alt="Obra">
                         <div>
                             <div class="info-block-header" style="margin-bottom: 5px;"><i class="bi bi-palette"></i> Detalle Artístico</div>
                             <h2 class="work-title-big"><%= factura.nombre_obra %></h2>

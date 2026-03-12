@@ -223,6 +223,7 @@
 
                     <!-- FICHA TÉCNICA -->
                     <div class="specs-box-modern">
+                        <% const fmt2 = (v) => Number.isFinite(Number(v)) ? Number(v).toFixed(2) : '0.00'; %>
                         <span class="specs-header-label">Ficha Técnica</span>
                         <div class="spec-row-item"><strong>Origen</strong><span><%= obra.nacionalidad %></span></div>
 
@@ -234,8 +235,8 @@
 
                         <% if (obra.material) { %>
                             <div class="spec-row-item"><strong>Material</strong><span><%= obra.material %></span></div>
-                            <div class="spec-row-item"><strong>Peso</strong><span><%= obra.peso %> Kg</span></div>
-                            <div class="spec-row-item"><strong>Dimensiones</strong><span><%= obra.largo %>x<%= obra.ancho %>x<%= obra.profundidad %> cm</span></div>
+                            <div class="spec-row-item"><strong>Peso</strong><span><%= fmt2(obra.peso) %> Kg</span></div>
+                            <div class="spec-row-item"><strong>Dimensiones</strong><span><%= fmt2(obra.largo) %> x <%= fmt2(obra.ancho) %> x <%= fmt2(obra.profundidad) %> cm</span></div>
                         <% } %>
 
                         <% if (obra.tipo_foto) { %>
@@ -246,7 +247,7 @@
 
                         <% if (obra.tipoArcilla) { %>
                             <div class="spec-row-item"><strong>Arcilla</strong><span><%= obra.tipoArcilla %></span></div>
-                            <div class="spec-row-item"><strong>Temperatura</strong><span><%= obra.temperaturaCoccion %> °C</span></div>
+                            <div class="spec-row-item"><strong>Temperatura</strong><span><%= fmt2(obra.temperaturaCoccion) %> °C</span></div>
                         <% } %>
 
                         <% if (obra.metal) { %>

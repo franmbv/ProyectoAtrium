@@ -374,7 +374,17 @@ const AdminController = {
                     });
 
                     const page = await browser.newPage();
-                    await page.setContent(htmlFactura, { waitUntil: 'networkidle0' });
+                    // Evita cuelgues por CDNs/scripts externos al generar el PDF en servidor.
+                    await page.setRequestInterception(true);
+                    page.on('request', (request) => {
+                        const url = request.url();
+                        if (url.startsWith('http://') || url.startsWith('https://')) {
+                            return request.abort();
+                        }
+                        return request.continue();
+                    });
+
+                    await page.setContent(htmlFactura, { waitUntil: 'domcontentloaded', timeout: 60000 });
                     
                     const pdfBuffer = await page.pdf({
                         format: 'A4',

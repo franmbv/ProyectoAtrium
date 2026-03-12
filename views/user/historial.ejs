@@ -274,7 +274,7 @@
                                 <h4 class="mini-obra-title text-truncate"><%= o.nombre %></h4>
                                 
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold fs-5 text-white-50">$<%= parseFloat(o.precioObra).toLocaleString() %></span>
+                                    <span class="fw-bold fs-5 text-white-50">$<%= parseFloat(o.precioObra).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
                                     
                                     <% if (o.estatus === 'Vendida') { %>
                                         <a href="/galeria/factura/<%= o.ventaId %>" class="btn-mini-view" style="width: 120px;">Ver Factura</a>

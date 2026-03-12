@@ -198,7 +198,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label-custom">% Ganancia Museo</label>
-                        <input type="number" name="porcentajeGanancia" min="5" max="10" class="form-control input-custom" placeholder="Min 5% - Max 10%" required>
+                        <input type="number" name="porcentajeGanancia" min="5" max="10" step="0.01" inputmode="decimal" class="form-control input-custom" placeholder="Min 5.00% - Max 10.00%" required>
                     </div>
                 </div>
                 
@@ -246,7 +246,7 @@
                     <!-- Cerámica (4) -->
                     <div class="row g-3" data-genero="4" style="display: none;">
                         <div class="col-md-4"><label class="form-label-custom">Tipo de arcilla</label><input type="text" name="tipoArcilla" class="form-control input-custom" placeholder="Ej: Terracota"></div>
-                        <div class="col-md-4"><label class="form-label-custom">Temp. (°C)</label><input type="number" name="temperaturaCoccion" class="form-control input-custom" placeholder="900"></div>
+                        <div class="col-md-4"><label class="form-label-custom">Temp. (°C)</label><input type="number" step="0.01" inputmode="decimal" name="temperaturaCoccion" class="form-control input-custom" placeholder="900.00"></div>
                         <div class="col-md-4"><label class="form-label-custom">Esmalte</label><input type="text" name="tipoEsmalte" class="form-control input-custom" placeholder="Ej: Vidriado"></div>
                     </div>
 
@@ -290,8 +290,10 @@
             });
         };
 
-        const setupPriceField = (input) => {
+        const setupDecimalField = (input, options = {}) => {
             if (!input) return;
+
+            const { min = null, max = null } = options;
 
             const normalizeValue = () => {
                 if (!input.value) {
@@ -302,8 +304,18 @@
                 input.value = input.value.replace(',', '.');
                 const valueNumber = Number(input.value);
 
-                if (!Number.isFinite(valueNumber) || valueNumber < 0) {
-                    input.setCustomValidity('No se puede ingresar montos negativos.');
+                if (!Number.isFinite(valueNumber)) {
+                    input.setCustomValidity('Ingresa un numero valido.');
+                    return;
+                }
+
+                if (min !== null && valueNumber < min) {
+                    input.setCustomValidity(`El valor minimo permitido es ${Number(min).toFixed(2)}.`);
+                    return;
+                }
+
+                if (max !== null && valueNumber > max) {
+                    input.setCustomValidity(`El valor maximo permitido es ${Number(max).toFixed(2)}.`);
                     return;
                 }
 
@@ -323,7 +335,15 @@
                 if (Number.isFinite(valueNumber)) {
                     input.value = valueNumber.toFixed(2);
                 }
+                normalizeValue();
             });
+
+            if (input.value) {
+                const valueNumber = Number(String(input.value).replace(',', '.'));
+                if (Number.isFinite(valueNumber)) {
+                    input.value = valueNumber.toFixed(2);
+                }
+            }
         };
 
         const toggleBloques = () => {
@@ -345,7 +365,19 @@
 
         generoSelect.addEventListener('change', toggleBloques);
         toggleBloques();
-        setupPriceField(document.querySelector('input[name="precioObra"]'));
+        const decimalFields = [
+            { selector: 'input[name="precioObra"]', options: { min: 0 } },
+            { selector: 'input[name="porcentajeGanancia"]', options: { min: 5, max: 10 } },
+            { selector: 'input[name="peso"]', options: { min: 0 } },
+            { selector: 'input[name="largo"]', options: { min: 0 } },
+            { selector: 'input[name="ancho"]', options: { min: 0 } },
+            { selector: 'input[name="profundidad"]', options: { min: 0 } },
+            { selector: 'input[name="temperaturaCoccion"]', options: { min: 0 } }
+        ];
+
+        decimalFields.forEach(({ selector, options }) => {
+            setupDecimalField(document.querySelector(selector), options);
+        });
     })();
 </script>
 
