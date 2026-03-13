@@ -34,7 +34,7 @@ class VentaModel {
         return result;
     }
 
-    // NUEVO: Obtener datos completos para el PDF por Código de Factura
+    // Obtener datos completos para el PDF por Código de Factura
     static async obtenerFacturaPorCodigo(codigo) {
         const sql = `
             SELECT v.*, 

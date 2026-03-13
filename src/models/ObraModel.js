@@ -21,7 +21,6 @@ class ObraModel {
     
     const params = [];
 
-    // --- NUEVO: Filtro de búsqueda por texto ---
     if (filtros.busqueda && filtros.busqueda !== '') {
         query += ' AND (o.nombre LIKE ? OR a.nombre LIKE ? OR a.apellido LIKE ?)';
         const term = `%${filtros.busqueda}%`;

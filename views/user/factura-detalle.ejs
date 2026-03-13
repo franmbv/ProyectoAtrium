@@ -394,19 +394,19 @@
                         <div class="totals-card">
                             <div class="calc-row">
                                 <span class="calc-label">Subtotal Obra</span>
-                                <span class="calc-value">$<%= precioBase.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                                <span class="calc-value">$<%= precioBase.toLocaleString() %></span>
                             </div>
                             <div class="calc-row">
                                 <span class="calc-label">Impuesto IVA (16%)</span>
-                                <span class="calc-value">$<%= parseFloat(factura.iva).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                                <span class="calc-value">$<%= parseFloat(factura.iva).toLocaleString() %></span>
                             </div>
                             <div class="calc-row">
                                 <span class="calc-label">Comisión Museo (<%= factura.gananciaMuseoPorcentaje %>%)</span>
-                                <span class="calc-value">$<%= parseFloat(factura.gananciaMuseoDolares).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                                <span class="calc-value">$<%= parseFloat(factura.gananciaMuseoDolares).toLocaleString() %></span>
                             </div>
                             <div class="grand-total-row">
                                 <span class="grand-total-text">PAGO TOTAL</span>
-                                <span class="grand-total-amount">$<%= parseFloat(factura.precioFinalVenta).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                                <span class="grand-total-amount">$<%= parseFloat(factura.precioFinalVenta).toLocaleString() %></span>
                             </div>
                         </div>
                     </div>
