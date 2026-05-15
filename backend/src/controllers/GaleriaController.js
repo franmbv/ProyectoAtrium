@@ -1,12 +1,12 @@
 const ObraModel = require('../models/ObraModel');
-const ArtistaModel = require('../models/ArtistaModel'); // Importar el modelo
+const ArtistaModel = require('../models/ArtistaModel');
 const VentaModel = require('../models/ventaModel');
 const UsuarioModel = require('../models/UsuarioModel');
 
 const GaleriaController = {
     
-    // Mostrar la Galería Principal
-    mostrarGaleria: async (req, res) => {
+    // Obtener la Galería Principal con filtros
+    obtenerGaleria: async (req, res) => {
         try {
             const filtros = {
                 genero: req.query.genero || null,
@@ -19,116 +19,105 @@ const GaleriaController = {
             const generos = await ObraModel.obtenerGeneros();
             const artistas = await ObraModel.obtenerArtistas();
 
-            const message = req.session.message;
-            if (req.session.message) delete req.session.message;
-
-            res.render('galeria/index', {
-                obras,
-                generos,
-                artistas,
-                filtros, 
-                message
+            res.status(200).json({
+                success: true,
+                data: { obras, generos, artistas, filtros }
             });
 
         } catch (error) {
             console.error("Error en Galeria:", error);
-            res.status(500).send("Error interno del servidor");
+            res.status(500).json({ success: false, message: "Error interno del servidor al cargar la galería" });
         }
     },
 
-    // Mostrar el Detalle de una Obra
-    verFichaTecnica: async (req, res) => {
+    // Obtener el Detalle de una Obra
+    obtenerObra: async (req, res) => {
         try {
             const idObra = req.params.id;
             const obra = await ObraModel.obtenerPorId(idObra);
 
             if (!obra) {
-                return res.redirect('/galeria');
+                return res.status(404).json({ success: false, message: 'Obra no encontrada' });
             }
+            
+            const obraLimpia = Object.fromEntries(
+                Object.entries(obra).filter(([llave, valor]) => valor !== null)
+            );
 
-            res.render('galeria/detalle', { obra });
+            res.status(200).json({ success: true, data: { obra: obraLimpia } });
 
         } catch (error) {
             console.error("Error en Detalle:", error);
-            res.status(500).send("Error al cargar la obra");
+            res.status(500).json({ success: false, message: "Error al cargar la obra" });
         }
     },
 
-    // NUEVO: Ver Perfil Público del Artista
-    verPerfilArtista: async (req, res) => {
+    // Ver Perfil Público del Artista
+    obtenerPerfilArtista: async (req, res) => {
         try {
             const id = req.params.id;
             
-            // 1. Datos del artista
             const artista = await ArtistaModel.obtenerPorId(id);
-            if (!artista) return res.redirect('/galeria');
+            if (!artista) return res.status(404).json({ success: false, message: 'Artista no encontrado' });
 
-            // 2. Sus obras
             const obras = await ObraModel.obtenerPorAutor(id);
 
-            res.render('artista/perfil', { artista, obras });
+            res.status(200).json({ success: true, data: { artista, obras } });
 
         } catch (error) {
             console.error(error);
-            res.status(500).send('Error al cargar perfil del artista');
+            res.status(500).json({ success: false, message: 'Error al cargar perfil del artista' });
         }
     },
 
-    // API para consultar disponibilidad
-    verificarDisponibilidadAPI: async (req, res) => {
+    // Consultar disponibilidad (Ideal para validar antes de que el usuario intente reservar)
+    verificarDisponibilidad: async (req, res) => {
         try {
             const id = req.params.id;
             const obra = await ObraModel.obtenerPorId(id);
 
             if (obra && obra.estatus === 'Disponible') {
-                return res.json({ disponible: true });
+                return res.status(200).json({ success: true, data: { disponible: true, estatus: 'Disponible' } });
             } else {
-                return res.json({ 
-                    disponible: false, 
-                    estatus: obra ? obra.estatus : 'No encontrada' 
+                return res.status(200).json({ 
+                    success: true, 
+                    data: { 
+                        disponible: false, 
+                        estatus: obra ? obra.estatus : 'No encontrada' 
+                    } 
                 });
             }
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: 'Error del servidor' });
+            res.status(500).json({ success: false, message: 'Error al verificar disponibilidad' });
         }
-    }
-,
+    },
 
     // Mostrar historial (compras y reservas) del usuario logueado
-    historial: async (req, res) => {
+    obtenerHistorial: async (req, res) => {
         try {
             const userSession = req.session?.usuario;
-            if (!userSession || !userSession.id) return res.redirect('/auth/login?error=Debes iniciar sesión');
+            if (!userSession || !userSession.id) return res.status(401).json({ success: false, message: 'Debes iniciar sesión' });
 
             const userId = userSession.id;
-
-            // Usuario completo
             const user = await UsuarioModel.buscarPorId(userId);
-
-            // Compras (ventas/facturas)
             const compras = await VentaModel.obtenerPorComprador(userId);
-
-            // Reservas hechas por el usuario
             const reservadas = await ObraModel.obtenerReservadasPorUsuario(userId);
 
-            // Normalizar datos para la vista: unir ambos conjuntos en un solo arreglo
             const obras = [];
 
-            // Agregar compras (tipo = 'Vendida') y reservar ventaId
             (compras || []).forEach(c => {
                 obras.push({
                     id: c.obraId,
-                    nombre: c.nombre_obra || c.nombre_obra,
+                    nombre: c.nombre_obra,
                     foto: c.foto,
-                    precioObra: c.precioObra || c.precioObra,
+                    precioObra: c.precioObra,
                     estatus: 'Vendida',
                     ventaId: c.ventaId,
                     fecha: c.fechaDeVenta
                 });
             });
 
-            // Agregar reservadas (tipo = 'Reservada')
             (reservadas || []).forEach(r => {
                 obras.push({
                     id: r.id,
@@ -139,32 +128,32 @@ const GaleriaController = {
                 });
             });
 
-            res.render('user/historial', { obras, user });
+            res.status(200).json({ success: true, data: { obras, user } });
 
         } catch (error) {
             console.error('Error en historial:', error);
-            res.status(500).send('Error al cargar historial');
+            res.status(500).json({ success: false, message: 'Error al cargar historial' });
         }
-    }
-    ,
+    },
 
-    // Ver factura detalle para el comprador (solo lectura)
-    facturaUsuario: async (req, res) => {
+    // Ver factura detalle para el comprador
+    obtenerFactura: async (req, res) => {
         try {
             const userSession = req.session?.usuario;
-            if (!userSession || !userSession.id) return res.redirect('/auth/login?error=Debes iniciar sesión');
+            if (!userSession || !userSession.id) return res.status(401).json({ success: false, message: 'Debes iniciar sesión' });
 
             const factura = await VentaModel.obtenerFacturaPorId(req.params.id);
-            if (!factura) return res.status(404).send('Factura no encontrada');
+            if (!factura) return res.status(404).json({ success: false, message: 'Factura no encontrada' });
 
+            // Medida de seguridad: Validar que la factura pertenezca al usuario logueado
             if (parseInt(factura.comprador_id, 10) !== parseInt(userSession.id, 10)) {
-                return res.status(403).send('Acceso denegado a esta factura');
+                return res.status(403).json({ success: false, message: 'Acceso denegado a esta factura' });
             }
 
-            res.render('user/factura-detalle', { factura });
+            res.status(200).json({ success: true, data: { factura } });
         } catch (error) {
             console.error('Error en facturaUsuario:', error);
-            res.status(500).send('Error al cargar factura');
+            res.status(500).json({ success: false, message: 'Error al cargar factura' });
         }
     }
 };

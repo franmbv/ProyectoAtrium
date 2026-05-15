@@ -5,10 +5,6 @@ require('dotenv').config();
 
 const app = express();
 
-// --- CONFIGURACIÓN DE VISTAS ---
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
 // --- MIDDLEWARES BASE ---
 app.use(express.static(path.join(__dirname, 'public'))); // Archivos estáticos 
 app.use(express.urlencoded({ extended: true })); // Para capturar formularios 
@@ -23,17 +19,9 @@ app.use(session({
 }));
 
 
-// Exponer la sesión a todas las vistas
-app.use((req, res, next) => {
-    res.locals.usuario = req.session?.usuario || null;
-    next();
-});
-
-
 // --- RUTA RAÍZ ---
 app.get('/', (req, res) => {
-    //res.redirect('/galeria'); 
-    res.render('landing'); // Renderiza la nueva portada
+    res.json({ message: 'Bienvenido al backend del Museo UNEG' });
 });
 
 // --- 3. IMPORTACIÓN DE RUTAS ---
