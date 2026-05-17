@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config.database import init_db  
 import uvicorn
+from app.routes.artworks import router as router_artworks
 from app.routes.catalog import router as router_catalog
 
 @asynccontextmanager
@@ -15,6 +16,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(router_artworks)
 app.include_router(router_catalog)
 
 origins = [
