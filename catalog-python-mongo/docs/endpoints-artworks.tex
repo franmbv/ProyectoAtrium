@@ -1,0 +1,683 @@
+\documentclass[12pt,a4paper]{article}
+
+% ---- Paquetes ----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{caption}
+
+\geometry{margin=2.5cm}
+
+% ---- Configuración de listings ----
+\lstset{
+    language=Python,
+    basicstyle=\small\ttfamily,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{red},
+    commentstyle=\color{green!50!black},
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    captionpos=b,
+    backgroundcolor=\color{gray!5},
+    literate=
+        {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+        {ñ}{{\~n}}1 {ü}{{\"u}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1
+        {Ó}{{\'O}}1 {Ú}{{\'U}}1
+}
+
+% Estilo para JSON
+\lstdefinelanguage{json}{
+    basicstyle=\small\ttfamily,
+    stringstyle=\color{teal},
+    keywordstyle=\color{blue},
+    morestring=[b]",
+    literate=
+        {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+        {ñ}{{\~n}}1
+}
+
+\lstdefinestyle{bash}{
+    language=bash,
+    basicstyle=\small\ttfamily\color{black},
+    backgroundcolor=\color{black!5},
+    frame=single,
+    numbers=none,
+    breaklines=true,
+}
+
+% ---- Metadata ----
+\title{\textbf{Endpoints REST: Actualización y Eliminación}\\de Obras de Arte\\\large Proyecto Atrium -- Museo de Arte Contemporáneo}
+\author{Documentación Técnica}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\newpage
+
+\tableofcontents
+\newpage
+
+% ===================================================================
+\section{Introducción}
+% ===================================================================
+
+El sistema \textbf{Atrium} expone dos operaciones fundamentales para la
+gestión de obras de arte: actualización (\texttt{PUT}) y eliminación
+(\texttt{DELETE}). Estos endpoints permiten modificar los datos de una obra
+existente o removerla del catálogo, respectivamente.
+
+El presente documento detalla el funcionamiento interno de ambos endpoints,
+incluyendo su implementación en la capa de rutas y controladores, la
+validación de datos mediante Pydantic, los códigos de respuesta, y cómo
+realizar pruebas con \texttt{curl}.
+
+\subsection{Tecnologías utilizadas}
+
+\begin{itemize}
+    \item \textbf{FastAPI} (0.136.1) -- Framework web asíncrono.
+    \item \textbf{Pydantic v2} (2.13.4) -- Validación y serialización de datos.
+    \item \textbf{MongoDB} con \textbf{Motor} -- Base de datos NoSQL.
+    \item \textbf{BSON} (\texttt{objectid}) -- Identificadores de documentos.
+    \item \textbf{Python 3.12+} con tipado estático.
+\end{itemize}
+
+\subsection{Estructura de archivos involucrados}
+
+\begin{verbatim}
+app/
+  routes/
+    artworks.py           # Definicion de los endpoints
+  controllers/
+    artwork_controller.py # Logica de negocio (CRUD contra MongoDB)
+  schemas/
+    artwork.py            # Modelos Pydantic y validacion
+\end{verbatim}
+
+% ===================================================================
+\section{Endpoint PUT: Actualizar obra}
+% ===================================================================
+
+\subsection{Definición}
+
+\begin{lstlisting}[language=json]
+PUT /artworks/{artwork_id}
+Content-Type: application/json
+\end{lstlisting}
+
+\subsection{Parámetros}
+
+\begin{longtable}{lll}
+\toprule
+\textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{artwork\_id} (path) & \texttt{str} & ObjectId de MongoDB (24 caracteres hex) \\
+\texttt{Body} & \texttt{ArtworkCreate} & JSON con los campos a actualizar \\
+\bottomrule
+\end{longtable}
+
+\subsection{Comportamiento}
+
+El endpoint recibe un identificador de obra y un cuerpo JSON con los campos
+a actualizar. El controlador:
+
+\begin{enumerate}
+    \item Convierte el \texttt{artwork\_id} a un \texttt{ObjectId} de BSON.
+    \item Si el ID no es válido (formato incorrecto), retorna \texttt{404}.
+    \item Elimina el campo \texttt{\_id} del cuerpo por seguridad.
+    \item Convierte los campos de tipo \texttt{date} a \texttt{datetime} para MongoDB.
+    \item Asigna la marca de tiempo \texttt{updated\_at} con la hora UTC actual.
+    \item Ejecuta \texttt{find\_one\_and\_update} con \texttt{\$set}.
+    \item Si el documento no existe, retorna \texttt{404}.
+    \item Si existe, retorna el documento actualizado.
+\end{enumerate}
+
+\subsection{Código de la ruta}
+
+\begin{lstlisting}
+@router.put("/{artwork_id}")
+async def update_artwork(artwork_id: str, payload: ArtworkCreate = Body(...)):
+    data = payload.model_dump()
+    result = await update_artwork_db(artwork_id, data)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Obra no encontrada",
+        )
+    result["_id"] = str(result["_id"])
+    return TypeAdapter(ArtworkResponse).validate_python(result)
+\end{lstlisting}
+
+\subsection{Código del controlador}
+
+\begin{lstlisting}
+async def update_artwork_db(artwork_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
+    try:
+        obj_id = ObjectId(artwork_id)
+    except errors.InvalidId:
+        return None
+
+    data.pop("_id", None)
+    _prepare_for_mongo(data)
+    data["updated_at"] = datetime.utcnow()
+
+    result = await db[COLLECTION].find_one_and_update(
+        {"_id": obj_id},
+        {"$set": data},
+        return_document=True,
+    )
+    return result
+\end{lstlisting}
+
+\subsection{Códigos de respuesta}
+
+\begin{longtable}{lll}
+\toprule
+\textbf{Código} & \textbf{Descripción} & \textbf{Cuerpo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Código} & \textbf{Descripción} & \textbf{Cuerpo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{200 OK} & Obra actualizada exitosamente & \texttt{ArtworkResponse} (JSON) \\
+\texttt{404 Not Found} & ID inválido o obra inexistente & \texttt{\{"detail": "Obra no encontrada"\}} \\
+\texttt{422 Unprocessable Entity} & Body no cumple la validación & Error de validación Pydantic \\
+\bottomrule
+\end{longtable}
+
+% ===================================================================
+\section{Endpoint DELETE: Eliminar obra}
+% ===================================================================
+
+\subsection{Definición}
+
+\begin{lstlisting}[language=json]
+DELETE /artworks/{artwork_id}
+\end{lstlisting}
+
+\subsection{Parámetros}
+
+\begin{longtable}{lll}
+\toprule
+\textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{artwork\_id} (path) & \texttt{str} & ObjectId de MongoDB (24 caracteres hex) \\
+\bottomrule
+\end{longtable}
+
+\subsection{Comportamiento}
+
+\begin{enumerate}
+    \item Convierte el \texttt{artwork\_id} a \texttt{ObjectId}.
+    \item Si el ID no es válido, retorna \texttt{404}.
+    \item Ejecuta \texttt{delete\_one} en la colección.
+    \item Si ningún documento fue eliminado (\texttt{deleted\_count == 0}), retorna \texttt{404}.
+    \item Si se eliminó correctamente, retorna \texttt{204 No Content}.
+\end{enumerate}
+
+\subsection{Código de la ruta}
+
+\begin{lstlisting}
+@router.delete("/{artwork_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_artwork(artwork_id: str):
+    deleted = await delete_artwork_db(artwork_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Obra no encontrada",
+        )
+\end{lstlisting}
+
+\subsection{Código del controlador}
+
+\begin{lstlisting}
+async def delete_artwork_db(artwork_id: str) -> bool:
+    try:
+        obj_id = ObjectId(artwork_id)
+    except errors.InvalidId:
+        return False
+
+    result = await db[COLLECTION].delete_one({"_id": obj_id})
+    return result.deleted_count > 0
+\end{lstlisting}
+
+\subsection{Códigos de respuesta}
+
+\begin{longtable}{lll}
+\toprule
+\textbf{Código} & \textbf{Descripción} & \textbf{Cuerpo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Código} & \textbf{Descripción} & \textbf{Cuerpo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{204 No Content} & Obra eliminada exitosamente & \emph{(vacío)} \\
+\texttt{404 Not Found} & ID inválido o obra inexistente & \texttt{\{"detail": "Obra no encontrada"\}} \\
+\bottomrule
+\end{longtable}
+
+% ===================================================================
+\section{Validación de datos (ArtworkCreate)}
+% ===================================================================
+
+Ambos endpoints utilizan el mismo esquema de validación \texttt{ArtworkCreate},
+una unión discriminada de cinco modelos según el campo \texttt{genero}.
+
+\subsection{Campos comunes (ArtworkBase)}
+
+\begin{longtable}{lll}
+\toprule
+\textbf{Campo} & \textbf{Tipo} & \textbf{Validación} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Campo} & \textbf{Tipo} & \textbf{Validación} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{nombre} & \texttt{str} & 1--200 caracteres, obligatorio \\
+\texttt{artista\_id} & \texttt{str} & Referencia al artista, obligatorio \\
+\texttt{precio\_venta} & \texttt{float} & $> 0$, redondeado a 2 decimales \\
+\texttt{fecha\_creacion} & \texttt{date} & No puede ser futura \\
+\texttt{foto} & \texttt{str} & URL de la imagen, obligatorio \\
+\texttt{descripcion} & \texttt{Optional[str]} & Máx. 2000 caracteres, opcional \\
+\bottomrule
+\end{longtable}
+
+\subsection{Campos específicos por género}
+
+\subsubsection{Pintura}
+
+\begin{lstlisting}[language=json]
+{
+    "genero": "pintura",
+    "tecnica": "oleo | acrilico | acuarela | tempera",
+    "soporte": "lienzo | madera | papel | carton",
+    "alto_cm": 73.7,
+    "ancho_cm": 92.1
+}
+\end{lstlisting}
+
+\subsubsection{Escultura}
+
+\begin{lstlisting}[language=json]
+{
+    "genero": "escultura",
+    "material": "bronce | marmol | madera | hierro",
+    "peso_kg": 680,
+    "largo_cm": 180,
+    "ancho_cm": 98,
+    "profundidad_cm": 140
+}
+\end{lstlisting}
+
+\subsubsection{Fotografía}
+
+\begin{lstlisting}[language=json]
+{
+    "genero": "fotografia",
+    "tecnica": "digital | analogica",
+    "papel": "gelatina de plata",       // opcional
+    "alto_cm": 30.5,
+    "ancho_cm": 40.6,
+    "edicion": 3                         // opcional, >= 1
+}
+\end{lstlisting}
+
+\subsubsection{Cerámica}
+
+\begin{lstlisting}[language=json]
+{
+    "genero": "ceramica",
+    "tipo_arcilla": "porcelana | gres | loza",
+    "tecnica_coccion": "bizcocho | esmaltado | raku",
+    "peso_kg": 2.5,
+    "alto_cm": 30,
+    "ancho_cm": 15,
+    "profundidad_cm": 15,
+    "esmaltado": true                    // opcional
+}
+\end{lstlisting}
+
+\subsubsection{Orfebrería}
+
+\begin{lstlisting}[language=json]
+{
+    "genero": "orfebreria",
+    "material": "oro | plata | bronce | cobre",
+    "tecnica": "filigrana | repujado | fundicion",
+    "peso_g": 350,
+    "alto_cm": 25,
+    "ancho_cm": 12,
+    "profundidad_cm": 12,
+    "quilates": 18                       // opcional, 0-24
+}
+\end{lstlisting}
+
+% ===================================================================
+\section{Ejemplos completos de petición y respuesta}
+% ===================================================================
+
+\subsection{PUT exitoso (Pintura)}
+
+\begin{lstlisting}[language=json, caption=Petición]
+PUT /artworks/664a1b2c3d4e5f6a7b8c9d0e
+Content-Type: application/json
+
+{
+    "genero": "pintura",
+    "nombre": "La noche estrellada (actualizada)",
+    "artista_id": "artist_001",
+    "precio_venta": 18500.00,
+    "fecha_creacion": "1889-06-01",
+    "foto": "https://ejemplo.com/noche-estrellada.jpg",
+    "descripcion": "Oleo sobre lienzo del pintor Vincent van Gogh",
+    "tecnica": "oleo",
+    "soporte": "lienzo",
+    "alto_cm": 73.7,
+    "ancho_cm": 92.1
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=Respuesta 200 OK]
+{
+    "_id": "664a1b2c3d4e5f6a7b8c9d0e",
+    "genero": "pintura",
+    "nombre": "La noche estrellada (actualizada)",
+    "artista_id": "artist_001",
+    "precio_venta": 18500.00,
+    "fecha_creacion": "1889-06-01",
+    "foto": "https://ejemplo.com/noche-estrellada.jpg",
+    "descripcion": "Oleo sobre lienzo del pintor Vincent van Gogh",
+    "tecnica": "oleo",
+    "soporte": "lienzo",
+    "alto_cm": 73.7,
+    "ancho_cm": 92.1,
+    "status": "disponible",
+    "created_at": "2025-01-15T10:30:00",
+    "updated_at": "2025-06-01T12:00:00"
+}
+\end{lstlisting}
+
+\subsection{PUT con ID inexistente (404)}
+
+\begin{lstlisting}[language=json, caption=Petición]
+PUT /artworks/aaaaaaaaaaaaaaaaaaaaaaaa
+Content-Type: application/json
+
+{ "genero": "pintura", "nombre": "Test", ... }
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=Respuesta 404]
+{
+    "detail": "Obra no encontrada"
+}
+\end{lstlisting}
+
+\subsection{PUT con body inválido (422)}
+
+\begin{lstlisting}[language=json, caption=Petición]
+PUT /artworks/664a1b2c3d4e5f6a7b8c9d0e
+Content-Type: application/json
+
+{}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=Respuesta 422]
+{
+    "detail": [
+        { "loc": ["body", "genero"], "msg": "Field required", ... }
+    ]
+}
+\end{lstlisting}
+
+\subsection{DELETE exitoso}
+
+\begin{lstlisting}[language=json, caption=Petición]
+DELETE /artworks/664a1b2c3d4e5f6a7b8c9d0e
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Respuesta 204 No Content]
+( cuerpo vacio )
+\end{lstlisting}
+
+\subsection{DELETE con ID inexistente (404)}
+
+\begin{lstlisting}[language=json, caption=Petición]
+DELETE /artworks/aaaaaaaaaaaaaaaaaaaaaaaa
+\end{lstlisting}
+
+\begin{lstlisting}[language=json, caption=Respuesta 404]
+{
+    "detail": "Obra no encontrada"
+}
+\end{lstlisting}
+
+% ===================================================================
+\section{Pruebas con curl}
+% ===================================================================
+
+A continuación se presentan comandos \texttt{curl} para probar los endpoints.
+Reemplazar \texttt{\{ID\}} con un ObjectId real de MongoDB.
+
+\subsection{PUT - Actualizar una pintura}
+
+\begin{lstlisting}[style=bash, caption=Actualizar pintura]
+curl -X PUT http://127.0.0.1:8000/artworks/{ID} \
+  -H "Content-Type: application/json" \
+  -d '{
+    "genero": "pintura",
+    "nombre": "La noche estrellada",
+    "artista_id": "artist_001",
+    "precio_venta": 15000.00,
+    "fecha_creacion": "1889-06-01",
+    "foto": "https://ejemplo.com/noche.jpg",
+    "tecnica": "oleo",
+    "soporte": "lienzo",
+    "alto_cm": 73.7,
+    "ancho_cm": 92.1
+  }'
+\end{lstlisting}
+
+\subsection{PUT - Actualizar una escultura}
+
+\begin{lstlisting}[style=bash, caption=Actualizar escultura]
+curl -X PUT http://127.0.0.1:8000/artworks/{ID} \
+  -H "Content-Type: application/json" \
+  -d '{
+    "genero": "escultura",
+    "nombre": "El pensador",
+    "artista_id": "artist_002",
+    "precio_venta": 50000.00,
+    "fecha_creacion": "1904-01-01",
+    "foto": "https://ejemplo.com/pensador.jpg",
+    "material": "bronce",
+    "peso_kg": 680,
+    "largo_cm": 180,
+    "ancho_cm": 98,
+    "profundidad_cm": 140
+  }'
+\end{lstlisting}
+
+\subsection{PUT - Error 404}
+
+\begin{lstlisting}[style=bash, caption=ID inexistente]
+curl -X PUT http://127.0.0.1:8000/artworks/aaaaaaaaaaaaaaaaaaaaaaaa \
+  -H "Content-Type: application/json" \
+  -d '{
+    "genero": "pintura",
+    "nombre": "Test",
+    "artista_id": "x",
+    "precio_venta": 100,
+    "fecha_creacion": "2024-01-01",
+    "foto": "https://ejemplo.com/x.jpg",
+    "tecnica": "oleo",
+    "soporte": "lienzo",
+    "alto_cm": 10,
+    "ancho_cm": 10
+  }'
+\end{lstlisting}
+
+\subsection{DELETE - Eliminar obra}
+
+\begin{lstlisting}[style=bash, caption=Eliminar obra]
+curl -X DELETE http://127.0.0.1:8000/artworks/{ID}
+\end{lstlisting}
+
+\subsection{DELETE - Error 404}
+
+\begin{lstlisting}[style=bash, caption=ID inexistente]
+curl -X DELETE http://127.0.0.1:8000/artworks/aaaaaaaaaaaaaaaaaaaaaaaa
+\end{lstlisting}
+
+\subsection{Script automatizado de pruebas}
+
+El proyecto incluye un script PowerShell en \texttt{tests/test\_artworks\_curl.ps1}
+que ejecuta una batería completa de pruebas:
+
+\begin{lstlisting}[style=bash, caption=Ejecutar batería de pruebas]
+# Sin ID real (prueba solo casos de error 404/422):
+.\tests\run_curl_tests.bat
+
+# Con ID real:
+.\tests\run_curl_tests.bat 664a1b2c3d4e5f6a7b8c9d0e
+\end{lstlisting}
+
+El script ejecuta 11 pruebas:
+
+\begin{enumerate}
+    \item PUT Pintura (200)
+    \item PUT Escultura (200)
+    \item PUT Fotografía (200)
+    \item PUT Cerámica (200)
+    \item PUT Orfebrería (200)
+    \item PUT ID inexistente (404)
+    \item PUT ID mal formado (404)
+    \item PUT body vacío (422)
+    \item DELETE obra existente (204)
+    \item DELETE ID inexistente (404)
+    \item DELETE ID mal formado (404)
+\end{enumerate}
+
+% ===================================================================
+\section{Diagrama de flujo}
+% ===================================================================
+
+\begin{center}
+\begin{minipage}{0.9\textwidth}
+\footnotesize
+\begin{verbatim}
+  Cliente (curl)
+       |
+       | PUT /artworks/{id}  o  DELETE /artworks/{id}
+       v
+  +------------------+
+  |   FastAPI Router  |
+  |  (app/routes/)    |
+  +------------------+
+       |
+       v
+  +------------------+
+  |    Controller     |
+  | (app/controllers/)|
+  +------------------+
+       |
+       | Llamada a MongoDB (Motor)
+       v
+  +------------------+
+  |     MongoDB       |
+  |  (Atlas cluster)  |
+  +------------------+
+       |
+       | Respuesta
+       v
+  +------------------+
+  |   Serializacion   |
+  |  Pydantic Response|
+  +------------------+
+       |
+       | JSON
+       v
+  Cliente (curl)
+\end{verbatim}
+\end{minipage}
+\captionof{figure}{Flujo de una petición PUT o DELETE}
+\end{center}
+
+% ===================================================================
+\section{Buenas prácticas}
+% ===================================================================
+
+\begin{itemize}
+    \item \textbf{ID válido}: Asegurarse de que \texttt{artwork\_id} sea un
+          ObjectId de 24 caracteres hexadecimales. Un ID mal formado produce
+          \texttt{404}, no \texttt{400}.
+    \item \textbf{Campo \texttt{genero}}: Es obligatorio y debe coincidir
+          exactamente con uno de los valores del enum (\texttt{pintura},
+          \texttt{escultura}, \texttt{fotografia}, \texttt{ceramica},
+          \texttt{orfebreria}).
+    \item \textbf{Campos específicos}: Al actualizar, se deben incluir todos
+          los campos requeridos del género correspondiente, no solo los que
+          se desean modificar (el esquema \texttt{ArtworkCreate} valida el
+          objeto completo).
+    \item \texttt{updated\_at}: Se asigna automáticamente al momento de la
+          actualización. No debe enviarse en el cuerpo.
+    \item \texttt{\_id}: Nunca debe incluirse en el cuerpo del PUT. El
+          controlador lo elimina por seguridad.
+    \item \textbf{PUESTA A PUNTO}: Asegurarse de que el servidor FastAPI
+          esté corriendo antes de ejecutar las pruebas curl.
+\end{itemize}
+
+% ===================================================================
+\section{Conclusión}
+% ===================================================================
+
+Los endpoints \texttt{PUT} y \texttt{DELETE} de la API de obras de arte
+proporcionan una interfaz sólida y bien tipada para la actualización y
+eliminación de registros. La combinación de FastAPI, Pydantic y MongoDB
+permite:
+
+\begin{itemize}
+    \item Validación rigurosa de datos en el lado del servidor.
+    \item Manejo consistente de errores con códigos HTTP estándar.
+    \item Discriminación automática del tipo de obra mediante el campo
+          \texttt{genero}.
+    \item Documentación interactiva generada automáticamente en
+          \texttt{/docs} (Swagger UI) y \texttt{/redoc}.
+\end{itemize}
+
+\end{document}
