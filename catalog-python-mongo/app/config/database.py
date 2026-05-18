@@ -1,5 +1,7 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
+from app.models.artwork import Artwork
+from app.models.category import Category
 
 # 1. Pegamos la cadena de conexión de Atlas directamente como texto (Hardcoded)
 MONGO_URL = "mongodb+srv://atrium_user:CObrQRf9dzAPIWQn@cluster0.egkcnqp.mongodb.net/?appName=Cluster0"
@@ -16,7 +18,7 @@ async def init_db():
     try:
         await init_beanie(
             database=db,
-            document_models=[]  # Se queda vacío por ahora hasta crear los modelos
+            document_models=[Artwork, Category]  # Se registran los modelos
         )
         print("\n🟢 ==================================================")
         print("🚀 [CONEXIÓN] ¡Conectado con éxito a MongoDB Atlas!")
