@@ -97,6 +97,15 @@ async def list_artworks_db(
     return await cursor.to_list(length=None)
 
 
+async def get_artwork_by_id_db(artwork_id: str) -> dict[str, Any] | None:
+    try:
+        obj_id = ObjectId(artwork_id)
+    except errors.InvalidId:
+        return None
+
+    return await db[COLLECTION].find_one({"_id": obj_id})
+
+
 async def update_artwork_db(artwork_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
     try:
         obj_id = ObjectId(artwork_id)

@@ -4,6 +4,7 @@ from pydantic import TypeAdapter
 from app.controllers.artwork_controller import (
     create_artwork_db,
     delete_artwork_db,
+    get_artwork_by_id_db,
     list_artworks_db,
     update_artwork_db,
 )
@@ -24,6 +25,19 @@ async def create_artwork(payload: ArtworkCreate = Body(...)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error al crear la obra",
+        )
+    result["_id"] = str(result["_id"])
+    return TypeAdapter(ArtworkResponse).validate_python(result)
+
+
+@router.get("/{artwork_id}", response_model=ArtworkResponse)
+async def get_artwork(artwork_id: str):
+    """Obtiene una obra especifica por su ID de MongoDB."""
+    result = await get_artwork_by_id_db(artwork_id)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Obra no encontrada",
         )
     result["_id"] = str(result["_id"])
     return TypeAdapter(ArtworkResponse).validate_python(result)
