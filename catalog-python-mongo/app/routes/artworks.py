@@ -2,6 +2,7 @@ from fastapi import APIRouter, Body, HTTPException, Query, status
 from pydantic import TypeAdapter
 
 from app.controllers.artwork_controller import (
+    create_artwork_db,
     delete_artwork_db,
     list_artworks_db,
     update_artwork_db,
@@ -9,6 +10,23 @@ from app.controllers.artwork_controller import (
 from app.schemas.artwork import ArtworkCreate, ArtworkResponse, Genre, StatusObra
 
 router = APIRouter(prefix="/artworks", tags=["Artworks"])
+
+
+@router.post("/", response_model=ArtworkResponse, status_code=status.HTTP_201_CREATED)
+async def create_artwork(payload: ArtworkCreate = Body(...)):
+    """Registra una nueva obra vinculada a un genero (pintura, escultura, etc.).
+
+    Utiliza validacion polimorfica basada en el campo 'genero'.
+    """
+    data = payload.model_dump()
+    result = await create_artwork_db(data)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al crear la obra",
+        )
+    result["_id"] = str(result["_id"])
+    return TypeAdapter(ArtworkResponse).validate_python(result)
 
 
 @router.get("/")

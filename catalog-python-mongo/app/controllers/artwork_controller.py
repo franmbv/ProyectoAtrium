@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Any
 
 from bson import ObjectId, errors
@@ -49,6 +49,24 @@ def _build_match_stage(
     return match
 
 
+async def create_artwork_db(data: dict[str, Any]) -> dict[str, Any] | None:
+    """Inserta una nueva obra en la coleccion de MongoDB.
+
+    Prepara los datos (conversion de fechas), establece fechas de auditoria
+    y el estado inicial por defecto.
+    """
+    _prepare_for_mongo(data)
+    data["created_at"] = datetime.now(timezone.utc)
+    data["updated_at"] = None
+
+    if "status" not in data:
+        data["status"] = "disponible"
+
+    result = await db[COLLECTION].insert_one(data)
+    doc = await db[COLLECTION].find_one({"_id": result.inserted_id})
+    return doc
+
+
 async def list_artworks_db(
     precio_min: float | None = None,
     precio_max: float | None = None,
@@ -87,7 +105,7 @@ async def update_artwork_db(artwork_id: str, data: dict[str, Any]) -> dict[str, 
 
     data.pop("_id", None)
     _prepare_for_mongo(data)
-    data["updated_at"] = datetime.utcnow()
+    data["updated_at"] = datetime.now(timezone.utc)
 
     result = await db[COLLECTION].find_one_and_update(
         {"_id": obj_id},
