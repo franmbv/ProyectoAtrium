@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from app.config.database import init_db  
 import uvicorn
 from app.routes.artworks import router as router_artworks
-from app.routes.catalog import router as router_catalog
+from app.routes.categories import router as router_categories
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,7 +17,7 @@ app = FastAPI(
 )
 
 app.include_router(router_artworks)
-app.include_router(router_catalog)
+app.include_router(router_categories)
 
 origins = [
     "http://localhost:3000",   # Ruta local estándar de Express
