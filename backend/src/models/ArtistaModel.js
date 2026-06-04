@@ -8,12 +8,6 @@ class ArtistaModel {
         return rows;
     }
 
-    // 2. PARA SELECTS Y GALERÍA: Trae solo los que pueden vender/aparecer
-    static async listarActivos() {
-        const [rows] = await db.execute('SELECT * FROM artista WHERE estado = "Activo" ORDER BY nombre ASC');
-        return rows;
-    }
-
     // ---  Validar si existe la combinación nombre/apellido (Ignora mayúsculas/minúsculas) ---
     static async existeNombreCompleto(nombre, apellido) {
         const sql = 'SELECT id FROM artista WHERE LOWER(nombre) = LOWER(?) AND LOWER(apellido) = LOWER(?) LIMIT 1';
@@ -34,11 +28,42 @@ class ArtistaModel {
         return rows[0];
     }
 
+    // Funciones auxiliares para sincronizar con FastAPI
+    static async _syncConFastAPI(id, isCreate = false) {
+        try {
+            const artista = await this.obtenerPorId(id);
+            if (!artista) return;
+            const formatFechas = (date) => date ? new Date(date).toISOString().split('T')[0] : null;
+            const payload = {
+                id_sql: artista.id,
+                nombre: artista.nombre,
+                apellido: artista.apellido,
+                fecha_nac: formatFechas(artista.fechaNac),
+                fecha_fal: formatFechas(artista.fechaFal),
+                nacionalidad: artista.nacionalidad,
+                descripcion: artista.descripcion,
+                fotografia: artista.fotografia,
+                estado: artista.estado || 'Activo'
+            };
+
+            const url = isCreate ? 'http://localhost:8000/artist/' : `http://localhost:8000/artist/${id}`;
+            const method = isCreate ? 'POST' : 'PUT';
+
+            await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(e => console.error(`Error HTTP sincronizando artista ${id}:`, e.message));
+        } catch (error) {
+            console.error(`Error interno sincronizando artista ${id} con FastAPI:`, error);
+        }
+    }
+
     // Crear nuevo artista
     static async crear(datos, foto) {
         const sql = `INSERT INTO artista (nombre, apellido, fechaNac, fechaFal, nacionalidad, descripcion, fotografia)
                      VALUES (?, ?, ?, ?, ?, ?, ?)`;
-        await db.execute(sql, [
+        const [result] = await db.execute(sql, [
             datos.nombre, 
             datos.apellido, 
             datos.fechaNac || null, 
@@ -47,6 +72,8 @@ class ArtistaModel {
             datos.biografia, 
             foto
         ]);
+        
+        await this._syncConFastAPI(result.insertId, true); // Sincronizar (POST)
     }
 
     // Actualizar artista existente
@@ -82,18 +109,21 @@ class ArtistaModel {
         }
 
         await db.execute(sql, params);
+        await this._syncConFastAPI(id, false); // Sincronizar (PUT)
     }
 
     // Cambia a Inactivo (Borrado Lógico)
     static async eliminarLogico(id) {
         const sql = `UPDATE artista SET estado = 'Inactivo' WHERE id = ?`;
         await db.execute(sql, [id]);
+        await this._syncConFastAPI(id, false); // Sincronizar estado (PUT)
     }
 
     // Vuelve a Activo (Reactivación)
     static async activarLogico(id) {
         const sql = `UPDATE artista SET estado = 'Activo' WHERE id = ?`;
         await db.execute(sql, [id]);
+        await this._syncConFastAPI(id, false); // Sincronizar estado (PUT)
     }
 }
 

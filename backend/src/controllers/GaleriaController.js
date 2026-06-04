@@ -3,9 +3,11 @@ const ArtistaModel = require('../models/ArtistaModel');
 const VentaModel = require('../models/ventaModel');
 const UsuarioModel = require('../models/UsuarioModel');
 
+const FASTAPI_URL = 'http://localhost:8000';
+
 const GaleriaController = {
     
-    // Obtener la Galería Principal con filtros
+    // Obtener la Galería Principal con filtros (Usando Aggregation Pipeline de FastAPI)
     obtenerGaleria: async (req, res) => {
         try {
             const filtros = {
@@ -15,9 +17,49 @@ const GaleriaController = {
                 busqueda: req.query.busqueda || null 
             };
 
-            const obras = await ObraModel.obtenerFiltradas(filtros);
-            const generos = await ObraModel.obtenerGeneros();
-            const artistas = await ObraModel.obtenerArtistas();
+            // Construir Query String para FastAPI
+            const params = new URLSearchParams();
+            params.append('estatus', 'Disponible'); // Siempre filtramos disponibles para el público
+            if (filtros.genero) params.append('genero_id', filtros.genero);
+            // Nota: FastAPI no tiene filtro de texto/búsqueda o artista en su pipeline actualmente,
+            // pero nos traerá todo lo filtrado por género y estatus con el $lookup ya hecho.
+
+            // Hacemos llamadas paralelas
+            const [catalogRes, generosRes, artistasRes] = await Promise.all([
+                fetch(`${FASTAPI_URL}/catalog/search?${params.toString()}`),
+                fetch(`${FASTAPI_URL}/category/`),
+                fetch(`${FASTAPI_URL}/artist/`)
+            ]);
+
+            if (!catalogRes.ok || !generosRes.ok || !artistasRes.ok) {
+                throw new Error("Error al comunicarse con el microservicio del catálogo");
+            }
+
+            let obras = await catalogRes.json();
+            const generos = await generosRes.json();
+            const artistas = await artistasRes.json();
+
+            // Filtrado adicional en memoria para los campos que el pipeline de MongoDB aún no soporta
+            if (filtros.busqueda && filtros.busqueda !== '') {
+                const term = filtros.busqueda.toLowerCase();
+                obras = obras.filter(o => {
+                    const artist = o.informacion_artista;
+                    const artistName = artist ? `${artist.nombre} ${artist.apellido}`.toLowerCase() : '';
+                    return o.nombre.toLowerCase().includes(term) || artistName.includes(term);
+                });
+            }
+
+            if (filtros.artista && filtros.artista !== '') {
+                obras = obras.filter(o => o.autor_id == filtros.artista);
+            }
+
+            if (filtros.precio === 'menor') {
+                obras.sort((a, b) => a.precio_obra - b.precio_obra);
+            } else if (filtros.precio === 'mayor') {
+                obras.sort((a, b) => b.precio_obra - a.precio_obra);
+            } else {
+                obras.sort((a, b) => b.id_sql - a.id_sql);
+            }
 
             res.status(200).json({
                 success: true,
@@ -30,21 +72,18 @@ const GaleriaController = {
         }
     },
 
-    // Obtener el Detalle de una Obra
+    // Obtener el Detalle de una Obra (DESDE FASTAPI)
     obtenerObra: async (req, res) => {
         try {
             const idObra = req.params.id;
-            const obra = await ObraModel.obtenerPorId(idObra);
+            const r = await fetch(`${FASTAPI_URL}/artwork/${idObra}`);
+            const obra = await r.json();
 
-            if (!obra) {
-                return res.status(404).json({ success: false, message: 'Obra no encontrada' });
+            if (!r.ok || obra.error) {
+                return res.status(404).json({ success: false, message: 'Obra no encontrada en el catálogo' });
             }
-            
-            const obraLimpia = Object.fromEntries(
-                Object.entries(obra).filter(([llave, valor]) => valor !== null)
-            );
 
-            res.status(200).json({ success: true, data: { obra: obraLimpia } });
+            res.status(200).json({ success: true, data: { obra } });
 
         } catch (error) {
             console.error("Error en Detalle:", error);
@@ -52,15 +91,23 @@ const GaleriaController = {
         }
     },
 
-    // Ver Perfil Público del Artista
+    // Ver Perfil Público del Artista (DESDE FASTAPI)
     obtenerPerfilArtista: async (req, res) => {
         try {
             const id = req.params.id;
             
-            const artista = await ArtistaModel.obtenerPorId(id);
-            if (!artista) return res.status(404).json({ success: false, message: 'Artista no encontrado' });
+            const [rArtista, rObras] = await Promise.all([
+                fetch(`${FASTAPI_URL}/artist/${id}`),
+                fetch(`${FASTAPI_URL}/artwork/`)
+            ]);
 
-            const obras = await ObraModel.obtenerPorAutor(id);
+            const artista = await rArtista.json();
+            if (!rArtista.ok || artista.error) {
+                return res.status(404).json({ success: false, message: 'Artista no encontrado' });
+            }
+
+            const todasObras = await rObras.json();
+            const obras = todasObras.filter(o => o.autor_id == id);
 
             res.status(200).json({ success: true, data: { artista, obras } });
 
@@ -70,20 +117,21 @@ const GaleriaController = {
         }
     },
 
-    // Consultar disponibilidad (Ideal para validar antes de que el usuario intente reservar)
+    // Consultar disponibilidad (Ideal para validar antes de que el usuario intente reservar) (DESDE FASTAPI)
     verificarDisponibilidad: async (req, res) => {
         try {
             const id = req.params.id;
-            const obra = await ObraModel.obtenerPorId(id);
+            const r = await fetch(`${FASTAPI_URL}/artwork/${id}`);
+            const obra = await r.json();
 
-            if (obra && obra.estatus === 'Disponible') {
+            if (r.ok && !obra.error && obra.estatus === 'Disponible') {
                 return res.status(200).json({ success: true, data: { disponible: true, estatus: 'Disponible' } });
             } else {
                 return res.status(200).json({ 
                     success: true, 
                     data: { 
                         disponible: false, 
-                        estatus: obra ? obra.estatus : 'No encontrada' 
+                        estatus: (r.ok && !obra.error) ? obra.estatus : 'No encontrada' 
                     } 
                 });
             }
@@ -94,6 +142,7 @@ const GaleriaController = {
     },
 
     // Mostrar historial (compras y reservas) del usuario logueado
+    // Este método se mantiene usando MySQL ya que las reservas y ventas son dominio de transacciones de Node.js
     obtenerHistorial: async (req, res) => {
         try {
             const userSession = req.session?.usuario;
@@ -137,6 +186,7 @@ const GaleriaController = {
     },
 
     // Ver factura detalle para el comprador
+    // Este método se mantiene usando MySQL
     obtenerFactura: async (req, res) => {
         try {
             const userSession = req.session?.usuario;

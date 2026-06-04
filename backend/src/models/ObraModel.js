@@ -2,83 +2,69 @@ const db = require('../config/db');
 
 class ObraModel {
 
+    static async _syncConFastAPI(id, isCreate = false, isDelete = false) {
+        try {
+            if (isDelete) {
+                await fetch(`http://localhost:8000/artwork/${id}`, { method: 'DELETE' })
+                    .catch(e => console.error(`Error HTTP borrando obra ${id} en FastAPI:`, e.message));
+                return;
+            }
+
+            const o = await this.obtenerPorId(id);
+            if (!o) return;
+
+            const formatFechas = (date) => date ? new Date(date).toISOString().split('T')[0] : null;
+
+            const detalles = {};
+            const categoriasConfig = {
+                1: ["tecnica", "soporte"],
+                2: ["material", "peso", "largo", "ancho", "profundidad"],
+                3: ["tipo_foto", "papel", "formato"],
+                4: ["tipoArcilla", "temperaturaCoccion", "tipoEsmalte"],
+                5: ["metal", "pureza", "piedraPreciosa"]
+            };
+            
+            const camposRequeridos = categoriasConfig[o.genero_id] || [];
+            camposRequeridos.forEach(campo => {
+                detalles[campo] = (o[campo] !== null && o[campo] !== undefined) ? String(o[campo]) : "";
+            });
+
+            const payload = {
+                id_sql: o.id,
+                genero_id: o.genero_id,
+                autor_id: o.autor_id,
+                nombre: o.nombre,
+                fecha_creacion: formatFechas(o.fechaCreacion),
+                precio_obra: Number(o.precioObra),
+                porcentaje_ganancia: o.porcentajeGanancia !== null ? Number(o.porcentajeGanancia) : 0,
+                estatus: o.estatus,
+                foto: o.foto,
+                detalles: detalles
+            };
+
+            const url = isCreate ? 'http://localhost:8000/artwork/' : `http://localhost:8000/artwork/${id}`;
+            const method = isCreate ? 'POST' : 'PUT';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                console.error(`Error HTTP ${response.status} sincronizando obra ${id} con FastAPI:`, text);
+            }
+        } catch (error) {
+            console.error(`Error interno sincronizando obra ${id} con FastAPI:`, error);
+        }
+    }
+
     static _toDecimal(value, decimals = 2) {
         if (value === '' || value === null || value === undefined) return null;
         const numberValue = Number(String(value).replace(',', '.'));
         if (!Number.isFinite(numberValue)) return null;
         return Number(numberValue.toFixed(decimals));
-    }
-
-    // 1. Obtener Obras para la Galería (con Filtros)
-  static async obtenerFiltradas(filtros) {
-    let query = `
-        SELECT o.*, a.nombre as nombre_artista, a.apellido as apellido_artista, g.nombre as nombre_genero 
-        FROM obra o
-        INNER JOIN artista a ON o.autor_id = a.id
-        INNER JOIN genero g ON o.genero_id = g.Id
-        WHERE o.estatus = 'Disponible'
-    `;
-    
-    const params = [];
-
-    if (filtros.busqueda && filtros.busqueda !== '') {
-        query += ' AND (o.nombre LIKE ? OR a.nombre LIKE ? OR a.apellido LIKE ?)';
-        const term = `%${filtros.busqueda}%`;
-        params.push(term, term, term);
-    }
-
-    if (filtros.genero && filtros.genero !== '') {
-        query += ' AND o.genero_id = ?';
-        params.push(filtros.genero);
-    }
-
-    if (filtros.artista && filtros.artista !== '') {
-        query += ' AND o.autor_id = ?';
-        params.push(filtros.artista);
-    }
-
-    if (filtros.precio === 'menor') {
-        query += ' ORDER BY o.precioObra ASC';
-    } else if (filtros.precio === 'mayor') {
-        query += ' ORDER BY o.precioObra DESC';
-    } else {
-        query += ' ORDER BY o.id DESC';
-    }
-
-    const [rows] = await db.execute(query, params);
-    return rows;
-}
-
-    // 2. Obtener una Obra por ID con TODOS sus detalles
-    static async obtenerPorId(id) {
-        const query = `
-            SELECT 
-                o.*, 
-                a.nombre as nombre_artista, a.apellido as apellido_artista, a.nacionalidad,
-                g.nombre as nombre_genero,
-                -- Datos de Escultura
-                e.material, e.peso, e.largo, e.ancho, e.profundidad,
-                -- Datos de Pintura
-                p.tecnica, p.soporte,
-                -- Datos de Fotografia
-                f.tipo as tipo_foto, f.papel, f.formato,
-                -- Datos de Ceramica
-                c.tipoArcilla, c.temperaturaCoccion, c.tipoEsmalte,
-                -- Datos de Orfebreria
-                orf.metal, orf.pureza, orf.piedraPreciosa
-            FROM obra o
-            INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN genero g ON o.genero_id = g.Id
-            LEFT JOIN escultura e ON o.id = e.obra_id
-            LEFT JOIN pintura p ON o.id = p.obra_id
-            LEFT JOIN fotografia f ON o.id = f.obra_id
-            LEFT JOIN ceramica c ON o.id = c.obra_id
-            LEFT JOIN orfebreria orf ON o.id = orf.obra_id
-            WHERE o.id = ?
-        `;
-
-        const [rows] = await db.execute(query, [id]);
-        return rows[0]; 
     }
 
     // 3. Obtener listas para los filtros
@@ -103,6 +89,7 @@ class ObraModel {
     static async reservarById(id, compradorId) {
         const query = "UPDATE obra SET estatus = 'Reservada', reservado_por = ?, fecha_reserva = CURDATE() WHERE id = ? AND estatus = 'Disponible'";
         const [result] = await db.execute(query, [compradorId, id]);
+        if (result.affectedRows > 0) await this._syncConFastAPI(id, false);
         return result.affectedRows > 0;
     }
 
@@ -207,6 +194,7 @@ class ObraModel {
                 [obraId, datos.metal, datos.pureza, datos.piedraPreciosa]);
         }
         
+        await this._syncConFastAPI(obraId, true);
         return obraId;
     }
 
@@ -245,6 +233,7 @@ class ObraModel {
             await ObraModel._actualizarSubtipo(id, nuevoGeneroId, datos);
         }
 
+        await this._syncConFastAPI(id, false);
         return true;
     }
 
@@ -262,6 +251,7 @@ class ObraModel {
         await db.execute('DELETE FROM orfebreria WHERE obra_id = ?', [id]);
         await db.execute('DELETE FROM obra WHERE id = ?', [id]);
 
+        await this._syncConFastAPI(id, false, true);
         return true;
     }
 
@@ -401,6 +391,7 @@ class ObraModel {
 
     static async marcarComoVendida(id) {
         await db.execute("UPDATE obra SET estatus = 'Vendida', reservado_por = NULL, fecha_reserva = NULL WHERE id = ?", [id]);
+        await this._syncConFastAPI(id, false);
     }
 
     static async marcarComoDisponible(id) {
@@ -408,6 +399,7 @@ class ObraModel {
             "UPDATE obra SET estatus = 'Disponible', reservado_por = NULL, fecha_reserva = NULL WHERE id = ? AND estatus = 'Reservada'",
             [id]
         );
+        if (result.affectedRows > 0) await this._syncConFastAPI(id, false);
         return result.affectedRows > 0;
     }
 
