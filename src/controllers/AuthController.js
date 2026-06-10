@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs'); // Para encriptar contraseñas
 const UsuarioModel = require('../models/UsuarioModel');
 const InfoCompradorModel = require('../models/InfoCompradorModel'); 
 const { sendSecurityCode } = require('../config/mailer'); // <--- AGREGADO
+const { enviarAuditoria } = require('../config/auditoria');
 
 const AuthController = {
 
@@ -90,6 +91,19 @@ const AuthController = {
             await InfoCompradorModel.crear(idUsuario, codigoSeguridad, tarjetaSegura, direccionFisica);
             await UsuarioModel.guardarRespuestas(idUsuario, preguntasIds, respuestasHasheadas);
             
+            // --- AUDITORÍA DE MEMBRESÍA EN CASSANDRA ---
+            const ahora = new Date();
+            await enviarAuditoria('/reportes/membresias', {
+                anio: ahora.getFullYear(),
+                mes: ahora.getMonth() + 1,
+                id_membresia: idUsuario,
+                fecha_registro: ahora.toISOString(),
+                id_comprador: idUsuario,
+                codigo_membresia: codigoSeguridad,
+                monto_cobrado: "10.00",
+                estado: "ACTIVA"
+            });
+
             // --- ENVÍO DE CORREO REAL ---
             try {
                 await sendSecurityCode(gmail, codigoSeguridad);
@@ -119,14 +133,36 @@ const AuthController = {
             const usuario = await UsuarioModel.buscarPorLogin(login);
 
             if (!usuario) {
+                await enviarAuditoria('/seguridad/logs', {
+                    usuario_id: 0,
+                    ip_origen: req.ip || '127.0.0.1',
+                    login_usuario: login,
+                    evento_tipo: 'LOGIN_FALLIDO',
+                    detalles: 'Usuario no existe'
+                });
                 return res.render('auth/login', { error: 'Credenciales inválidas (Usuario no existe)' });
             }
 
             const passwordCorrecto = await bcrypt.compare(password, usuario.password);
 
             if (!passwordCorrecto) {
+                await enviarAuditoria('/seguridad/logs', {
+                    usuario_id: usuario.id,
+                    ip_origen: req.ip || '127.0.0.1',
+                    login_usuario: login,
+                    evento_tipo: 'LOGIN_FALLIDO',
+                    detalles: 'Contraseña incorrecta'
+                });
                 return res.render('auth/login', { error: 'Credenciales inválidas (Contraseña incorrecta)' });
             }
+
+            await enviarAuditoria('/seguridad/logs', {
+                usuario_id: usuario.id,
+                ip_origen: req.ip || '127.0.0.1',
+                login_usuario: login,
+                evento_tipo: 'LOGIN_EXITOSO',
+                detalles: 'Inicio de sesión exitoso'
+            });
 
             // En AuthController.js, dentro de login (Éxito):
                 req.session.flash = { 

@@ -7,6 +7,7 @@ const InfoCompradorModel = require('../models/InfoCompradorModel');
 const bcrypt = require('bcryptjs');
 const UsuarioModel = require('../models/UsuarioModel');
 const { sendReservaAceptada } = require('../config/mailer');
+const { enviarAuditoria } = require('../config/auditoria');
 
 // LIBRERÍAS PARA EL PDF
 const puppeteer = require('puppeteer-core');
@@ -323,6 +324,30 @@ const AdminController = {
             });
 
             await ObraModel.marcarComoVendida(obra_id);
+
+            // --- AUDITORÍA DE OBRA EN CASSANDRA ---
+            await enviarAuditoria('/obras/historico', {
+                id_obra: parseInt(obra_id),
+                estatus_anterior: 'Reservada',
+                estatus_nuevo: 'Vendida',
+                usuario_id: admin_id,
+                ip_origen: req.ip || '127.0.0.1',
+                fecha_evento: new Date().toISOString()
+            });
+
+            // --- AUDITORÍA DE FACTURACIÓN EN CASSANDRA ---
+            const ahoraFactura = new Date();
+            await enviarAuditoria('/reportes/facturacion', {
+                anio: ahoraFactura.getFullYear(),
+                mes: ahoraFactura.getMonth() + 1,
+                id_factura: parseInt(codigo.split('-')[1].slice(-8)) || Math.floor(Math.random() * 100000),
+                fecha_emision: ahoraFactura.toISOString(),
+                id_comprador: parseInt(comprador_id),
+                monto_neto: precioBase.toFixed(2),
+                iva_calculado: iva.toFixed(2),
+                ganancia_museo: ganancia.toFixed(2),
+                estado: "PAGADA"
+            });
 
             // --- LÓGICA DE GENERACIÓN DE PDF AUTOMÁTICA CON AUTO-DETECCIÓN ---
             try {

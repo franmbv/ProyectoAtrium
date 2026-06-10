@@ -3,6 +3,7 @@ const ObraModel = require('../models/ObraModel');
 const UsuarioModel = require('../models/UsuarioModel');
 const { sendSecurityCode } = require('../config/mailer');
 const bcrypt = require('bcryptjs');
+const { enviarAuditoria } = require('../config/auditoria');
 
 const PagoController = {
 
@@ -124,6 +125,16 @@ const PagoController = {
             const reservado = await ObraModel.reservarById(obra.id, compradorId);
             
             if (reservado) {
+               // --- AUDITORÍA DE OBRA EN CASSANDRA ---
+               await enviarAuditoria('/obras/historico', {
+                   id_obra: obra.id,
+                   estatus_anterior: 'Disponible',
+                   estatus_nuevo: 'Reservada',
+                   usuario_id: compradorId,
+                   ip_origen: req.ip || '127.0.0.1',
+                   fecha_evento: new Date().toISOString()
+               });
+
                req.session.flash = { type: 'success', message: '🖼️ ¡Reserva realizada! Un administrador la revisará pronto.' };
                req.session.message = {
                     type: 'success',
@@ -252,6 +263,15 @@ const PagoController = {
                     } catch (mailErr) {
                         console.error('❌ Error al enviar correo de recuperación:', mailErr.message);
                     }
+
+                    // --- AUDITORÍA DE CÓDIGO DE MEMBRESÍA EN CASSANDRA ---
+                    await enviarAuditoria('/membresias/codigos', {
+                        id_comprador: usuarioId,
+                        codigo_seguridad: nuevoCodigo,
+                        correo_envio: usuario.gmail,
+                        fecha_registro: new Date().toISOString(),
+                        estado: "EMITIDO"
+                    });
                 }
 
                 // Resetear contador de intentos tras recuperación exitosa
