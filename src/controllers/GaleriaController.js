@@ -2,6 +2,9 @@ const ObraModel = require('../models/ObraModel');
 const ArtistaModel = require('../models/ArtistaModel'); // Importar el modelo
 const VentaModel = require('../models/ventaModel');
 const UsuarioModel = require('../models/UsuarioModel');
+const axios = require('axios');
+
+const MONGO_API_URL = process.env.MONGO_API_URL || 'http://localhost:8000';
 
 const GaleriaController = {
     
@@ -15,15 +18,74 @@ const GaleriaController = {
                 busqueda: req.query.busqueda || null 
             };
 
-            const obras = await ObraModel.obtenerFiltradas(filtros);
+            // Cargamos géneros y artistas de SQL para los filtros de la vista
+            // Los necesitamos antes para poder mapear el nombre del género de las obras de Mongo
             const generos = await ObraModel.obtenerGeneros();
             const artistas = await ObraModel.obtenerArtistas();
+
+            // --- INTEGRACIÓN SPRINT 1: LEER DE MONGODB ---
+            let obrasMongo = [];
+            try {
+                const queryParams = {};
+                if (filtros.genero) queryParams.genero_id = filtros.genero;
+                
+                const response = await axios.get(`${MONGO_API_URL}/catalog/search`, { params: queryParams });
+                obrasMongo = response.data;
+                
+                // Mapear la respuesta de Mongo (anidada) a la estructura plana SQL que espera EJS
+                obrasMongo = obrasMongo.map(obra => {
+                    const infoArtista = obra.informacion_artista || {};
+                    
+                    // Buscar el nombre del género localmente usando el ID
+                    // Nota: En la DB SQL la columna es 'Id' (mayúscula)
+                    const generoLocal = generos.find(g => (g.id === obra.genero_id || g.Id === obra.genero_id));
+                    const nombreGenero = generoLocal ? generoLocal.nombre : 'Desconocido';
+
+                    return {
+                        id: obra.id_sql,
+                        nombre: obra.nombre,
+                        precioObra: obra.precio_obra,
+                        foto: obra.foto,
+                        estatus: obra.estatus,
+                        nombre_artista: infoArtista.nombre || 'Desconocido',
+                        apellido_artista: infoArtista.apellido || '',
+                        nombre_genero: nombreGenero, // <-- CORRECCIÓN APLICADA AQUÍ
+                        autor_id: obra.autor_id,
+                        genero_id: obra.genero_id
+                    };
+                });
+
+                // Aplicar filtros locales que el endpoint de Python (aún) no soporta
+                if (filtros.busqueda) {
+                    const termino = filtros.busqueda.toLowerCase();
+                    obrasMongo = obrasMongo.filter(o => 
+                        o.nombre.toLowerCase().includes(termino) ||
+                        o.nombre_artista.toLowerCase().includes(termino) ||
+                        o.apellido_artista.toLowerCase().includes(termino)
+                    );
+                }
+
+                if (filtros.artista) {
+                    obrasMongo = obrasMongo.filter(o => o.autor_id == filtros.artista);
+                }
+
+                if (filtros.precio === 'menor') {
+                    obrasMongo.sort((a, b) => a.precioObra - b.precioObra);
+                } else if (filtros.precio === 'mayor') {
+                    obrasMongo.sort((a, b) => b.precioObra - a.precioObra);
+                }
+
+            } catch (mongoError) {
+                console.error("Error consultando MongoDB, cayendo en fallback SQL:", mongoError.message);
+                // Fallback (Tolerancia a fallos básica)
+                obrasMongo = await ObraModel.obtenerFiltradas(filtros);
+            }
 
             const message = req.session.message;
             if (req.session.message) delete req.session.message;
 
             res.render('galeria/index', {
-                obras,
+                obras: obrasMongo,
                 generos,
                 artistas,
                 filtros, 
@@ -40,10 +102,58 @@ const GaleriaController = {
     verFichaTecnica: async (req, res) => {
         try {
             const idObra = req.params.id;
-            const obra = await ObraModel.obtenerPorId(idObra);
+            let obra = null;
 
+            // --- INTEGRACIÓN SPRINT 1: LEER DE MONGODB ---
+            try {
+                const response = await axios.get(`${MONGO_API_URL}/artwork/${idObra}`);
+                const obraMongo = response.data;
+
+                if (!obraMongo.error) {
+                    // Mapear el JSON de Mongo a la estructura plana SQL
+                    obra = {
+                        id: obraMongo.id_sql,
+                        nombre: obraMongo.nombre,
+                        precioObra: obraMongo.precio_obra,
+                        foto: obraMongo.foto,
+                        estatus: obraMongo.estatus,
+                        autor_id: obraMongo.autor_id,
+                        genero_id: obraMongo.genero_id
+                    };
+
+                    // Hacemos requests adicionales para el artista para llenar la ficha completa
+                    const [resArtista, generosSql] = await Promise.all([
+                        axios.get(`${MONGO_API_URL}/artist/${obraMongo.autor_id}`).catch(()=>null),
+                        ObraModel.obtenerGeneros()
+                    ]);
+
+                    if (resArtista && resArtista.data && !resArtista.data.error) {
+                        obra.nombre_artista = resArtista.data.nombre;
+                        obra.apellido_artista = resArtista.data.apellido;
+                        obra.nacionalidad = resArtista.data.nacionalidad;
+                    }
+
+                    // Buscar el nombre del género localmente usando el ID
+                    const generoLocal = generosSql.find(g => (g.id === obra.genero_id || g.Id === obra.genero_id));
+                    obra.nombre_genero = generoLocal ? generoLocal.nombre : 'Desconocido';
+
+                    // Aplanar los detalles polimórficos de MongoDB directamente al objeto principal
+                    // EJS busca obra.tecnica, obra.peso, etc.
+                    if (obraMongo.detalles) {
+                        Object.keys(obraMongo.detalles).forEach(key => {
+                            obra[key] = obraMongo.detalles[key];
+                        });
+                    }
+                }
+            } catch (mongoError) {
+                console.error("Error consultando ficha en MongoDB, cayendo en fallback SQL:", mongoError.message);
+                obra = await ObraModel.obtenerPorId(idObra);
+            }
+
+            // Si falló Mongo y el fallback
             if (!obra) {
-                return res.redirect('/galeria');
+                obra = await ObraModel.obtenerPorId(idObra);
+                if (!obra) return res.redirect('/galeria');
             }
 
             res.render('galeria/detalle', { obra });

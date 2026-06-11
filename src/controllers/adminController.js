@@ -3,6 +3,7 @@ const ObraModel = require('../models/ObraModel');
 const VentaModel = require('../models/ventaModel');
 const ArtistaModel = require('../models/ArtistaModel');
 const InfoCompradorModel = require('../models/InfoCompradorModel');
+const MongoSyncService = require('../services/MongoSyncService');
 
 const bcrypt = require('bcryptjs');
 const UsuarioModel = require('../models/UsuarioModel');
@@ -70,10 +71,21 @@ const AdminController = {
                 if (!actualizada) {
                     return res.status(404).send('Obra no encontrada');
                 }
+                
+                // --- SYNC MONGO ---
+                req.body.foto = foto || req.body.foto_actual;
+                await MongoSyncService.syncObra(req.body, true);
+
                 return res.redirect('/admin/inventario');
             }
 
-            await ObraModel.crear(req.body, foto);
+            const nuevaObraId = await ObraModel.crear(req.body, foto);
+            
+            // --- SYNC MONGO ---
+            req.body.id = nuevaObraId;
+            req.body.foto = foto;
+            await MongoSyncService.syncObra(req.body, false);
+
             res.redirect('/admin/gestion-obras');
         } catch (error) {
             console.error(error);
@@ -107,6 +119,10 @@ const AdminController = {
             if (!actualizado) {
                 return res.status(404).send('Obra no encontrada o no reservada');
             }
+
+            // --- SYNC MONGO ---
+            const obraCompleta = await ObraModel.obtenerPorId(req.params.id);
+            if (obraCompleta) await MongoSyncService.syncObra(obraCompleta, true);
 
             res.redirect('/admin/reservas');
         } catch (error) {
@@ -156,6 +172,12 @@ const AdminController = {
                 return res.status(404).send('Obra no encontrada');
             }
 
+            // --- SYNC MONGO ---
+            req.body.obra_id = req.params.id;
+            if (foto) req.body.foto = foto;
+            else req.body.foto = req.body.foto_actual; // Se asume que viene del form si no hay nueva
+            await MongoSyncService.syncObra(req.body, true);
+
             res.redirect('/admin/inventario');
         } catch (error) {
             console.error(error);
@@ -169,6 +191,9 @@ const AdminController = {
             if (!eliminada) {
                 return res.status(404).send('Obra no encontrada');
             }
+
+            // --- SYNC MONGO ---
+            await MongoSyncService.deleteObra(req.params.id);
 
             res.redirect('/admin/inventario');
         } catch (error) {
@@ -199,7 +224,13 @@ const AdminController = {
             }
 
             const foto = req.file ? req.file.filename : null;
-            await ArtistaModel.crear(req.body, foto);
+            const nuevoArtistaId = await ArtistaModel.crear(req.body, foto);
+
+            // --- SYNC MONGO ---
+            req.body.id = nuevoArtistaId;
+            req.body.foto = foto;
+            await MongoSyncService.syncArtista(req.body, false);
+
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
             console.error(error);
@@ -225,6 +256,13 @@ const AdminController = {
             const foto = req.file ? req.file.filename : null;
             
             await ArtistaModel.actualizar(id, req.body, foto);
+
+            // --- SYNC MONGO ---
+            req.body.id = id;
+            if (foto) req.body.foto = foto;
+            else req.body.foto = req.body.foto_actual; // si la tienes en el form
+            await MongoSyncService.syncArtista(req.body, true);
+
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
             console.error(error);
@@ -235,6 +273,11 @@ const AdminController = {
     activarArtista: async (req, res) => {
         try {
             await ArtistaModel.activarLogico(req.params.id);
+            
+            // --- SYNC MONGO ---
+            const artista = await ArtistaModel.obtenerPorId(req.params.id);
+            if(artista) await MongoSyncService.syncArtista(artista, true);
+
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
             console.error(error);
@@ -245,6 +288,18 @@ const AdminController = {
     eliminarArtista: async (req, res) => {
         try {
             await ArtistaModel.eliminarLogico(req.params.id);
+
+            // --- SYNC MONGO ---
+            // El backend python permite borrarlo fisicamente, o podemos hacer update de inactivo.
+            // Según tu esquema de Mongo no hay un endpoint de desactivar suave. 
+            // Eliminaremos de mongo, o podemos actualizar para que no rompa si tiene obras.
+            // Para ser seguros con la referencialidad, actualizamos estado.
+            const artista = await ArtistaModel.obtenerPorId(req.params.id);
+            if(artista) {
+                artista.estado_activo = false;
+                await MongoSyncService.syncArtista(artista, true);
+            }
+
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
             console.error(error);
@@ -324,6 +379,10 @@ const AdminController = {
             });
 
             await ObraModel.marcarComoVendida(obra_id);
+
+            // --- SYNC MONGO ---
+            const obraCompletaSync = await ObraModel.obtenerPorId(obra_id);
+            if (obraCompletaSync) await MongoSyncService.syncObra(obraCompletaSync, true);
 
             // --- AUDITORÍA DE OBRA EN CASSANDRA ---
             await enviarAuditoria('/obras/historico', {

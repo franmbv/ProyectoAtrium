@@ -38,7 +38,7 @@ class ArtistaModel {
     static async crear(datos, foto) {
         const sql = `INSERT INTO artista (nombre, apellido, fechaNac, fechaFal, nacionalidad, descripcion, fotografia)
                      VALUES (?, ?, ?, ?, ?, ?, ?)`;
-        await db.execute(sql, [
+        const [result] = await db.execute(sql, [
             datos.nombre, 
             datos.apellido, 
             datos.fechaNac || null, 
@@ -47,6 +47,7 @@ class ArtistaModel {
             datos.biografia, 
             foto
         ]);
+        return result.insertId;
     }
 
     // Actualizar artista existente
