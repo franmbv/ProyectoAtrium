@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // URL base del microservicio de Python (Catálogo MongoDB)
-const MONGO_API_URL = process.env.MONGO_API_URL || 'http://localhost:8000';
+const MONGO_API_URL = process.env.MONGO_API_URL || 'https://mongo-mp55.onrender.com';
 
 const MongoSyncService = {
     // ==========================================

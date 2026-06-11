@@ -20,6 +20,9 @@ const fs = require('fs');
 //Librerias de Excel
 const { Parser } = require('json2csv');
 
+const axios = require('axios'); 
+
+// Importar Axios en caso de que no esté definido al inicio del archivo
 const AdminController = {
 
     // 1. DASHBOARD PRINCIPAL
@@ -50,6 +53,117 @@ const AdminController = {
             });
         }
     },
+
+ // NUEVO: Ver Historial de Obra en Cassandra
+    historialObra: async (req, res) => {
+        try {
+            const idObra = req.params.id;
+            
+            // 1. Obtener la información básica de la obra
+            const obra = await ObraModel.obtenerPorId(idObra);
+            if (!obra) {
+                return res.status(404).send('Obra no encontrada');
+            }
+
+            // 2. Consultar el historial en el microservicio de Cassandra
+            const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'https://museoatrium-auditoria.onrender.com';
+            let historial = [];
+            
+            try {
+                const response = await axios.get(`${auditoriaApiUrl}/obras/historico/${idObra}`);
+                if (response.data && Array.isArray(response.data)) {
+                    // Ordenar por fecha del evento de forma descendente (más reciente primero)
+                    historial = response.data.sort((a, b) => new Date(b.fecha_evento) - new Date(a.fecha_evento));
+                }
+            } catch (apiError) {
+                // Manejar de manera segura si la API no tiene registros o devuelve un error (ej. 404)
+                console.warn(`[Cassandra API Warn] No se pudo obtener el historial para la obra ${idObra}:`, apiError.message);
+            }
+
+            // 3. Renderizar la vista
+            res.render('admin/historial-obra', {
+                obra,
+                historial,
+                errorMsg: null
+            });
+        } catch (error) {
+            console.error('Error al recuperar historial de la obra:', error);
+            res.status(500).send('Error interno al cargar el historial de trazabilidad.');
+        }
+    },
+// ... (dentro de AdminController en src/controllers/adminController.js)
+
+    // Controlador para consultar la Bitácora de Seguridad en Cassandra
+    verBitacoraSeguridad: async (req, res) => {
+        try {
+            const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'https://museoatrium-auditoria.onrender.com';
+            
+            // Parámetros por defecto para evitar campos vacíos
+            const login_usuario = req.query.login_usuario ? String(req.query.login_usuario).trim() : 'frantest';
+            const desde = req.query.desde || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // Hace 30 días
+            const hasta = req.query.hasta || new Date().toISOString().split('T')[0];
+
+            let logs = [];
+            try {
+                const response = await axios.get(`${auditoriaApiUrl}/seguridad/logs`, {
+                    params: {
+                        login_usuario,
+                        desde: new Date(desde).toISOString(),
+                        hasta: new Date(hasta + 'T23:59:59Z').toISOString()
+                    }
+                });
+                logs = response.data || [];
+            } catch (errApi) {
+                console.error('Error al recuperar bitácora de Cassandra:', errApi.message);
+            }
+
+            res.render('admin/bitacora-seguridad', {
+                logs,
+                login_usuario,
+                desde,
+                hasta
+            });
+        } catch (error) {
+            console.error('Error en verBitacoraSeguridad:', error);
+            res.status(500).send('Error interno del servidor.');
+        }
+    },
+
+    // Controlador para consultar el Reporte de Auditoría Fiscal en Cassandra
+    verAuditoriaReportes: async (req, res) => {
+        try {
+            const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'https://museoatrium-auditoria.onrender.com';
+            
+            const anio = parseInt(req.query.anio || new Date().getFullYear());
+            const mes = parseInt(req.query.mes || (new Date().getMonth() + 1));
+
+            let facturas = [];
+            let membresias = [];
+
+            try {
+                const [resFacturas, resMembresias] = await Promise.all([
+                    axios.get(`${auditoriaApiUrl}/reportes/facturacion`, { params: { anio, mes } }).catch(() => ({ data: [] })),
+                    axios.get(`${auditoriaApiUrl}/reportes/membresias`, { params: { anio, mes } }).catch(() => ({ data: [] }))
+                ]);
+
+                facturas = resFacturas.data || [];
+                membresias = resMembresias.data || [];
+            } catch (errApi) {
+                console.error('Error recuperando auditoría fiscal de Cassandra:', errApi.message);
+            }
+
+            res.render('admin/auditoria-reportes', {
+                facturas,
+                membresias,
+                anio,
+                mes
+            });
+        } catch (error) {
+            console.error('Error en verAuditoriaReportes:', error);
+            res.status(500).send('Error interno del servidor.');
+        }
+    },
+
 
     // 2. GESTION DE OBRAS
     gestionObras: async (req, res) => {

@@ -1,0 +1,143 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    .table-atrium { 
+        color: white !important; 
+        margin-bottom: 0; 
+    }
+
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #ffffff !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 18px;
+        border: none;
+        text-align: center;
+    }
+
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+        padding: 18px;
+        color: #e2e8f0;
+        vertical-align: middle;
+        text-align: center;
+    }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container py-5" style="max-width: 1100px;">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h2 class="admin-title m-0"><span role="img">📜</span> Historial de Obra</h2>
+            <a href="/admin/inventario" class="btn btn-back-link" style="text-decoration:none; border: 1px solid #334155; padding: 10px 20px; border-radius: 100px; color: #94a3b8;">
+                ← Volver al Inventario
+            </a>
+        </div>
+
+        <!-- Ficha de la Obra Seleccionada -->
+        <div class="card admin-card mb-4 p-4" style="background-color: var(--at-card-bg); border: 1px solid var(--at-border); border-radius: 12px;">
+            <div class="row align-items-center">
+                <div class="col-md-2 text-center text-md-start mb-3 mb-md-0">
+                    <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" class="img-fluid rounded shadow" style="max-height: 120px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);" alt="<%= obra.nombre %>">
+                </div>
+                <div class="col-md-10">
+                    <span class="badge bg-warning text-dark mb-2" style="font-size: 0.75rem;"><%= obra.nombre_genero %></span>
+                    <h3 class="text-white mb-1" style="font-family: 'Playfair Display', serif;"><%= obra.nombre %></h3>
+                    <p class="text-white-50 mb-1">Autor: <strong><%= obra.nombre_artista %> <%= obra.apellido_artista %></strong></p>
+                    <p class="text-white-50 mb-0">Estatus Actual: 
+                        <span class="badge <%= obra.estatus === 'Disponible' ? 'bg-success' : (obra.estatus === 'Reservada' ? 'bg-warning text-dark' : 'bg-secondary') %>" style="font-size: 0.75rem;">
+                            <%= obra.estatus %>
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Trazabilidad (Cassandra) -->
+        <div class="admin-card p-0 overflow-hidden" style="background-color: var(--at-card-bg); border: 1px solid var(--at-border); border-radius: 12px;">
+            <div class="p-3 border-bottom border-secondary border-opacity-25" style="background-color: rgba(255,255,255,0.02);">
+                <h5 class="text-white m-0" style="font-size: 1rem;"><span role="img">🔍</span> Registros de Auditoría de Estados</h5>
+                <p class="text-white-50 small m-0">Historial inmutable sincronizado desde la base de datos distribuida Cassandra</p>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-atrium align-middle text-center mb-0">
+                    <thead>
+                        <tr style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #334155;">
+                            <th>Fecha del Evento</th>
+                            <th>Estatus Anterior</th>
+                            <th>Estatus Nuevo</th>
+                            <th>Responsable ID</th>
+                            <th>IP Origen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (historial && historial.length > 0) { %>
+                            <% historial.forEach(evento => { %>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle;">
+                                    <td class="text-white font-monospace" style="font-size: 0.85rem;">
+                                        <%= new Date(evento.fecha_evento).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) %>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-dark border border-secondary text-white-50" style="font-size: 0.75rem;">
+                                            <%= evento.estatus_anterior %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge <%= evento.estatus_nuevo === 'Disponible' ? 'bg-success' : (evento.estatus_nuevo === 'Reservada' ? 'bg-warning text-dark' : 'bg-secondary') %>" style="font-size: 0.75rem;">
+                                            <%= evento.estatus_nuevo %>
+                                        </span>
+                                    </td>
+                                    <td class="text-white font-monospace" style="font-size: 0.85rem;">
+                                        #<%= evento.usuario_id %>
+                                    </td>
+                                    <td class="text-white-50 font-monospace" style="font-size: 0.8rem;">
+                                        <%= evento.ip_origen %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="p-5 text-white-50 small">
+                                    No se encontraron registros de auditoría de estado para esta obra en Cassandra.
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'http://127.0.0.1:8080';
+const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'https://museoatrium-auditoria.onrender.com';
 
 /**
  * Envia un evento de auditoría al microservicio de Python.

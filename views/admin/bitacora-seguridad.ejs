@@ -1,0 +1,198 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-border: rgba(255, 255, 255, 0.08);
+        --at-red-soft: rgba(239, 68, 68, 0.12);    
+        --at-red-text: #fca5a5;
+        --at-green-soft: rgba(34, 197, 94, 0.12);
+        --at-green-text: #4ade80;
+    }
+
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    .smart-filter-bar {
+        background-color: var(--at-card-bg);
+        border: 1px solid var(--at-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    .inventory-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        margin-bottom: 45px;
+    }
+
+    .section-subtitle {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #64748b;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    .table-atrium { color: white !important; margin-bottom: 0; }
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #000000 !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 18px;
+        border: none;
+        text-align: center;
+    }
+
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+        padding: 18px;
+        color: #e2e8f0;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 4px 12px;
+        border-radius: 100px;
+    }
+
+    .badge-success {
+        background-color: var(--at-green-soft);
+        color: var(--at-green-text);
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .badge-failed {
+        background-color: var(--at-red-soft);
+        color: var(--at-red-text);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .input-dark {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1100px;">
+        
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="admin-title"><span role="img">🛡️</span> Bitácora de Seguridad</h2>
+                <p class="text-white-50 m-0">Registro histórico de accesos y auditoría de eventos en tiempo real (Cassandra)</p>
+            </div>
+            <a href="/admin/dashboard" class="btn-new-atrium" style="background-color: rgba(255,255,255,0.05) !important; border: 1px solid var(--at-border) !important; color: #94a3b8 !important;">
+                Panel Principal
+            </a>
+        </div>
+
+        <!-- FILTROS INTELIGENTES -->
+        <div class="smart-filter-bar">
+            <form action="/admin/seguridad/logs" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="section-subtitle mb-2 d-block">Usuario a Consultar</label>
+                    <input type="text" name="login_usuario" class="form-control input-dark" value="<%= login_usuario %>" required placeholder="Ej: admin_atrium">
+                </div>
+                <div class="col-md-3">
+                    <label class="section-subtitle mb-2 d-block">Fecha Desde</label>
+                    <input type="date" name="desde" class="form-control input-dark" value="<%= desde %>" style="color-scheme: dark;">
+                </div>
+                <div class="col-md-3">
+                    <label class="section-subtitle mb-2 d-block">Fecha Hasta</label>
+                    <input type="date" name="hasta" class="form-control input-dark" value="<%= hasta %>" style="color-scheme: dark;">
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-new-atrium w-100 p-2" style="border-radius: 10px;">
+                        Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABLA DE LOGS -->
+        <div class="inventory-card">
+            <div class="table-responsive">
+                <table class="table table-atrium align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha y Hora</th>
+                            <th>Usuario</th>
+                            <th>Evento</th>
+                            <th>IP Origen</th>
+                            <th>Detalles</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (logs && logs.length > 0) { %>
+                            <% logs.forEach(log => { %>
+                                <tr>
+                                    <td class="font-monospace text-white-50" style="font-size: 0.85rem;">
+                                        <%= new Date(log.fecha_evento).toLocaleString('es-ES') %>
+                                    </td>
+                                    <td class="fw-bold text-white">@<%= log.login_usuario %></td>
+                                    <td>
+                                        <% if (log.evento_tipo === 'LOGIN_EXITOSO') { %>
+                                            <span class="status-badge badge-success">Conexión Exitosa</span>
+                                        <% } else { %>
+                                            <span class="status-badge badge-failed">Fallo de Acceso</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="font-monospace text-white-50" style="font-size: 0.85rem;"><%= log.ip_origen %></td>
+                                    <td class="text-start text-white" style="font-size: 0.85rem;"><%= log.detalles %></td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="p-5 text-white-50">
+                                    No se encontraron eventos de seguridad registrados para los parámetros indicados.
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

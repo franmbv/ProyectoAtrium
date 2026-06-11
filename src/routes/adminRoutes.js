@@ -59,4 +59,15 @@ router.post('/editar-usuario/:id', AuthController.verificarSesion, adminControll
 //Exportación a Excel:
 router.get('/exportar-ventas', adminController.exportarVentasExcel);
 
+// Buscar la sección de Dashboard / Gestión de obras y añadir la siguiente línea:
+router.get('/obras/:id/historial', adminController.historialObra);
+
+// Agregar al archivo src/routes/adminRoutes.js junto a las demás rutas administrativas:
+
+// Bitácora de Seguridad (Cassandra)
+router.get('/seguridad/logs', adminController.verBitacoraSeguridad);
+
+// Auditoría de Reportes Fiscales (Cassandra)
+router.get('/auditoria/reportes', adminController.verAuditoriaReportes);
+
 module.exports = router;
