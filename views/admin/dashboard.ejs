@@ -152,12 +152,44 @@
 
 <div class="admin-dashboard-wrapper">
     <% 
-        /* LÓGICA DE FORMATEO PROFESIONAL (Ingeniería de Software) */
-        const shortFormat = new Intl.NumberFormat('en-US', {
-            notation: 'compact',
-            compactDisplay: 'short',
-            maximumFractionDigits: 1
-        });
+        /* LÓGICA DE FORMATEO COMPACTO PROFESIONAL CON CONVERSIÓN DE SEGURIDAD A NÚMERO (Number) */
+        const formatShorthandMetric = (val) => {
+            if (val === undefined || val === null) return '0';
+            
+            // Sanitizar la cadena eliminando símbolos de dólar, comas de miles o espacios
+            let cleanVal = String(val).replace(/[^0-9.-]/g, '');
+            
+            // Si el formato viene con comas para decimales, normalizar a punto
+            if (String(val).includes(',') && !String(val).includes('.')) {
+                cleanVal = String(val).replace(/[^0-9,-]/g, '').replace(',', '.');
+            }
+            
+            const num = parseFloat(cleanVal);
+            if (isNaN(num) || num === 0) return '0';
+            
+            const absolute = Math.abs(num);
+            const sign = num < 0 ? '-' : '';
+            
+            if (absolute >= 1e18) { // Quintillones (E)
+                return sign + (absolute / 1e18).toFixed(1).replace(/\.0$/, '') + 'E';
+            }
+            if (absolute >= 1e15) { // Cuadrillones (P)
+                return sign + (absolute / 1e15).toFixed(1).replace(/\.0$/, '') + 'P';
+            }
+            if (absolute >= 1e12) { // Billones (T)
+                return sign + (absolute / 1e12).toFixed(1).replace(/\.0$/, '') + 'T';
+            }
+            if (absolute >= 1e9) {  // Miles de millones (B)
+                return sign + (absolute / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+            }
+            if (absolute >= 1e6) {  // Millones (M)
+                return sign + (absolute / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+            }
+            if (absolute >= 1e3) {  // Miles (K)
+                return sign + (absolute / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+            }
+            return sign + num.toLocaleString('en-US', { maximumFractionDigits: 1 });
+        };
     %>
 
     <div class="dashboard-panel shadow-2xl">
@@ -191,35 +223,41 @@
             </div>
         </div>
 
-        <!-- BLOQUES DE CONTADORES CON RELLENO SÓLIDO -->
+        <!-- BLOQUES DE CONTADORES CON RELLENO SÓLIDO (COMPACTADOS Y PARSEADOS) -->
         <div class="row g-4">
             <div class="col-md-3">
                 <div class="card admin-kpi kpi-gray preserve-color">
                     <h5>Obras Activas</h5>
-                    <p class="display-value"><%= shortFormat.format(stats.totalObras) %></p>
+                    <p class="display-value">
+                        <%= (typeof stats !== 'undefined' && stats && stats.totalObras !== undefined) ? formatShorthandMetric(stats.totalObras) : 0 %>
+                    </p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card admin-kpi kpi-dark preserve-color">
                     <h5>Total Recaudado</h5>
-                    <p class="display-value">$<%= shortFormat.format(stats.recaudado || 0) %></p>
+                    <p class="display-value">
+                        $<%= (typeof stats !== 'undefined' && stats && stats.recaudado !== undefined) ? formatShorthandMetric(stats.recaudado) : 0 %>
+                    </p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card admin-kpi kpi-gray preserve-color">
                     <h5>Ganancia Museo</h5>
-                    <p class="display-value">$<%= shortFormat.format(stats.gananciaMuseo || 0) %></p>
+                    <p class="display-value">
+                        $<%= (typeof stats !== 'undefined' && stats && stats.gananciaMuseo !== undefined) ? formatShorthandMetric(stats.gananciaMuseo) : 0 %>
+                    </p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card admin-kpi kpi-orange preserve-color">
                     <h5>Nuevas Membresías</h5>
-                    <p class="display-value"><%= shortFormat.format(stats.membresias) %></p>
+                    <p class="display-value">
+                        <%= (typeof stats !== 'undefined' && stats && stats.membresias !== undefined) ? formatShorthandMetric(stats.membresias) : 0 %>
+                    </p>
                 </div>
             </div>
         </div>
-
-
 
         <!-- MENÚ DE OPCIONES ESTÉTICO -->
         <div class="list-group shadow-xl">
@@ -265,20 +303,29 @@
                     <span><span role="img">👥</span> Gestionar Administradores</span>
                     <span class="arrow">→</span>
                 </a>
-                <a href="/admin/usuarios/crear" class="list-group-item list-group-item-action" style="border-bottom: none !important;">
+                <a href="/admin/usuarios/crear" class="list-group-item list-group-item-action">
                     <span>👑 Añadir Nuevo Administrador</span>
                     <span class="arrow">→</span>
                 </a>
-<!-- Dentro del listado de opciones de views/admin/dashboard.ejs -->
-<a href="/admin/seguridad/logs" class="list-group-item list-group-item-action">
-    <span><span role="img">🛡️</span> Bitácora de Accesos (Cassandra)</span>
-    <span class="arrow">→</span>
-</a>
-<a href="/admin/auditoria/reportes" class="list-group-item list-group-item-action">
-    <span><span role="img">📊</span> Auditoría de Reportes (Cassandra)</span>
-    <span class="arrow">→</span>
-</a>
-
+                <!-- Dentro del listado de opciones de views/admin/dashboard.ejs -->
+                <a href="/admin/seguridad/logs" class="list-group-item list-group-item-action">
+                    <span><span role="img">🛡️</span> Bitácora de Accesos (Cassandra)</span>
+                    <span class="arrow">→</span>
+                </a>
+                <a href="/admin/auditoria/reportes" class="list-group-item list-group-item-action">
+                    <span><span role="img">📊</span> Auditoría de Reportes (Cassandra)</span>
+                    <span class="arrow">→</span>
+                </a>
+                <!-- Acceso directo al visor de la Auditoría NoSQL de Códigos de Membresía -->
+                <a href="/admin/auditoria/membresias" class="list-group-item list-group-item-action">
+                    <span><span role="img">🔑</span> Auditoría de Códigos (Cassandra)</span>
+                    <span class="arrow">→</span>
+                </a>
+                <!-- Acceso al visor de documentación técnica del proyecto -->
+                <a href="/admin/documentacion" class="list-group-item list-group-item-action border-0">
+                    <span><span role="img">📚</span> Plataforma Políglota (Sprint 2: Históricos, Auditoría y Reportes)</span>
+                    <span class="arrow">→</span>
+                </a>
             <% } %>
         </div>
     </div>
@@ -288,76 +335,75 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // Recuperamos los datos enviados por el servidor
-    // FIX: Parseamos el JSON para evitar errores de sintaxis en el editor
-    const rawGeneros = JSON.parse('<%- JSON.stringify(charts.generos) %>');
-    const rawEstatus = JSON.parse('<%- JSON.stringify(charts.estatus) %>');
+    const rawGeneros = JSON.parse('<%- JSON.stringify((typeof charts !== "undefined" && charts && charts.generos) ? charts.generos : []) %>');
+    const rawEstatus = JSON.parse('<%- JSON.stringify((typeof charts !== "undefined" && charts && charts.estatus) ? charts.estatus : []) %>');
 
-    // Configuración de Colores Atrium
     const colorOrange = '#f97316';
     const colorGray = '#94a3b8';
     const colorWhite = '#ffffff';
 
-    // 1. Gráfico de Géneros (Doughnut)
-    const ctxGeneros = document.getElementById('chartGeneros').getContext('2d');
-    new Chart(ctxGeneros, {
-        type: 'doughnut',
-        data: {
-            labels: rawGeneros.map(g => g.nombre),
-            datasets: [{
-                data: rawGeneros.map(g => g.total),
-                backgroundColor: [
-                    colorOrange, 
-                    '#fb923c', // Naranja claro
-                    '#fdba74', // Naranja más claro
-                    '#334155', // Gris azulado
-                    '#475569'  // Gris
-                ],
-                borderColor: '#161b22', // Color del fondo para separar
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: { color: colorGray, font: { family: 'Inter' } }
+    if (rawGeneros && rawGeneros.length > 0) {
+        const ctxGeneros = document.getElementById('chartGeneros').getContext('2d');
+        new Chart(ctxGeneros, {
+            type: 'doughnut',
+            data: {
+                labels: rawGeneros.map(g => g.nombre),
+                datasets: [{
+                    data: rawGeneros.map(g => g.total),
+                    backgroundColor: [
+                        colorOrange, 
+                        '#fb923c', 
+                        '#fdba74', 
+                        '#334155', 
+                        '#475569'  
+                    ],
+                    borderColor: '#161b22', 
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: colorGray, font: { family: 'Inter' } }
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 
-    // 2. Gráfico de Estatus (Bar)
-    const ctxEstatus = document.getElementById('chartEstatus').getContext('2d');
-    new Chart(ctxEstatus, {
-        type: 'bar',
-        data: {
-            labels: rawEstatus.map(e => e.estatus),
-            datasets: [{
-                label: 'Cantidad de Obras',
-                data: rawEstatus.map(e => e.total),
-                backgroundColor: [
-                    '#22c55e', // Verde (Disponible)
-                    '#f59e0b', // Amarillo (Reservada)
-                    '#ef4444'  // Rojo (Vendida)
-                ],
-                borderRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true, ticks: { color: colorGray }, grid: { color: '#334155' } },
-                x: { ticks: { color: colorWhite } }
+    if (rawEstatus && rawEstatus.length > 0) {
+        const ctxEstatus = document.getElementById('chartEstatus').getContext('2d');
+        new Chart(ctxEstatus, {
+            type: 'bar',
+            data: {
+                labels: rawEstatus.map(e => e.estatus),
+                datasets: [{
+                    label: 'Cantidad de Obras',
+                    data: rawEstatus.map(e => e.total),
+                    backgroundColor: [
+                        '#22c55e', 
+                        '#f59e0b', 
+                        '#ef4444'  
+                    ],
+                    borderRadius: 5
+                }]
             },
-            plugins: {
-                legend: { display: false }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: colorGray }, grid: { color: '#334155' } },
+                    x: { ticks: { color: colorWhite } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
             }
-        }
-    });
+        });
+    }
 </script>
 
 <%- include('../partials/footer') %>

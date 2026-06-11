@@ -1,0 +1,172 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    .smart-filter-bar {
+        background-color: var(--at-card-bg);
+        border: 1px solid var(--at-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    .inventory-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        margin-bottom: 45px;
+    }
+
+    .section-subtitle {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #64748b;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    .table-atrium { color: white !important; margin-bottom: 0; }
+    
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #ffffff !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 18px;
+        border: none;
+        text-align: center;
+    }
+
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+        padding: 18px;
+        color: #e2e8f0;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .input-dark {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1100px;">
+        
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="admin-title"><span role="img">🔑</span> Auditoría de Códigos de Membresías</h2>
+                <p class="text-white-50 m-0">Trazabilidad NoSQL inmutable de emisión y validación de seguridad de membresías (Cassandra)</p>
+            </div>
+            <a href="/admin/dashboard" class="btn-new-atrium" style="background-color: rgba(255,255,255,0.05) !important; border: 1px solid var(--at-border) !important; color: #94a3b8 !important; text-decoration: none; padding: 12px 24px; border-radius: 100px;">
+                Panel Principal
+            </a>
+        </div>
+
+        <!-- FILTROS INTELIGENTES -->
+        <div class="smart-filter-bar">
+            <form action="/admin/auditoria/membresias" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-9">
+                    <label class="section-subtitle mb-2 d-block">ID de Comprador</label>
+                    <input type="number" name="id_comprador" class="form-control input-dark" value="<%= id_comprador %>" required placeholder="Ingrese ID de comprador a auditar (Ej. 26)">
+                </div>
+                <input type="hidden" name="page_size" value="20">
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-new-atrium w-100 p-2" style="border-radius: 10px; font-weight: bold; background-color: var(--at-orange); border: none; color: white;">
+                        Consultar Cassandra
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABLA DE AUDITORÍA -->
+        <div class="inventory-card">
+            <div class="table-responsive">
+                <table class="table table-atrium align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha de Emisión (UTC)</th>
+                            <th>ID Comprador</th>
+                            <th>Código de Seguridad</th>
+                            <th>Correo de Destino</th>
+                            <th>Estado de Asignación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (typeof codigos !== 'undefined' && codigos && codigos.length > 0) { %>
+                            <% codigos.forEach(item => { %>
+                                <tr>
+                                    <td class="font-monospace text-white-50" style="font-size: 0.85rem;">
+                                        <%= new Date(item.fecha_registro).toLocaleString('es-ES') %>
+                                    </td>
+                                    <td class="fw-bold text-white">#<%= item.id_comprador %></td>
+                                    <td class="font-monospace text-warning fw-bold" style="font-size: 1rem;"><%= item.codigo_seguridad %></td>
+                                    <td class="text-white-50"><%= item.correo_envio %></td>
+                                    <td>
+                                        <span class="badge bg-success bg-opacity-10 text-success p-2 border border-success border-opacity-25" style="border-radius: 6px;">
+                                            <%= item.estado %>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="p-5 text-white-50">
+                                    No se encontraron registros de emisión de seguridad para este comprador en Cassandra.
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAGINACIÓN CASSANDRA -->
+        <% if (typeof paging_state !== 'undefined' && paging_state) { %>
+            <div class="text-end mb-5">
+                <a href="/admin/auditoria/membresias?id_comprador=<%= id_comprador %>&paging_state=<%= paging_state %>" class="btn btn-new-atrium" style="background-color: transparent !important; border: 1px solid var(--at-border) !important; color: #94a3b8 !important; text-decoration: none; padding: 10px 20px; border-radius: 10px;">
+                    Siguiente Página ➔
+                </a>
+            </div>
+        <% } %>
+
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

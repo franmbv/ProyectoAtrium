@@ -70,4 +70,8 @@ router.get('/seguridad/logs', adminController.verBitacoraSeguridad);
 // Auditoría de Reportes Fiscales (Cassandra)
 router.get('/auditoria/reportes', adminController.verAuditoriaReportes);
 
+// Agregar en src/routes/adminRoutes.js:
+router.get('/documentacion', adminController.verDocumentacion);
+
+router.get('/auditoria/membresias', adminController.verAuditoriaMembresias);
 module.exports = router;

@@ -1,0 +1,261 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<style>
+    :root {
+        --dash-bg: #161b22;
+        --dash-border: #30363d;
+        --atrium-orange: #f97316;
+        --atrium-ink: #0d1117;
+    }
+
+    .doc-page-wrapper {
+        background: linear-gradient(180deg, #0f172a 0%, #020617 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .doc-container {
+        background-color: var(--dash-bg);
+        border: 1px solid var(--dash-border);
+        border-radius: 20px;
+        padding: 45px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        color: #e2e8f0;
+    }
+
+    .doc-header-block {
+        border-bottom: 1px solid var(--dash-border);
+        padding-bottom: 30px;
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .doc-institution {
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: var(--atrium-orange);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .doc-main-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #ffffff;
+        margin-bottom: 15px;
+        line-height: 1.3;
+    }
+
+    .doc-section-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-top: 40px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--atrium-orange);
+        padding-left: 15px;
+    }
+
+    .meta-box {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--dash-border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .code-block {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--dash-border) !important;
+        border-radius: 10px;
+        padding: 20px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        color: #f8fafc;
+        overflow-x: auto;
+    }
+
+    .keyword { color: #ff7b72; }
+    .type { color: #79c0ff; }
+    .string { color: #a5d6ff; }
+
+    .doc-btn-back {
+        background-color: transparent;
+        border: 1px solid var(--dash-border);
+        color: #94a3b8;
+        padding: 10px 24px;
+        border-radius: 100px;
+        text-decoration: none;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    .doc-btn-back:hover {
+        border-color: var(--atrium-orange);
+        color: var(--atrium-orange);
+    }
+</style>
+
+<div class="doc-page-wrapper">
+    <div class="container" style="max-width: 1100px;">
+        <div class="doc-container shadow-2xl">
+            
+            <!-- ENCABEZADO INSTITUCIONAL OFICIAL -->
+            <div class="doc-header-block">
+                <div class="doc-institution">Universidad Experimental de Guayana</div>
+                <div class="small text-white-50 mb-3">Vicerrectorado Académico | Coordinación General de Pregrado | Proyecto de Carrera: Ingeniería en Informática</div>
+                <h1 class="doc-main-title">Plataforma Políglota para el Museo de Arte Contemporáneo <br><span class="text-warning" style="font-size: 1.4rem;">(Sprint 2: Históricos, Auditoría y Reportes)</span></h1>
+                <div class="small text-white-50">Semestre: 2026-I</div>
+            </div>
+
+            <!-- DATOS DEL PROYECTO -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="meta-box">
+                        <h6 class="text-white-50 small text-uppercase fw-bold mb-3">Docente Evaluador</h6>
+                        <p class="m-0 text-white fw-semibold">Cordero, Clinia</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="meta-box">
+                        <h6 class="text-white-50 small text-uppercase fw-bold mb-3">Integrantes del Equipo</h6>
+                        <ul class="list-unstyled m-0 text-white small" style="line-height: 1.8;">
+                            <li>• Bermúdez, Franner — C.I. 30.183.618</li>
+                            <li>• Gamboa, Laura — C.I. 28.385.677</li>
+                            <li>• Roman, Santiago — C.I. 31.462.473</li>
+                            <li>• Saimans, Gloria — C.I. 31.925.407</li>
+                            <li>• Villaroel, Jesús — C.I. 31.701.004</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 1: FAMILIAS DE COLUMNAS -->
+            <h2 class="doc-section-title">1. Familias de Columnas (Column Families)</h2>
+            <p class="text-white-50">Implementación de estructuras físicas NoSQL en Apache Cassandra para el soporte inmutable de auditorías y trazabilidad:</p>
+
+            <div class="accordion" id="accordionSchemas">
+                
+                <!-- Tabla 1 -->
+                <div class="card bg-transparent border-0 mb-3">
+                    <div class="p-3 bg-dark border border-secondary border-opacity-25 rounded-3" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#col1">
+                        <h6 class="m-0 text-white">📊 1. historico_estatus_obras (Historial de estatus de obras)</h6>
+                    </div>
+                    <div id="col1" class="collapse show" data-bs-parent="#accordionSchemas">
+                        <div class="p-3 border border-top-0 border-secondary border-opacity-25 rounded-bottom">
+                            <p class="small text-white-50">Mantiene la bitácora inmutable de cambios de estado de las obras (Disponible → Reservada → Vendida / Disponible).</p>
+                            <ul>
+                                <li><strong>Clave de Partición:</strong> <code class="text-warning">id_obra</code></li>
+                                <li><strong>Clave de Ordenación (Clustering Key):</strong> <code class="text-warning">fecha_evento DESC</code></li>
+                            </ul>
+<pre class="code-block">
+<span class="keyword">CREATE TABLE</span> <span class="type">historico_estatus_obras</span> (
+    id_obra <span class="type">int</span>,
+    fecha_evento <span class="type">timestamp</span>,
+    estatus_anterior <span class="type">text</span>,
+    estatus_nuevo <span class="type">text</span>,
+    usuario_id <span class="type">int</span>,
+    ip_origen <span class="type">text</span>,
+    <span class="keyword">PRIMARY KEY</span> ((id_obra), fecha_evento)
+) <span class="keyword">WITH CLUSTERING ORDER BY</span> (fecha_evento <span class="keyword">DESC</span>);
+</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla 2 -->
+                <div class="card bg-transparent border-0 mb-3">
+                    <div class="p-3 bg-dark border border-secondary border-opacity-25 rounded-3" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#col2">
+                        <h6 class="m-0 text-white">🛡️ 2. bitacora_seguridad (Bitácora de eventos de seguridad)</h6>
+                    </div>
+                    <div id="col2" class="collapse" data-bs-parent="#accordionSchemas">
+                        <div class="p-3 border border-top-0 border-secondary border-opacity-25 rounded-bottom">
+                            <p class="small text-white-50">Auditoría inmutable de accesos de usuarios al sistema (Admins y Compradores).</p>
+                            <ul>
+                                <li><strong>Clave de Partición:</strong> <code class="text-warning">login_usuario</code></li>
+                                <li><strong>Clave de Ordenación:</strong> <code class="text-warning">fecha_evento ASC</code></li>
+                            </ul>
+<pre class="code-block">
+<span class="keyword">CREATE TABLE</span> <span class="type">bitacora_seguridad</span> (
+    login_usuario <span class="type">text</span>,
+    fecha_evento <span class="type">timestamp</span>,
+    accion <span class="type">text</span>,
+    ip_origen <span class="type">text</span>,
+    detalles <span class="type">text</span>,
+    usuario_id <span class="type">int</span>,
+    <span class="keyword">PRIMARY KEY</span> ((login_usuario), fecha_evento)
+) <span class="keyword">WITH CLUSTERING ORDER BY</span> (fecha_evento <span class="keyword">ASC</span>);
+</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla 3 -->
+                <div class="card bg-transparent border-0 mb-3">
+                    <div class="p-3 bg-dark border border-secondary border-opacity-25 rounded-3" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#col3">
+                        <h6 class="m-0 text-white">🔑 3. auditoria_codigos_membresia (Auditoría de códigos de membresía)</h6>
+                    </div>
+                    <div id="col3" class="collapse" data-bs-parent="#accordionSchemas">
+                        <div class="p-3 border border-top-0 border-secondary border-opacity-25 rounded-bottom">
+                            <p class="small text-white-50">Control inmutable de la emisión y asignación de códigos de seguridad de membresías.</p>
+                            <ul>
+                                <li><strong>Clave de Partición:</strong> <code class="text-warning">id_comprador</code></li>
+                                <li><strong>Clave de Ordenación:</strong> <code class="text-warning">fecha_registro DESC</code></li>
+                            </ul>
+<pre class="code-block">
+<span class="keyword">CREATE TABLE</span> <span class="type">auditoria_codigos_membresia</span> (
+    id_comprador <span class="type">int</span>,
+    fecha_registro <span class="type">timestamp</span>,
+    codigo_seguridad <span class="type">text</span>,
+    correo_envio <span class="type">text</span>,
+    estado <span class="type">text</span>,
+    <span class="keyword">PRIMARY KEY</span> ((id_comprador), fecha_registro)
+) <span class="keyword">WITH CLUSTERING ORDER BY</span> (fecha_registro <span class="keyword">DESC</span>);
+</pre>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SECCIÓN 2: CONSULTAS GERENCIALES -->
+            <h2 class="doc-section-title">2. Consultas Gerenciales (Prepared Statements)</h2>
+            <p class="text-white-50">Definición de las consultas parametrizadas implementadas para la lectura de la base de datos NoSQL:</p>
+
+            <h6 class="text-warning font-monospace small mb-2">&gt;&gt; Consulta de Eventos de Seguridad</h6>
+<pre class="code-block">
+self._query_por_usuario = <span class="keyword">await</span> asyncio.to_thread(
+    session.prepare,
+    <span class="string">"SELECT login_usuario, fecha_evento, accion, ip_origen, detalles, usuario_id "</span>
+    <span class="string">"FROM bitacora_seguridad "</span>
+    <span class="string">"WHERE login_usuario = ? AND fecha_evento >= ? AND fecha_evento <= ? "</span>
+    <span class="string">"ORDER BY fecha_evento ASC"</span>
+)
+</pre>
+
+            <h6 class="text-warning font-monospace small mt-4 mb-2">&gt;&gt; Consulta de Cambios de Estatus de Obras</h6>
+<pre class="code-block">
+self._query_por_obra = <span class="keyword">await</span> asyncio.to_thread(
+    session.prepare,
+    <span class="string">"SELECT id_obra, fecha_evento, estatus_anterior, estatus_nuevo, usuario_id, ip_origen "</span>
+    <span class="string">"FROM historico_estatus_obras "</span>
+    <span class="string">"WHERE id_obra = ?"</span>
+)
+</pre>
+
+            <div class="text-center mt-5">
+                <a href="/admin/dashboard" class="doc-btn-back">
+                    ← Volver al Panel de Control
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -164,6 +164,53 @@ const AdminController = {
         }
     },
 
+    // Agregar dentro de AdminController en src/controllers/adminController.js:
+verDocumentacion: (req, res) => {
+    try {
+        res.render('admin/documentacion');
+    } catch (error) {
+        console.error('Error al cargar la documentación:', error);
+        res.status(500).send('Error interno al cargar la documentación');
+    }
+},
+
+
+// Agregar dentro de AdminController en src/controllers/adminController.js:
+verAuditoriaMembresias: async (req, res) => {
+    try {
+        const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'https://museoatrium-auditoria.onrender.com';
+        
+        const id_comprador = req.query.id_comprador ? parseInt(req.query.id_comprador) : 26;
+        const paging_state = req.query.paging_state || '';
+
+        let codigos = [];
+        let next_paging_state = null;
+
+        try {
+            const response = await axios.get(`${auditoriaApiUrl}/membresias/codigos`, {
+                params: {
+                    id_comprador,
+                    page_size: 20,
+                    paging_state: paging_state || undefined
+                }
+            });
+            codigos = response.data.datos || [];
+            next_paging_state = response.data.paging_state || null;
+        } catch (errApi) {
+            console.error('Error al recuperar códigos de membresía de Cassandra:', errApi.message);
+        }
+
+        res.render('admin/auditoria-membresias', {
+            codigos,
+            id_comprador,
+            paging_state: next_paging_state
+        });
+    } catch (error) {
+        console.error('Error en verAuditoriaMembresias:', error);
+        res.status(500).send('Error interno del servidor.');
+    }
+},
+
 
     // 2. GESTION DE OBRAS
     gestionObras: async (req, res) => {

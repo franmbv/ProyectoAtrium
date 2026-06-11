@@ -1,19 +1,62 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
+<!-- Función Helper para formatear métricas financieras grandes de Cassandra -->
+<% 
+    const formatShorthandMetric = (val) => {
+        if (val === undefined || val === null) return '0';
+        
+        // Sanitizar la cadena eliminando símbolos de dólar, comas de miles o espacios
+        let cleanVal = String(val).replace(/[^0-9.-]/g, '');
+        
+        // Si el formato viene con comas para decimales, normalizar a punto
+        if (String(val).includes(',') && !String(val).includes('.')) {
+            cleanVal = String(val).replace(/[^0-9,-]/g, '').replace(',', '.');
+        }
+        
+        const num = parseFloat(cleanVal);
+        if (isNaN(num) || num === 0) return '0';
+        
+        const absolute = Math.abs(num);
+        const sign = num < 0 ? '-' : '';
+        
+        if (absolute >= 1e18) { // Quintillones (E)
+            return sign + (absolute / 1e18).toFixed(1).replace(/\.0$/, '') + 'E';
+        }
+        if (absolute >= 1e15) { // Cuadrillones (P)
+            return sign + (absolute / 1e15).toFixed(1).replace(/\.0$/, '') + 'P';
+        }
+        if (absolute >= 1e12) { // Billones (T)
+            return sign + (absolute / 1e12).toFixed(1).replace(/\.0$/, '') + 'T';
+        }
+        if (absolute >= 1e9) {  // Miles de millones (B)
+            return sign + (absolute / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+        }
+        if (absolute >= 1e6) {  // Millones (M)
+            return sign + (absolute / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+        }
+        if (absolute >= 1e3) {  // Miles (K)
+            return sign + (absolute / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+        }
+        return sign + num.toLocaleString('en-US', { maximumFractionDigits: 1 });
+    };
+%>
+
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
     :root {
-        --at-navy-deep: #0f172a;   
-        --at-navy-darkest: #020617; 
-        --at-card-bg: #161b22;     
-        --at-orange: #f97316;      
-        --at-border: rgba(255, 255, 255, 0.08);
+        --dash-bg: #161b22;      
+        --dash-border: #30363d;   
+        --atrium-orange: #f97316; 
+        --atrium-ink: #0d1117;    
+        --kpi-gray: #bfc9d1;
+        --kpi-dark: #25343f;
+        --kpi-orange: #ff9b51;
     }
 
     .admin-page-wrapper {
-        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        background: linear-gradient(180deg, #0f172a 0%, #020617 100%) !important;
         min-height: 100vh;
         padding: 60px 0;
         font-family: 'Inter', sans-serif;
@@ -35,8 +78,8 @@
     }
 
     .kpi-card {
-        background-color: var(--at-card-bg);
-        border: 1px solid var(--at-border);
+        background-color: var(--dash-bg);
+        border: 1px solid var(--dash-border);
         border-radius: 12px;
         padding: 24px;
         text-align: left;
@@ -60,8 +103,8 @@
     }
 
     .smart-filter-bar {
-        background-color: var(--at-card-bg);
-        border: 1px solid var(--at-border);
+        background-color: var(--dash-bg);
+        border: 1px solid var(--dash-border);
         border-radius: 16px;
         padding: 20px;
         margin-bottom: 30px;
@@ -69,8 +112,8 @@
     }
 
     .inventory-card {
-        background-color: var(--at-card-bg) !important;
-        border: 1px solid var(--at-border) !important;
+        background-color: var(--dash-bg) !important;
+        border: 1px solid var(--dash-border) !important;
         border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 20px 40px rgba(0,0,0,0.4);
@@ -87,7 +130,7 @@
 
     .table-atrium { color: white !important; margin-bottom: 0; }
     .table-atrium thead th {
-        background-color: var(--at-orange) !important;
+        background-color: var(--atrium-orange) !important;
         color: #000000 !important; 
         font-weight: 800;
         text-transform: uppercase;
@@ -109,7 +152,7 @@
 
     .input-dark {
         background-color: #0d1117 !important;
-        border: 1px solid var(--at-border) !important;
+        border: 1px solid var(--dash-border) !important;
         color: white !important;
         border-radius: 10px;
     }
@@ -122,9 +165,9 @@
         <div class="d-flex justify-content-between align-items-center mb-5">
             <div>
                 <h2 class="admin-title"><span role="img">📊</span> Auditoría de Reportes</h2>
-                <p class="text-white-50 m-0">Conciliación de registros financieros e históricos de membresía NoSQL (Cassandra)</p>
+                <p class="text-white-50 m-0">Conciliación de registros financieros e históricos NoSQL (Cassandra)</p>
             </div>
-            <a href="/admin/dashboard" class="btn-new-atrium" style="background-color: rgba(255,255,255,0.05) !important; border: 1px solid var(--at-border) !important; color: #94a3b8 !important;">
+            <a href="/admin/dashboard" class="btn-new-atrium" style="background-color: rgba(255,255,255,0.05) !important; border: 1px solid var(--dash-border) !important; color: #94a3b8 !important; text-decoration: none; padding: 10px 20px; border-radius: 100px;">
                 Panel Principal
             </a>
         </div>
@@ -149,7 +192,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-new-atrium w-100 p-2" style="border-radius: 10px;">
+                    <button type="submit" class="btn btn-new-atrium w-100 p-2" style="border-radius: 10px; font-weight: bold; background-color: var(--atrium-orange); border: none; color: black;">
                         Analizar Periodo
                     </button>
                 </div>
@@ -169,15 +212,15 @@
         <div class="kpi-container">
             <div class="kpi-card">
                 <h5>Monto Neto Facturado</h5>
-                <p>$<%= totalFacturado.toLocaleString('en-US', { minimumFractionDigits: 2 }) %></p>
+                <p><%= formatShorthandMetric(totalFacturado) %></p>
             </div>
             <div class="kpi-card">
                 <h5>Comisiones Museo</h5>
-                <p>$<%= totalGananciaMuseo.toLocaleString('en-US', { minimumFractionDigits: 2 }) %></p>
+                <p><%= formatShorthandMetric(totalGananciaMuseo) %></p>
             </div>
             <div class="kpi-card">
                 <h5>Ingresos Membresías</h5>
-                <p>$<%= totalMembresias.toLocaleString('en-US', { minimumFractionDigits: 2 }) %></p>
+                <p><%= formatShorthandMetric(totalMembresias) %></p>
             </div>
         </div>
 
@@ -202,9 +245,9 @@
                                 <tr>
                                     <td class="font-monospace text-warning fw-bold">FAC-<%= String(f.id_factura).slice(-6) %></td>
                                     <td class="text-white-50"><%= new Date(f.fecha_emision).toLocaleDateString() %></td>
-                                    <td class="fw-bold text-white">$<%= parseFloat(f.monto_neto).toFixed(2) %></td>
-                                    <td class="text-white-50">$<%= parseFloat(f.iva_calculado).toFixed(2) %></td>
-                                    <td class="text-success">$<%= parseFloat(f.ganancia_museo).toFixed(2) %></td>
+                                    <td class="fw-bold text-white"><%= formatShorthandMetric(f.monto_neto) %></td>
+                                    <td class="text-white-50"><%= formatShorthandMetric(f.iva_calculado) %></td>
+                                    <td class="text-success"><%= formatShorthandMetric(f.ganancia_museo) %></td>
                                     <td><span class="badge bg-success bg-opacity-10 text-success p-2 border border-success border-opacity-25" style="border-radius: 6px;"><%= f.estado %></span></td>
                                 </tr>
                             <% }) %>
@@ -239,7 +282,7 @@
                                     <td class="font-monospace text-white-50">MEM-#<%= m.id_membresia %></td>
                                     <td class="text-white-50"><%= new Date(m.fecha_registro).toLocaleDateString() %></td>
                                     <td class="font-monospace text-warning fw-bold"><%= m.codigo_membresia %></td>
-                                    <td class="fw-bold text-white">$<%= parseFloat(m.monto_cobrado).toFixed(2) %></td>
+                                    <td class="fw-bold text-white"><%= formatShorthandMetric(m.monto_cobrado) %></td>
                                     <td><span class="badge bg-success bg-opacity-10 text-success p-2 border border-success border-opacity-25" style="border-radius: 6px;"><%= m.estado %></span></td>
                                 </tr>
                             <% }) %>
