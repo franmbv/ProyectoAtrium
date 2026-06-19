@@ -1,3 +1,4 @@
+//const db = require('../config/db');
 const db = require('../config/db');
 const ObraModel = require('../models/ObraModel');
 const VentaModel = require('../models/ventaModel');

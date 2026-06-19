@@ -1,21 +1,28 @@
-const mysql = require('mysql2');
-require('dotenv').config(); 
+const { Pool } = require('pg');
+require('dotenv').config();
 
-// Configuración del Pool de conexiones según el estándar de la cátedra
-const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'museodeartecontemporaneo',
-    waitForConnections: true, 
-    connectionLimit: 10,       
-    queueLimit: 0              
-});
+let pool;
 
-pool.getConnection((error, connection) => {
-    if (error) throw error;
-    console.log('Conectado a MySQL exitosamente');
-    connection.release();
-});
+// Si existe DATABASE_URL (en Render), se conecta a Postgres en la nube
+if (process.env.DATABASE_URL) {
+    pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+            rejectUnauthorized: false // Obligatorio para que Render y Neon conecten seguro
+        }
+    });
+} else {
+    // Tu configuración local por si sigues desarrollando en tu PC
+    pool = new Pool({
+        user: 'tu_usuario_local',
+        host: 'localhost',
+        database: 'tu_bd_local',
+        password: 'tu_password_local',
+        port: 5432, 
+    });
+}
 
-module.exports = pool.promise();
+// Exportas el pool para usar .query() en tus controladores
+module.exports = {
+    query: (text, params) => pool.query(text, params),
+};

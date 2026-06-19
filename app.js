@@ -55,9 +55,22 @@ app.use((req, res) => {
 });
 
 // --- LEVANTAR SERVIDOR ---
+const db = require('./src/config/db'); // Ajusta la ruta a tu db.js si es otra
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Servidor activo en puerto ${PORT}`);
+    
+    try {
+        // Le pedimos a la BD el nombre de la base de datos actual y la versión
+        const res = await db.query("SELECT current_database(), version();");
+        console.log("==========================================");
+        console.log(`¡CONEXIÓN DE DIAGNÓSTICO EXITOSA!`);
+        console.log(`Conectado a la base de datos: ${res.rows[0].current_database}`);
+        console.log(`Versión del motor: ${res.rows[0].version}`);
+        console.log("==========================================");
+    } catch (error) {
+        console.error("❌ Error conectando a la base de datos:", error.message);
+    }
 });
 
 module.exports = app;
