@@ -1,5 +1,6 @@
 # Dependencias (Librerías pesadas que se instalan con npm install)
 node_modules/
+catalog-python-mongo/
 
 # Variables de entorno (Contiene contraseñas de tu DB local)
 .env
