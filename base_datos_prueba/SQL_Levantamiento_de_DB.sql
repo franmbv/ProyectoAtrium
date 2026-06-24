@@ -39,7 +39,8 @@ CREATE TABLE usuario (
     login VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     fechaRegistro DATE DEFAULT CURRENT_DATE,
-    ultima_conexion TIMESTAMP DEFAULT NULL
+    ultima_conexion TIMESTAMP DEFAULT NULL,
+    estado VARCHAR(20) DEFAULT 'Activo'
 );
 
 -- Tabla: artista
