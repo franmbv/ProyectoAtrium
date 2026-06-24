@@ -64,11 +64,15 @@
             </a>
         </div>
 
-        <!-- Ficha de la Obra Seleccionada -->
+        <!-- Ficha de la Obra Seleccionada con imagen híbrida -->
         <div class="card admin-card mb-4 p-4" style="background-color: var(--at-card-bg); border: 1px solid var(--at-border); border-radius: 12px;">
             <div class="row align-items-center">
                 <div class="col-md-2 text-center text-md-start mb-3 mb-md-0">
-                    <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" class="img-fluid rounded shadow" style="max-height: 120px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);" alt="<%= obra.nombre %>">
+                    <img src="<%= (obra.foto && obra.foto.startsWith('http')) ? obra.foto : ('/uploads/' + (obra.foto || 'default_obra.jpg')) %>" 
+                         class="img-fluid rounded shadow" 
+                         style="max-height: 120px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);" 
+                         alt="<%= obra.nombre %>"
+                         onerror="this.src='/img/default_obra.jpg'">
                 </div>
                 <div class="col-md-10">
                     <span class="badge bg-warning text-dark mb-2" style="font-size: 0.75rem;"><%= obra.nombre_genero %></span>

@@ -1,6 +1,28 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
+<!-- Función Helper para formatear métricas financieras (K, M, B, T) -->
+<% 
+    const formatShorthandMetric = (val) => {
+        if (val === undefined || val === null) return '$0.00';
+        let cleanVal = String(val).replace(/[^0-9.-]/g, '');
+        if (String(val).includes(',') && !String(val).includes('.')) {
+            cleanVal = String(val).replace(/[^0-9,-]/g, '').replace(',', '.');
+        }
+        const num = parseFloat(cleanVal);
+        if (isNaN(num) || num === 0) return '$0.00';
+        
+        const absolute = Math.abs(num);
+        const sign = num < 0 ? '-' : '';
+        
+        if (absolute >= 1e12) return sign + '$' + (absolute / 1e12).toFixed(1).replace(/\.0$/, '') + 'T';
+        if (absolute >= 1e9) return sign + '$' + (absolute / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+        if (absolute >= 1e6) return sign + '$' + (absolute / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+        if (absolute >= 1e3) return sign + '$' + (absolute / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+        return sign + '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+%>
+
 <!-- Tipografías elegantes -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
@@ -21,14 +43,12 @@
         padding-bottom: 80px;
     }
 
-    /* CONTENEDOR CENTRALIZADO: Nivela la Bio Card con el Carrusel de Obras */
     .content-focus-area {
         max-width: 1000px;
         margin: 0 auto;
         padding: 0 20px;
     }
 
-    /* CABECERA ARTISTA */
     .artist-hero {
         padding: 80px 0 40px 0;
         text-align: center;
@@ -79,7 +99,6 @@
         text-align: center !important;
     }
 
-    /* CARD DE BIOGRAFÍA */
     .bio-card {
         background-color: var(--at-card-bg) !important;
         border: 1px solid var(--at-border) !important;
@@ -105,10 +124,7 @@
         text-align: justify;
     }
 
-    /* SECCIÓN DE OBRAS (CARRUSEL) */
-    .exhibition-section {
-        width: 100%;
-    }
+    .exhibition-section { width: 100%; }
 
     .exhibition-title {
         font-family: 'Playfair Display', serif;
@@ -117,19 +133,18 @@
         text-align: center !important;
     }
 
-    /* --- LÓGICA DEL CARRUSEL --- */
     .art-carousel {
         display: flex;
-        overflow-x: auto; /* Permite el scroll horizontal */
+        overflow-x: auto;
         gap: 20px;
         padding: 10px 0 40px 0;
-        scroll-snap-type: x mandatory; /* Hace que las fotos se "peguen" al borde */
-        scrollbar-width: none; /* Oculta scrollbar en Firefox */
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
     }
-    .art-carousel::-webkit-scrollbar { display: none; } /* Oculta scrollbar en Chrome */
+    .art-carousel::-webkit-scrollbar { display: none; }
 
     .art-carousel-item {
-        min-width: calc(33.333% - 14px); /* Muestra 3 obras niveladas con el panel de arriba */
+        min-width: calc(33.333% - 14px);
         scroll-snap-align: start;
         flex-shrink: 0;
     }
@@ -159,7 +174,6 @@
         object-fit: cover;
     }
 
-    /* ESTADOS: VENDIDA / RESERVADA */
     .art-unavailable { filter: grayscale(100%); opacity: 0.4; }
 
     .status-overlay {
@@ -220,7 +234,6 @@
 </style>
 
 <div class="bio-page-wrapper">
-    <!-- SECCIÓN DE CABECERA -->
     <section class="artist-hero">
         <div class="container">
             <div class="artist-portrait-frame">
@@ -237,19 +250,25 @@
             <p class="artist-meta"><%= artista.nacionalidad %></p>
             
             <div class="artist-dates">
-                <span><%= artista.fechaNac ? 'n. ' + new Date(artista.fechaNac).getFullYear() : 'Nacimiento desconocido' %></span>
-                <% if(artista.fechaFal) { %>
+                <% 
+                    const getYearSafe = (dateVal) => {
+                        if (!dateVal) return null;
+                        const d = new Date(dateVal);
+                        return isNaN(d.getTime()) ? null : d.getUTCFullYear();
+                    };
+                    const anioNac = getYearSafe(artista.fechanac || artista.fechaNac);
+                    const anioFal = getYearSafe(artista.fechafal || artista.fechaFal);
+                %>
+                <span><%= anioNac ? 'n. ' + anioNac : 'Nacimiento desconocido' %></span>
+                <% if (anioFal) { %>
                     <span class="mx-3">|</span>
-                    <span>f. <%= new Date(artista.fechaFal).getFullYear() %></span>
+                    <span>f. <%= anioFal %></span>
                 <% } %>
             </div>
         </div>
     </section>
 
-    <!-- ÁREA NIVELADA -->
     <div class="content-focus-area">
-        
-        <!-- BLOQUE DE BIOGRAFÍA -->
         <article class="bio-card shadow-2xl">
             <h3>Biografía</h3>
             <div class="bio-text">
@@ -257,35 +276,28 @@
             </div>
         </article>
 
-        <!-- BLOQUE DE EXHIBICIÓN (CARRUSEL) -->
         <section class="exhibition-section">
             <h2 class="exhibition-title">Obras en <span style="color: var(--at-orange)">Exhibición</span></h2>
-            
             <% if(obras.length === 0) { %>
                 <div class="text-center p-5 opacity-50 border border-secondary border-dashed rounded-4">
                     <p>No se encontraron obras disponibles de este autor.</p>
                 </div>
             <% } else { %>
-                <!-- CONTENEDOR DEL CARRUSEL HORIZONTAL (Sintaxis Corregida de la Imagen) -->
                 <div class="art-carousel">
                     <% obras.forEach(o => { %>
                         <div class="art-carousel-item">
                             <div class="mini-obra-card shadow-lg">
                                 <div class="mini-img-box">
                                     <img src="<%= (o.foto && o.foto.startsWith('http')) ? o.foto : ('/uploads/' + (o.foto || 'default_obra.jpg')) %>" class="mini-img <%= o.estatus !== 'Disponible' ? 'art-unavailable' : '' %>" alt="<%= o.nombre %>">
-                                    
                                     <% if (o.estatus === 'Vendida') { %>
                                         <div class="status-overlay">ADQUIRIDA</div>
                                     <% } else if (o.estatus === 'Reservada') { %>
                                         <div class="status-overlay" style="border-color: var(--at-orange); color: var(--at-orange);">RESERVADA</div>
                                     <% } %>
                                 </div>
-                                
                                 <h4 class="mini-obra-title text-truncate"><%= o.nombre %></h4>
-                                
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold fs-5 text-white-50">$<%= parseFloat(o.precioObra).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
-                                    
+                                    <span class="fw-bold fs-5 text-white-50"><%= formatShorthandMetric(o.precioobra || o.precioObra || 0) %></span>
                                     <% if (o.estatus === 'Disponible') { %>
                                         <a href="/galeria/detalle/<%= o.id %>" class="btn-mini-view" style="width: 100px;">Ver</a>
                                     <% } else { %>
@@ -302,11 +314,8 @@
             <% } %>
         </section>
 
-        <!-- BOTÓN DE REGRESO -->
         <div class="text-center py-5">
-            <a href="/galeria" class="btn-back-atrium">
-                ← Regresar al catálogo
-            </a>
+            <a href="/galeria" class="btn-back-atrium">← Regresar al catálogo</a>
         </div>
     </div>
 </div>

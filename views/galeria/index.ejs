@@ -240,6 +240,19 @@
         transform: scale(1.02);
         filter: brightness(1.1);
     }
+
+    .btn-back-atrium {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+        display: inline-block;
+    }
+    .btn-back-atrium:hover { color: white; border-color: white; background: rgba(255,255,255,0.03); }
 </style>
 
 <div class="gallery-wrapper">
@@ -269,14 +282,14 @@
                         <div class="col-md-4">
                             <div class="obra-card shadow-lg p-3" style="background: #0d1117 !important; border: 1px solid rgba(255,255,255,0.05) !important;">
                                 <div class="img-container mb-3" style="height: 160px;">
-                                    <img src="<%= rec.foto ? ('/uploads/' + rec.foto) : '/img/default_obra.jpg' %>" class="obra-img" alt="<%= rec.nombre %>">
+                                    <img src="<%= (rec.foto && rec.foto.startsWith('http')) ? rec.foto : ('/uploads/' + (rec.foto || 'default_obra.jpg')) %>" class="obra-img" alt="<%= rec.nombre %>" onerror="this.src='/img/default_obra.jpg'">
                                 </div>
                                 <div class="category-tag mb-2" style="font-size: 0.55rem;"><%= rec.nombre_genero %></div>
                                 <h4 class="text-white text-truncate text-start" style="font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 4px;"><%= rec.nombre %></h4>
                                 <p class="text-white-50 text-truncate text-start mb-2" style="font-size: 0.75rem;">Por: <span style="color: var(--at-orange); font-weight: 700;"><%= rec.nombre_artista %></span></p>
                                 <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <span class="text-white fw-bold" style="font-size: 1.1rem;">$<%= shortFormat.format(parseFloat(rec.precioObra || 0)) %></span>
-                                    <a href="/galeria/detalle/<%= rec.id %>" class="btn btn-sm px-3 py-1.5 rounded-pill" style="background: var(--at-orange); color: white; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Ver</a>
+                                    <span class="text-white fw-bold" style="font-size: 1.1rem;">$<%= shortFormat.format(parseFloat(rec.precioobra || rec.precioObra || 0)) %></span>
+                                    <a href="/galeria/detalle/<%= rec.id %>" class="btn btn-sm px-3 py-1.5 rounded-pill" style="background: var(--at-orange); color: white; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; text-decoration:none;">Ver</a>
                                 </div>
                             </div>
                         </div>
@@ -293,7 +306,7 @@
                     <% if (populares.artistas && populares.artistas.length > 0) { %>
                         <div class="col-md-6">
                             <div class="p-3 rounded-4" style="background: #0d1117 !important; border: 1px solid rgba(255,255,255,0.05);">
-                                <h5 class="text-white mb-3" style="font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--at-orange);">👨‍🎨 Artistas Populares</h5>
+                                <h5 class="text-white mb-3" style="font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--at-orange);">👨‍¢ Artistas Populares</h5>
                                 <ul class="list-group list-group-flush bg-transparent">
                                     <% populares.artistas.forEach((art, idx) => { %>
                                         <li class="list-group-item bg-transparent text-white border-0 px-0 d-flex justify-content-between align-items-center">
@@ -385,7 +398,8 @@
                                  data-search="<%= obra.nombre %> <%= obra.nombre_artista %> <%= obra.apellido_artista %>">
                                 <article class="obra-card shadow-lg">
                                     <div class="img-container">
-                                        <img src="<%= (obra.foto && obra.foto.startsWith('http')) ? obra.foto : ('/uploads/' + (obra.foto || 'default_obra.jpg')) %>" class="obra-img" alt="<%= obra.nombre %>">
+                                        <!-- CORREGIDO: Lógica híbrida para las fotos de la grilla -->
+                                        <img src="<%= (obra.foto && obra.foto.startsWith('http')) ? obra.foto : ('/uploads/' + (obra.foto || 'default_obra.jpg')) %>" class="obra-img" alt="<%= obra.nombre %>" onerror="this.src='/img/default_obra.jpg'">
                                     </div>
                                     
                                     <div class="obra-info">
@@ -396,7 +410,8 @@
                                                 <%= obra.nombre_artista %> <%= obra.apellido_artista %>
                                             </a>
                                         </p>
-                                        <div class="obra-price text-start">$<%= shortFormat.format(parseFloat(obra.precioObra || 0)) %></div>
+                                        <!-- CORREGIDO: Tolerancia a minúsculas en el fallback del catálogo -->
+                                        <div class="obra-price text-start">$<%= shortFormat.format(parseFloat(obra.precioobra || obra.precioObra || 0)) %></div>
                                         
                                         <a href="/galeria/detalle/<%= obra.id %>" class="btn-atrium-pill">
                                             Ver Detalles
@@ -416,6 +431,27 @@
                         <h4 class="text-white-50 fw-light">No se encontraron coincidencias en esta vista.</h4>
                     </div>
                 </div>
+
+                <!-- CONTROLES DE PAGINACIÓN DE GAMA ALTA (EJS CLÁSICO) -->
+                <% if (locals.currentPage) { %>
+                    <div class="d-flex justify-content-center align-items-center gap-3 mt-5 pt-4 border-t border-secondary border-opacity-10">
+                        <% if (currentPage > 1) { %>
+                            <a href="/galeria?page=<%= currentPage - 1 %>&genero=<%= filtros.genero || '' %>&artista=<%= filtros.artista || '' %>&precio=<%= filtros.precio || '' %>&busqueda=<%= filtros.busqueda || '' %>" class="btn btn-back-atrium" style="padding: 10px 24px; border-radius:100px; text-decoration:none; font-size:0.85rem;">
+                                ← Anterior
+                            </a>
+                        <% } %>
+                        
+                        <span class="text-white-50 font-monospace small">Página <%= currentPage %></span>
+                        
+                        <!-- Si el lote actual tiene 12 obras (lote completo), habilitar botón para ir a la siguiente -->
+                        <% if (obras.length === 12) { %>
+                            <a href="/galeria?page=<%= currentPage + 1 %>&genero=<%= filtros.genero || '' %>&artista=<%= filtros.artista || '' %>&precio=<%= filtros.precio || '' %>&busqueda=<%= filtros.busqueda || '' %>" class="btn btn-back-atrium" style="padding: 10px 24px; border-radius:100px; text-decoration:none; font-size:0.85rem;">
+                                Siguiente →
+                            </a>
+                        <% } %>
+                    </div>
+                <% } %>
+
             </div>
         </div>
     </div>

@@ -36,7 +36,7 @@ const AuthController = {
         });
     },
 
-    // --- 2. PROCESAR REGISTRO (POST) ---
+    // --- 2. PROCESAR REGISTRO (POST - OPTIMIZACIÓN DE RED ASÍNCRONA) ---
     registrar: async (req, res) => {
         let idUsuarioCreado = null;
         try {
@@ -91,13 +91,15 @@ const AuthController = {
             await InfoCompradorModel.crear(idUsuario, codigoSeguridad, tarjetaSegura, direccionFisica);
             await UsuarioModel.guardarRespuestas(idUsuario, preguntasIds, respuestasHasheadas);
             
-            // --- SYNC NEO4J COMPRADOR ---
+            // --- SYNC NEO4J COMPRADOR (Asíncrono en segundo plano para no bloquear) ---
             const Neo4jSyncService = require('../services/Neo4jSyncService');
-            await Neo4jSyncService.syncComprador({ id: idUsuario, ...nuevoUsuario });
+            Neo4jSyncService.syncComprador({ id: idUsuario, ...nuevoUsuario }).catch(err => {
+                console.error("❌ Falló la sincronización asíncrona de comprador en Neo4j:", err.message);
+            });
 
-            // --- AUDITORÍA DE MEMBRESÍA EN CASSANDRA ---
+            // --- AUDITORÍA DE MEMBRESÍA EN CASSANDRA (Asíncrono en segundo plano) ---
             const ahora = new Date();
-            await enviarAuditoria('/reportes/membresias', {
+            enviarAuditoria('/reportes/membresias', {
                 anio: ahora.getFullYear(),
                 mes: ahora.getMonth() + 1,
                 id_membresia: idUsuario,
@@ -106,18 +108,18 @@ const AuthController = {
                 codigo_membresia: codigoSeguridad,
                 monto_cobrado: "10.00",
                 estado: "ACTIVA"
+            }).catch(err => {
+                console.error("❌ Falló la auditoría asíncrona de membresía en Cassandra:", err.message);
             });
 
-            // --- ENVÍO DE CORREO REAL ---
-            try {
-                await sendSecurityCode(gmail, codigoSeguridad);
-            } catch (mailError) {
-                console.error("Error al enviar correo real:", mailError.message);
-            }
+            // --- ENVÍO DE CORREO REAL (Asíncrono en segundo plano) ---
+            sendSecurityCode(gmail, codigoSeguridad).catch(mailError => {
+                console.error("❌ Error al enviar correo real:", mailError.message);
+            });
 
             console.log("---------------------------------------------------");
-            console.log(`📧 SIMULANDO ENVÍO DE CORREO A: ${gmail}`);
-            console.log(`🔐 SU CÓDIGO DE SEGURIDAD ES: ${codigoSeguridad}`);
+            console.log(`📧 ENVIANDO CORREO EN SEGUNDO PLANO A: ${gmail}`);
+            console.log(`🔐 CÓDIGO DE SEGURIDAD GENERADO: ${codigoSeguridad}`);
             console.log("---------------------------------------------------");
 
             res.redirect('/auth/login?success=Registro exitoso.');
@@ -129,7 +131,7 @@ const AuthController = {
         }
     },
 
-    // --- 3. PROCESAR LOGIN (POST) ---
+    // --- 3. PROCESAR LOGIN (POST - OPTIMIZACIÓN DE RED) ---
     login: async (req, res) => {
         try {
             const { login, password } = req.body;
@@ -137,43 +139,46 @@ const AuthController = {
             const usuario = await UsuarioModel.buscarPorLogin(login);
 
             if (!usuario) {
-                await enviarAuditoria('/seguridad/logs', {
+                // Registro asíncrono de log fallido
+                enviarAuditoria('/seguridad/logs', {
                     usuario_id: 0,
                     ip_origen: req.ip || '127.0.0.1',
                     login_usuario: login,
                     evento_tipo: 'LOGIN_FALLIDO',
                     detalles: 'Usuario no existe'
-                });
+                }).catch(err => console.error("Error Cassandra Audit:", err.message));
+
                 return res.render('auth/login', { error: 'Credenciales inválidas (Usuario no existe)' });
             }
 
             const passwordCorrecto = await bcrypt.compare(password, usuario.password);
 
             if (!passwordCorrecto) {
-                await enviarAuditoria('/seguridad/logs', {
+                // Registro asíncrono de log fallido
+                enviarAuditoria('/seguridad/logs', {
                     usuario_id: usuario.id,
                     ip_origen: req.ip || '127.0.0.1',
                     login_usuario: login,
                     evento_tipo: 'LOGIN_FALLIDO',
                     detalles: 'Contraseña incorrecta'
-                });
+                }).catch(err => console.error("Error Cassandra Audit:", err.message));
+
                 return res.render('auth/login', { error: 'Credenciales inválidas (Contraseña incorrecta)' });
             }
 
-            await enviarAuditoria('/seguridad/logs', {
+            // Registro asíncrono de log exitoso
+            enviarAuditoria('/seguridad/logs', {
                 usuario_id: usuario.id,
                 ip_origen: req.ip || '127.0.0.1',
                 login_usuario: login,
                 evento_tipo: 'LOGIN_EXITOSO',
                 detalles: 'Inicio de sesión exitoso'
-            });
+            }).catch(err => console.error("Error Cassandra Audit:", err.message));
 
-            // En AuthController.js, dentro de login (Éxito):
-                req.session.flash = { 
-                    type: 'success', 
-                    message: `👋 ¡Bienvenido, ${usuario.nombre}!` 
-                    };
-
+            req.session.flash = { 
+                type: 'success', 
+                message: `👋 ¡Bienvenido, ${usuario.nombre}!` 
+            };
 
             req.session.usuario = {
                 id: usuario.id,

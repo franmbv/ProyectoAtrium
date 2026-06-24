@@ -5,71 +5,38 @@ const ArtistaModel = require('../models/ArtistaModel');
 const InfoCompradorModel = require('../models/InfoCompradorModel');
 const MongoSyncService = require('../services/MongoSyncService');
 const Neo4jSyncService = require('../services/Neo4jSyncService');
-
 const bcrypt = require('bcryptjs');
 const UsuarioModel = require('../models/UsuarioModel');
 const { sendReservaAceptada } = require('../config/mailer');
 const { enviarAuditoria } = require('../config/auditoria');
-
-// LIBRERÍAS PARA EL PDF
 const puppeteer = require('puppeteer-core');
 const ejs = require('ejs');
 const path = require('path');
 const fs = require('fs');
-
-//Librerias de Excel
 const { Parser } = require('json2csv');
+const axios = require('axios');
 
-const axios = require('axios'); 
-
-// --- INICIALIZACIÓN DE LA CONEXIÓN A SUPABASE STORAGE ---
+// --- INICIALIZACIÓN DE SUPABASE ---
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// FUNCIÓN HELPER ADAPTATIVA DE SUBIDA REUTILIZABLE (Tolerante a fallos de RAM/Disco)
+// Helper de subida a Supabase
 const subirImagenASupabase = async (file, subcarpeta) => {
     if (!file) return null;
     try {
-        let fileBuffer;
-        
-        // Adaptación automática para MemoryStorage (buffer) o DiskStorage (path)
-        if (file.buffer) {
-            fileBuffer = file.buffer;
-        } else if (file.path) {
-            fileBuffer = fs.readFileSync(file.path);
-        } else {
-            throw new Error("No se detectaron datos binarios en el archivo subido.");
-        }
-
+        let fileBuffer = file.buffer || fs.readFileSync(file.path);
         const filename = `${subcarpeta}/${Date.now()}-${file.originalname}`;
-
-        // Subir al bucket público 'atrium-images'
-        const { data, error } = await supabase.storage
-            .from('atrium-images')
-            .upload(filename, fileBuffer, {
-                contentType: file.mimetype,
-                duplex: 'half'
-            });
-
+        const { error } = await supabase.storage.from('atrium-images').upload(filename, fileBuffer, {
+            contentType: file.mimetype,
+            duplex: 'half'
+        });
         if (error) throw error;
-
-        // Obtener la URL pública del CDN de Supabase
-        const { data: publicUrlData } = supabase.storage
-            .from('atrium-images')
-            .getPublicUrl(filename);
-
-        // Limpieza segura del disco local si existía una ruta física temporal
-        if (file.path && fs.existsSync(file.path)) {
-            fs.unlinkSync(file.path);
-        }
-
-        console.log(`🟢 Imagen de ${subcarpeta} subida con éxito a Supabase:`, publicUrlData.publicUrl);
-        return publicUrlData.publicUrl;
-
+        const { data } = supabase.storage.from('atrium-images').getPublicUrl(filename);
+        if (file.path && fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        return data.publicUrl;
     } catch (error) {
-        console.error(`❌ [Supabase Error] Subida de ${subcarpeta} fallida, aplicando fallback local:`, error.message);
-        // Si falla la subida, conservamos el filename local para evitar caídas del flujo
-        return file.filename || null;
+        console.error("❌ Supabase Error:", error.message);
+        return file.filename; // Fallback
     }
 };
 
@@ -327,46 +294,109 @@ const AdminController = {
         }
     },
 
+  // GUARDAR OBRA (Transaccional Políglota con Inserciones de Especialización SQL)
     guardarObra: async (req, res) => {
+        const client = await db.connect(); // Adquirir cliente aislado para la transacción relacional
         try {
-            // Subir imagen de obra a Supabase de forma adaptativa
+            // 1. Subir imagen a Supabase (operación externa inicial de red)
             const foto = req.file ? await subirImagenASupabase(req.file, 'obras') : null;
 
             if (req.body.obra_id) {
+                // Flujo de actualización (se mantiene síncrono estándar)
                 const actualizada = await ObraModel.actualizar(req.body.obra_id, req.body, foto);
-                if (!actualizada) {
+                if (!updated) {
                     return res.status(404).send('Obra no encontrada');
                 }
                 
-                // --- SYNC MONGO (Asíncrono para no retrasar la redirección) ---
                 req.body.foto = foto || req.body.foto_actual;
-                MongoSyncService.syncObra(req.body, true).catch(err => {
-                    console.error("❌ Falló la sincronización asíncrona de obra en MongoDB:", err.message);
-                });
+                await MongoSyncService.syncObra(req.body, true);
 
                 return res.redirect('/admin/inventario');
+            } else {
+                // 2. INICIAR TRANSACCIÓN EN POSTGRESQL (Para garantizar atomicidad)
+                await client.query('BEGIN');
+
+                const sqlObra = `INSERT INTO obra
+                    (genero_id, autor_id, nombre, fechaCreacion, precioObra, porcentajeGanancia, estatus, foto)
+                    VALUES ($1, $2, $3, CURRENT_DATE, $4, $5, 'Disponible', $6) RETURNING id`;
+                
+                const resObra = await client.query(sqlObra, [
+                    parseInt(req.body.genero_id, 10),
+                    parseInt(req.body.autor_id, 10),
+                    req.body.nombre,
+                    parseFloat(req.body.precioObra),
+                    parseFloat(req.body.porcentajeGanancia),
+                    foto
+                ]);
+
+                const nuevaObraId = resObra.rows[0].id;
+                req.body.id = nuevaObraId;
+                req.body.foto = foto;
+
+                // 3. INSERCIÓN DE ESPECIALIZACIÓN EN LAS TABLAS HIJAS RELACIONALES (SQL)
+                const generoId = parseInt(req.body.genero_id, 10);
+
+                if (generoId === 1) { // Pintura
+                    await client.query('INSERT INTO pintura (obra_id, tecnica, soporte) VALUES ($1, $2, $3)', [
+                        nuevaObraId, req.body.tecnica, req.body.soporte
+                    ]);
+                } 
+                else if (generoId === 2) { // Escultura
+                    await client.query('INSERT INTO escultura (obra_id, material, peso, largo, ancho, profundidad) VALUES ($1, $2, $3, $4, $5, $6)', [
+                        nuevaObraId,
+                        req.body.material,
+                        parseFloat(req.body.peso || 0),
+                        parseFloat(req.body.largo || 0),
+                        parseFloat(req.body.ancho || 0),
+                        parseFloat(req.body.profundidad || 0)
+                    ]);
+                } 
+                else if (generoId === 3) { // Fotografia
+                    await client.query('INSERT INTO fotografia (obra_id, tipo, papel, formato) VALUES ($1, $2, $3, $4)', [
+                        nuevaObraId, req.body.tipo_foto, req.body.papel, req.body.formato
+                    ]);
+                } 
+                else if (generoId === 4) { // Ceramica
+                    await client.query('INSERT INTO ceramica (obra_id, tipoArcilla, temperaturaCoccion, tipoEsmalte) VALUES ($1, $2, $3, $4)', [
+                        nuevaObraId, req.body.tipoArcilla, parseFloat(req.body.temperaturaCoccion || 0), req.body.tipoEsmalte
+                    ]);
+                } 
+                else if (generoId === 5) { // Orfebreria
+                    await client.query('INSERT INTO orfebreria (obra_id, metal, pureza, piedraPreciosa) VALUES ($1, $2, $3, $4)', [
+                        nuevaObraId, req.body.metal, parseFloat(req.body.pureza || 0), parseInt(req.body.piedraPreciosa || 0, 10)
+                    ]);
+                }
+
+                // 4. SINCRONIZACIÓN SÍNCRONA CON MONGODB
+                try {
+                    await MongoSyncService.syncObra(req.body, false);
+                } catch (mongoErr) {
+                    throw new Error(`Sincronización NoSQL (MongoDB) fallida: ${mongoErr.message}`);
+                }
+
+                // 5. SINCRONIZACIÓN SÍNCRONA CON NEO4J
+                try {
+                    await Neo4jSyncService.syncObra(req.body);
+                } catch (neoErr) {
+                    // Revertir de MongoDB si Neo4j falla para mantener la consistencia
+                    await MongoSyncService.deleteObra(nuevaObraId).catch(() => {});
+                    throw new Error(`Sincronización NoSQL (Neo4j) fallida: ${neoErr.message}`);
+                }
+
+                // 6. Si todo el flujo fue exitoso, confirmamos la transacción relacional
+                await client.query('COMMIT');
+                res.redirect('/admin/gestion-obras');
             }
-
-            const nuevaObraId = await ObraModel.crear(req.body, foto);
-
-            // --- SYNC MONGO (Asíncrono) ---
-            req.body.id = nuevaObraId;
-            req.body.foto = foto;
-            MongoSyncService.syncObra(req.body, false).catch(err => {
-                console.error("❌ Falló la sincronización asíncrona de obra en MongoDB:", err.message);
-            });
-
-            // --- SYNC NEO4J (Asíncrono) ---
-            Neo4jSyncService.syncObra(req.body).catch(err => {
-                console.error("❌ Falló la sincronización asíncrona de obra en Neo4j:", err.message);
-            });
-
-            res.redirect('/admin/gestion-obras');
         } catch (error) {
-            console.error(error);
-            res.status(500).send('Error al guardar la obra');
+            // Revertir toda la transacción relacional (madre e hijas) en caso de cualquier fallo en la red NoSQL
+            await client.query('ROLLBACK');
+            console.error("❌ Transacción Políglota Fallida (Rollback relacional aplicado):", error.message);
+            res.status(500).send(`Error al guardar la obra en el ecosistema: ${error.message}`);
+        } finally {
+            client.release(); // Liberar el cliente de vuelta al pool
         }
     },
+
 
     inventarioObras: async (req, res) => {
         try {

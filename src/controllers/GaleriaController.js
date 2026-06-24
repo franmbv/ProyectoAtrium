@@ -8,9 +8,13 @@ const MONGO_API_URL = process.env.MONGO_API_URL || 'http://localhost:8000';
 
 const GaleriaController = {
     
-    // Mostrar la Galería Principal
+    // Mostrar la Galería Principal (CON SOPORTE DE PAGINACIÓN)
     mostrarGaleria: async (req, res) => {
         try {
+            // Capturar la página actual (por defecto la 1) y el límite de obras por lote (12)
+            const page = parseInt(req.query.page || 1, 10);
+            const limit = 12;
+
             const filtros = {
                 genero: req.query.genero || null,
                 artista: req.query.artista || null,
@@ -19,25 +23,25 @@ const GaleriaController = {
             };
 
             // Cargamos géneros y artistas de SQL para los filtros de la vista
-            // Los necesitamos antes para poder mapear el nombre del género de las obras de Mongo
             const generos = await ObraModel.obtenerGeneros();
             const artistas = await ObraModel.obtenerArtistas();
 
-            // --- INTEGRACIÓN SPRINT 1: LEER DE MONGODB ---
+            // --- INTEGRACIÓN SPRINT 1: LEER DE MONGODB (PAGINADO) ---
             let obrasMongo = [];
             try {
-                const queryParams = {};
+                const queryParams = { page, limit }; // Pasar parámetros de paginación a la API de Python
                 if (filtros.genero) queryParams.genero_id = filtros.genero;
                 
-                const response = await axios.get(`${MONGO_API_URL}/catalog/search`, { params: queryParams });
-                obrasMongo = response.data;
+                const response = await axios.get(`${MONGO_API_URL}/catalog/search`, { 
+                    params: queryParams,
+                    timeout: 1500 // Evitar cuelgues si el microservicio está en arranque en frío
+                });
+                obrasMongo = response.data || [];
                 
                 // Mapear la respuesta de Mongo (anidada) a la estructura plana SQL que espera EJS
                 obrasMongo = obrasMongo.map(obra => {
                     const infoArtista = obra.informacion_artista || {};
                     
-                    // Buscar el nombre del género localmente usando el ID
-                    // Nota: En la DB SQL la columna es 'Id' (mayúscula)
                     const generoLocal = generos.find(g => (g.id === obra.genero_id || g.Id === obra.genero_id));
                     const nombreGenero = generoLocal ? generoLocal.nombre : 'Desconocido';
 
@@ -49,7 +53,7 @@ const GaleriaController = {
                         estatus: obra.estatus,
                         nombre_artista: infoArtista.nombre || 'Desconocido',
                         apellido_artista: infoArtista.apellido || '',
-                        nombre_genero: nombreGenero, // <-- CORRECCIÓN APLICADA AQUÍ
+                        nombre_genero: nombreGenero,
                         autor_id: obra.autor_id,
                         genero_id: obra.genero_id
                     };
@@ -132,6 +136,7 @@ const GaleriaController = {
                 generos,
                 artistas,
                 filtros, 
+                currentPage: page, // Enviar la página actual a la vista para renderizar los controles de paginación
                 message,
                 obrasRecomendadas,
                 populares
@@ -247,8 +252,7 @@ const GaleriaController = {
             console.error(error);
             res.status(500).json({ error: 'Error del servidor' });
         }
-    }
-,
+    },
 
     // Mostrar historial (compras y reservas) del usuario logueado
     historial: async (req, res) => {
@@ -300,8 +304,7 @@ const GaleriaController = {
             console.error('Error en historial:', error);
             res.status(500).send('Error al cargar historial');
         }
-    }
-    ,
+    },
 
     // Ver factura detalle para el comprador (solo lectura)
     facturaUsuario: async (req, res) => {
