@@ -91,6 +91,10 @@ const AuthController = {
             await InfoCompradorModel.crear(idUsuario, codigoSeguridad, tarjetaSegura, direccionFisica);
             await UsuarioModel.guardarRespuestas(idUsuario, preguntasIds, respuestasHasheadas);
             
+            // --- SYNC NEO4J COMPRADOR ---
+            const Neo4jSyncService = require('../services/Neo4jSyncService');
+            await Neo4jSyncService.syncComprador({ id: idUsuario, ...nuevoUsuario });
+
             // --- AUDITORÍA DE MEMBRESÍA EN CASSANDRA ---
             const ahora = new Date();
             await enviarAuditoria('/reportes/membresias', {

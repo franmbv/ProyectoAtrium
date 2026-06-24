@@ -4,6 +4,7 @@ const VentaModel = require('../models/ventaModel');
 const ArtistaModel = require('../models/ArtistaModel');
 const InfoCompradorModel = require('../models/InfoCompradorModel');
 const MongoSyncService = require('../services/MongoSyncService');
+const Neo4jSyncService = require('../services/Neo4jSyncService');
 
 const bcrypt = require('bcryptjs');
 const UsuarioModel = require('../models/UsuarioModel');
@@ -241,11 +242,14 @@ verAuditoriaMembresias: async (req, res) => {
             }
 
             const nuevaObraId = await ObraModel.crear(req.body, foto);
-            
+
             // --- SYNC MONGO ---
             req.body.id = nuevaObraId;
             req.body.foto = foto;
             await MongoSyncService.syncObra(req.body, false);
+
+            // --- SYNC NEO4J ---
+            await Neo4jSyncService.syncObra(req.body);
 
             res.redirect('/admin/gestion-obras');
         } catch (error) {
@@ -391,6 +395,9 @@ verAuditoriaMembresias: async (req, res) => {
             req.body.id = nuevoArtistaId;
             req.body.foto = foto;
             await MongoSyncService.syncArtista(req.body, false);
+
+            // --- SYNC NEO4J ---
+            await Neo4jSyncService.syncArtista(req.body);
 
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
@@ -544,6 +551,9 @@ verAuditoriaMembresias: async (req, res) => {
             // --- SYNC MONGO ---
             const obraCompletaSync = await ObraModel.obtenerPorId(obra_id);
             if (obraCompletaSync) await MongoSyncService.syncObra(obraCompletaSync, true);
+
+            // --- SYNC NEO4J COMPRA ---
+            await Neo4jSyncService.syncCompra(comprador_id, obra_id, total);
 
             // --- AUDITORÍA DE OBRA EN CASSANDRA ---
             await enviarAuditoria('/obras/historico', {
@@ -884,6 +894,64 @@ verAuditoriaMembresias: async (req, res) => {
         console.error(error);
         res.status(500).send("Error al exportar datos");
     }
+    },
+
+    pantallaNLPQuery: async (req, res) => {
+        res.render('admin/nlp-query', {
+            query: null,
+            results: null,
+            error: null,
+            cypher: null,
+            intent: null
+        });
+    },
+
+    procesarNLPQuery: async (req, res) => {
+        const text = req.body.text ? String(req.body.text).trim() : '';
+        if (!text) {
+            return res.render('admin/nlp-query', {
+                query: '',
+                results: null,
+                error: 'La consulta no puede estar vacía.',
+                cypher: null,
+                intent: null
+            });
+        }
+
+        const NEO4J_API_URL = process.env.NEO4J_API_URL || 'http://localhost:8000';
+
+        try {
+            const response = await axios.post(`${NEO4J_API_URL}/api/v1/graph/nlp-query`, { text });
+            const resultData = response.data;
+
+            if (resultData && resultData.success) {
+                const data = resultData.data;
+                res.render('admin/nlp-query', {
+                    query: text,
+                    results: data.results,
+                    cypher: data.query,
+                    intent: data.intent,
+                    error: null
+                });
+            } else {
+                res.render('admin/nlp-query', {
+                    query: text,
+                    results: null,
+                    cypher: null,
+                    intent: null,
+                    error: resultData.message || 'No se pudo interpretar la consulta.'
+                });
+            }
+        } catch (error) {
+            console.error('[NLP Query Error]:', error.response?.data || error.message);
+            res.render('admin/nlp-query', {
+                query: text,
+                results: null,
+                cypher: null,
+                intent: null,
+                error: error.response?.data?.detail || 'Error de conexión con el microservicio NLP.'
+            });
+        }
     }
 
 };

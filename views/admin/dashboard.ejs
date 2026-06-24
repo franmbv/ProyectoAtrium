@@ -291,8 +291,12 @@
                 <span><span role="img">📄</span>Facturas por Comprador</span>
                 <span class="arrow">→</span>
             </a>
-            <a href="/admin/reportes-membresia" class="list-group-item list-group-item-action border-0">
+            <a href="/admin/reportes-membresia" class="list-group-item list-group-item-action">
                 <span><span role="img">💳</span>Usuarios con Membresía</span>
+                <span class="arrow">→</span>
+            </a>
+            <a href="/admin/nlp-query" class="list-group-item list-group-item-action border-0">
+                <span><span role="img">🧠</span> Consultas NLP en Grafos (Neo4j)</span>
                 <span class="arrow">→</span>
             </a>
             <% if (locals.usuario && locals.usuario.rol === 3) { %>

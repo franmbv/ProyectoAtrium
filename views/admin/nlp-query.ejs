@@ -1,0 +1,296 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<!-- Tipografías de alta gama -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-border: rgba(255, 255, 255, 0.08);
+        --at-red-soft: rgba(239, 68, 68, 0.12);    
+        --at-red-text: #fca5a5;
+        --at-green-soft: rgba(34, 197, 94, 0.12);
+        --at-green-text: #4ade80;
+    }
+
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    .smart-search-bar {
+        background-color: var(--at-card-bg);
+        border: 1px solid var(--at-border);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 35px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    }
+
+    .section-subtitle {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #64748b;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    .input-dark {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 12px;
+        padding: 14px 20px;
+        font-size: 1rem;
+    }
+
+    .input-dark:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 10px rgba(249, 115, 22, 0.3) !important;
+        outline: none;
+    }
+
+    .btn-nlp {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 12px;
+        padding: 14px 25px;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-nlp:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(249, 115, 22, 0.4);
+    }
+
+    .tech-pill-container {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+
+    .tech-pill {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--at-border);
+        color: #94a3b8;
+        padding: 8px 16px;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .code-container {
+        background: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        padding: 20px;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9rem;
+        margin-bottom: 30px;
+    }
+
+    .code-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--at-orange);
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .inventory-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        margin-bottom: 45px;
+    }
+
+    .table-atrium { color: white !important; margin-bottom: 0; }
+    .table-atrium thead th {
+        background-color: var(--at-orange) !important;
+        color: #000000 !important; 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 18px;
+        border: none;
+        text-align: center;
+    }
+
+    .table-atrium tbody td {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+        padding: 18px;
+        color: #e2e8f0;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .alert-atrium-red {
+        background-color: var(--at-red-soft);
+        color: var(--at-red-text);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin-bottom: 30px;
+    }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 1050px;">
+        
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="admin-title"><span role="img">🧠</span> Consultas Inteligentes NLP</h2>
+                <p class="text-white-50 m-0">Consulte la base de datos de grafos Neo4j utilizando lenguaje natural traducido en tiempo real</p>
+            </div>
+            <a href="/admin/dashboard" class="btn btn-nlp" style="background-color: rgba(255,255,255,0.05) !important; border: 1px solid var(--at-border) !important; color: #94a3b8 !important;">
+                Volver al Panel
+            </a>
+        </div>
+
+        <!-- BARRA DE CONSULTA -->
+        <div class="smart-search-bar">
+            <form action="/admin/nlp-query" method="POST" class="row g-3 align-items-center">
+                <div class="col-lg-9">
+                    <label class="section-subtitle mb-2 d-block">Escriba su consulta en lenguaje natural</label>
+                    <input type="text" name="text" class="form-control input-dark w-100" 
+                           placeholder="Ej: ¿Qué obras ha comprado Juan? o ¿Cuáles son los artistas populares?" 
+                           value="<%= query || '' %>" required autocomplete="off">
+                </div>
+                <div class="col-lg-3 text-end" style="align-self: flex-end;">
+                    <button type="submit" class="btn btn-nlp w-100">
+                        Procesar Consulta
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ERROR MESSAGE -->
+        <% if (error) { %>
+            <div class="alert alert-atrium-red" role="alert">
+                <strong><span role="img">⚠️</span> Error:</strong> <%= error %>
+            </div>
+        <% } %>
+
+        <!-- RESULTADOS -->
+        <% if (results !== null) { %>
+            
+            <!-- CONTENEDOR DE TRADUCCIÓN TÉCNICA -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="code-container">
+                        <div class="code-label">Intención Detectada</div>
+                        <div class="text-white fw-bold"><%= intent || 'Desconocida' %></div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="code-container">
+                        <div class="code-label">Consulta Cypher de Neo4j</div>
+                        <div class="text-white-50 font-monospace" style="word-break: break-all;"><%= cypher || 'N/A' %></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA DE RESULTADOS DINÁMICA -->
+            <div class="section-subtitle mb-3">Resultados de la Base de Grafos</div>
+            <div class="inventory-card">
+                <div class="table-responsive">
+                    <table class="table table-atrium align-middle">
+                        <% if (results && results.length > 0) { 
+                            const headers = Object.keys(results[0]);
+                        %>
+                            <thead>
+                                <tr>
+                                    <% headers.forEach(h => { %>
+                                        <th><%= h.toUpperCase().replace('_', ' ') %></th>
+                                    <% }) %>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% results.forEach(row => { %>
+                                    <tr>
+                                        <% headers.forEach(h => { %>
+                                            <td>
+                                                <% if (typeof row[h] === 'object' && row[h] !== null) { %>
+                                                    <pre class="m-0 text-start text-white-50 font-monospace" style="font-size: 0.75rem;"><%= JSON.stringify(row[h], null, 2) %></pre>
+                                                <% } else if (row[h] === true || row[h] === false) { %>
+                                                    <%= row[h] ? 'Sí' : 'No' %>
+                                                <% } else { %>
+                                                    <%= row[h] %>
+                                                <% } %>
+                                            </td>
+                                        <% }) %>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        <% } else { %>
+                            <tbody>
+                                <tr>
+                                    <td class="p-5 text-white-50">
+                                        La consulta se ejecutó pero no devolvió ningún registro en el grafo.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        <% } %>
+                    </table>
+                </div>
+            </div>
+
+        <% } else if (!error) { %>
+            <!-- SUGERENCIAS DE CONSULTAS -->
+            <div class="section-subtitle mb-3">Sugerencias de consultas soportadas:</div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);">
+                        <div class="text-white fw-bold mb-1" style="font-size: 0.9rem;">"¿Cuáles son las obras recomendadas para el comprador 1?"</div>
+                        <p class="text-white-50 m-0" style="font-size: 0.8rem;">Consulta el recomendador personalizado de un usuario por su ID.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);">
+                        <div class="text-white fw-bold mb-1" style="font-size: 0.9rem;">"¿Qué artistas son populares?"</div>
+                        <p class="text-white-50 m-0" style="font-size: 0.8rem;">Lista de artistas ordenada por su volumen de ventas registradas.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);">
+                        <div class="text-white fw-bold mb-1" style="font-size: 0.9rem;">"¿Cuáles son las disciplinas o géneros favoritos?"</div>
+                        <p class="text-white-50 m-0" style="font-size: 0.8rem;">Muestra los géneros con mayor cantidad de interacciones y ventas.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);">
+                        <div class="text-white fw-bold mb-1" style="font-size: 0.9rem;">"¿Qué compras ha realizado el comprador con ID 2?"</div>
+                        <p class="text-white-50 m-0" style="font-size: 0.8rem;">Historial detallado de compras de un comprador específico.</p>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

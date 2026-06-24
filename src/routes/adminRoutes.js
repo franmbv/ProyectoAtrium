@@ -73,5 +73,9 @@ router.get('/auditoria/reportes', adminController.verAuditoriaReportes);
 // Agregar en src/routes/adminRoutes.js:
 router.get('/documentacion', adminController.verDocumentacion);
 
+// Consulta NLP en Grafos (Neo4j)
+router.get('/nlp-query', adminController.pantallaNLPQuery);
+router.post('/nlp-query', adminController.procesarNLPQuery);
+
 router.get('/auditoria/membresias', adminController.verAuditoriaMembresias);
 module.exports = router;

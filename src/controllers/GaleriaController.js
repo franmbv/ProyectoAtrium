@@ -81,6 +81,49 @@ const GaleriaController = {
                 obrasMongo = await ObraModel.obtenerFiltradas(filtros);
             }
 
+            // --- INTEGRACIÓN SPRINT 3: RECOMENDACIONES NEO4J ---
+            let obrasRecomendadas = [];
+            let populares = null;
+            const NEO4J_API_URL = process.env.NEO4J_API_URL || 'http://localhost:8000';
+            const usuarioLogueado = req.session?.usuario;
+
+            if (usuarioLogueado && usuarioLogueado.rol === 2) {
+                try {
+                    const recResponse = await axios.get(`${NEO4J_API_URL}/api/v1/recommendations/obras/${usuarioLogueado.id}`);
+                    if (recResponse.data && recResponse.data.success) {
+                        obrasRecomendadas = recResponse.data.data.map(rec => {
+                            const match = obrasMongo.find(o => o.id === rec.id_sql);
+                            return {
+                                id: rec.id_sql,
+                                nombre: rec.titulo,
+                                precioObra: rec.precio,
+                                nombre_artista: rec.artista,
+                                nombre_genero: rec.genero,
+                                foto: match ? match.foto : 'default.png',
+                                estatus: match ? match.estatus : 'Disponible'
+                            };
+                        });
+                    }
+                } catch (recError) {
+                    console.log(`[Neo4j Recommendations] Sin recomendaciones personalizadas para usuario ${usuarioLogueado.id}:`, recError.response?.data?.detail || recError.message);
+                }
+
+                if (obrasRecomendadas.length === 0) {
+                    try {
+                        const [artistasPop, generosPop] = await Promise.all([
+                            axios.get(`${NEO4J_API_URL}/api/v1/recommendations/artistas/populares?limit=3`).catch(() => null),
+                            axios.get(`${NEO4J_API_URL}/api/v1/recommendations/generos/populares?limit=3`).catch(() => null)
+                        ]);
+                        populares = {
+                            artistas: artistasPop?.data?.success ? artistasPop.data.data : [],
+                            generos: generosPop?.data?.success ? generosPop.data.data : []
+                        };
+                    } catch (popError) {
+                        console.error("[Neo4j Recommendations Error] Obteniendo populares:", popError.message);
+                    }
+                }
+            }
+
             const message = req.session.message;
             if (req.session.message) delete req.session.message;
 
@@ -89,7 +132,9 @@ const GaleriaController = {
                 generos,
                 artistas,
                 filtros, 
-                message
+                message,
+                obrasRecomendadas,
+                populares
             });
 
         } catch (error) {
