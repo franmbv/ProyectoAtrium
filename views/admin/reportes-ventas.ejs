@@ -157,7 +157,7 @@
 </style>
 
 <div class="admin-page-wrapper">
-    <div class="container" style="max-width: 1200px;">
+    <div class="container" style="max-width: 1100px;">
         
         <!-- HEADER SOLO CON TÍTULO -->
         <div class="mb-5">
@@ -229,17 +229,17 @@
                     <tbody id="salesTableBody">
                         <% if (ventas.length > 0) { %>
                             <% ventas.forEach(v => { %>
-                                <!-- Atributos de datos para el JS -->
+                                <!-- CORREGIDO: Tolerancia a minúsculas y campos nulos -->
                                 <tr class="sale-row" 
-                                    data-search="<%= v.nombre_obra.toLowerCase() %> <%= v.codigoDeFactura.toLowerCase() %>"
-                                    data-total="<%= v.precioFinalVenta %>"
-                                    data-profit="<%= v.gananciaMuseoDolares %>">
-                                    <td class="text-warning small font-monospace"><%= v.codigoDeFactura %></td>
-                                    <td class="text-white"><%= new Date(v.fechaDeVenta).toLocaleDateString() %></td>
+                                    data-search="<%= (v.nombre_obra || '').toLowerCase() %> <%= (v.codigodefactura || v.codigoDeFactura || '').toLowerCase() %>"
+                                    data-total="<%= v.preciofinalventa || v.precioFinalVenta %>"
+                                    data-profit="<%= v.gananciamuseodolares || v.gananciaMuseoDolares %>">
+                                    <td class="text-warning small font-monospace"><%= v.codigodefactura || v.codigoDeFactura %></td>
+                                    <td class="text-white"><%= new Date(v.fechadeventa || v.fechaDeVenta).toLocaleDateString() %></td>
                                     <td class="fw-bold text-white"><%= v.nombre_obra %></td>
-                                    <td style="color: #94a3b8">$<%= parseFloat(v.gananciaMuseoDolares).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
-                                    <td><span class="badge bg-dark border border-secondary text-white-50"><%= v.gananciaMuseoPorcentaje %>%</span></td>
-                                    <td class="fw-bold text-white">$<%= parseFloat(v.precioFinalVenta).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+                                    <td style="color: #94a3b8">$<%= parseFloat(v.gananciamuseodolares || v.gananciaMuseoDolares).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+                                    <td><span class="badge bg-dark border border-secondary text-white-50"><%= v.gananciamuseoporcentaje || v.gananciaMuseoPorcentaje %>%</span></td>
+                                    <td class="fw-bold text-white">$<%= parseFloat(v.preciofinalventa || v.precioFinalVenta).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                                 </tr>
                             <% }) %>
                         <% } else { %>
@@ -277,7 +277,7 @@
 
             // 1. Filtrado
             rows.forEach(row => {
-                const searchData = row.getAttribute('data-search');
+                const searchData = row.getAttribute('data-search') || '';
                 const isMatch = searchData.includes(term);
                 row.style.display = isMatch ? '' : 'none';
                 if (isMatch) visibleCount++;
@@ -287,18 +287,24 @@
             let sortedRows = [...rows];
             if (sortMode !== 'default') {
                 sortedRows.sort((a, b) => {
-                    const valA = parseFloat(a.getAttribute(sortMode.includes('total') ? 'data-total' : 'data-profit'));
-                    const valB = parseFloat(b.getAttribute(sortMode.includes('total') ? 'data-total' : 'data-profit'));
-                    
-                    return sortMode.includes('desc') ? valB - valA : valA - valB;
+                    if (sortMode === 'total-desc' || sortMode === 'total-asc') {
+                        const valA = parseFloat(a.getAttribute('data-total') || 0);
+                        const valB = parseFloat(b.getAttribute('data-total') || 0);
+                        return sortMode === 'total-desc' ? valB - valA : valA - valB;
+                    } else {
+                        const valA = parseFloat(a.getAttribute('data-profit') || 0);
+                        const valB = parseFloat(b.getAttribute('data-profit') || 0);
+                        return sortMode === 'profit-desc' ? valB - valA : valA - valB;
+                    }
                 });
+                rows.forEach(row => tableBody.appendChild(row));
             }
 
-            // 3. Re-inyectar
-            sortedRows.forEach(row => tableBody.appendChild(row));
-
-            // Mensajes
-            noResults.style.display = (visibleCount === 0 && term !== "") ? '' : 'none';
+            if (visibleCount === 0 && rows.length > 0) {
+                noResults.style.display = '';
+            } else {
+                noResults.style.display = 'none';
+            }
         }
 
         searchInput.addEventListener('input', updateTable);

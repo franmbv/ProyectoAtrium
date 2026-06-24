@@ -215,17 +215,18 @@
                     <tbody id="soldTableBody">
                         <% if (obras.length > 0) { %>
                             <% obras.forEach(o => { %>
+                                <!-- CORREGIDO: Tolerancia a minúsculas en atributos de datos -->
                                 <tr class="sold-row" 
-                                    data-search="<%= o.nombre.toLowerCase() %> <%= o.nombre_artista.toLowerCase() %> <%= o.apellido_artista.toLowerCase() %> <%= o.codigoDeFactura.toLowerCase() %>"
+                                    data-search="<%= (o.nombre || '').toLowerCase() %> <%= (o.nombre_artista || '').toLowerCase() %> <%= (o.apellido_artista || '').toLowerCase() %> <%= (o.codigodefactura || o.codigoDeFactura || '').toLowerCase() %>"
                                     data-genre="<%= o.nombre_genero %>"
-                                    data-price="<%= o.precioObra %>">
-                                    <td><img src="<%= (o.foto && o.foto.startsWith('http')) ? o.foto : ('/uploads/' + (o.foto || 'default_obra.jpg')) %>" class="img-thumb"></td>
+                                    data-price="<%= o.precioobra || o.precioObra %>">
+                                    <td><img src="<%= (o.foto && o.foto.startsWith('http')) ? o.foto : ('/uploads/' + (o.foto || 'default_obra.jpg')) %>" class="img-thumb" onerror="this.src='/img/default_obra.jpg'"></td>
                                     <td class="fw-bold text-white"><%= o.nombre %></td>
                                     <td style="color: #94a3b8"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
                                     <td style="color: #ffffff"><%= o.nombre_genero %></td>
-                                    <td class="text-white"><%= new Date(o.fechaDeVenta).toLocaleDateString() %></td>
-                                    <td class="text-warning small font-monospace"><%= o.codigoDeFactura %></td>
-                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioObra).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+                                    <td class="text-white"><%= new Date(o.fechadeventa || o.fechaDeVenta).toLocaleDateString() %></td>
+                                    <td class="text-warning small font-monospace"><%= o.codigodefactura || o.codigoDeFactura %></td>
+                                    <td class="fw-bold text-white">$<%= parseFloat(o.precioobra || o.precioObra).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                                 </tr>
                             <% }) %>
                         <% } else { %>
@@ -265,8 +266,8 @@
 
             // 1. Filtrar
             rows.forEach(row => {
-                const searchData = row.getAttribute('data-search');
-                const rowGenre = row.getAttribute('data-genre');
+                const searchData = row.getAttribute('data-search') || '';
+                const rowGenre = row.getAttribute('data-genre') || '';
                 
                 const matchesSearch = searchData.includes(term);
                 const matchesGenre = selectedGenre === "" || rowGenre === selectedGenre;
@@ -282,8 +283,8 @@
             // 2. Ordenar
             if (sortMode !== 'default') {
                 rows.sort((a, b) => {
-                    const priceA = parseFloat(a.getAttribute('data-price'));
-                    const priceB = parseFloat(b.getAttribute('data-price'));
+                    const priceA = parseFloat(a.getAttribute('data-price') || 0);
+                    const priceB = parseFloat(b.getAttribute('data-price') || 0);
                     return sortMode === 'asc' ? priceA - priceB : priceB - priceA;
                 });
                 rows.forEach(row => tableBody.appendChild(row));
