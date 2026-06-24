@@ -280,7 +280,7 @@
                                 data-nat="<%= a.nacionalidad.toLowerCase() %>">
                                 <td>
                                     <% if(a.fotografia) { %>
-                                        <img src="/uploads/<%= a.fotografia %>" class="img-artist-thumb" alt="Foto">
+                                        <img src="<%= (a.fotografia && a.fotografia.startsWith('http')) ? a.fotografia : ('/uploads/' + (a.fotografia || 'user.png')) %>" class="img-artist-thumb" alt="Foto">
                                     <% } else { %>
                                         <div class="rounded-circle bg-dark border border-secondary d-inline-flex align-items-center justify-content-center" style="width:50px; height:50px">👤</div>
                                     <% } %>

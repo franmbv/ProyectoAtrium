@@ -260,7 +260,7 @@
                                     data-search="<%= o.nombre.toLowerCase() %> <%= o.nombre_artista.toLowerCase() %> <%= o.apellido_artista.toLowerCase() %>"
                                     data-genre="<%= o.nombre_genero %>"
                                     data-price="<%= o.precioObra %>">
-                                    <td><img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" class="img-thumb"></td>
+                                    <td><img src="<%= (o.foto && o.foto.startsWith('http')) ? o.foto : ('/uploads/' + (o.foto || 'default_obra.jpg')) %>" class="img-thumb"></td>
                                     <td class="fw-bold text-white"><%= o.nombre %></td>
                                     <td style="color: #cbd5e1; font-weight: 500;"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
                                     <td style="color: #cbd5e1; font-weight: 500;"><%= o.nombre_genero %></td>

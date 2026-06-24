@@ -10,44 +10,44 @@ class ObraModel {
     }
 
     // 1. Obtener Obras para la Galería (con Filtros)
-  static async obtenerFiltradas(filtros) {
-    let query = `
-        SELECT o.*, a.nombre as nombre_artista, a.apellido as apellido_artista, g.nombre as nombre_genero 
-        FROM obra o
-        INNER JOIN artista a ON o.autor_id = a.id
-        INNER JOIN genero g ON o.genero_id = g.Id
-        WHERE o.estatus = 'Disponible'
-    `;
-    
-    const params = [];
+    static async obtenerFiltradas(filtros) {
+        let query = `
+            SELECT o.*, a.nombre as nombre_artista, a.apellido as apellido_artista, g.nombre as nombre_genero 
+            FROM obra o
+            INNER JOIN artista a ON o.autor_id = a.id
+            INNER JOIN generos g ON o.genero_id = g.id
+            WHERE o.estatus = 'Disponible'
+        `;
+        
+        const params = [];
 
-    if (filtros.busqueda && filtros.busqueda !== '') {
-        query += ' AND (o.nombre LIKE ? OR a.nombre LIKE ? OR a.apellido LIKE ?)';
-        const term = `%${filtros.busqueda}%`;
-        params.push(term, term, term);
+        if (filtros.busqueda && filtros.busqueda !== '') {
+            query += ' AND (o.nombre LIKE ? OR a.nombre LIKE ? OR a.apellido LIKE ?)';
+            const term = `%${filtros.busqueda}%`;
+            params.push(term, term, term);
+        }
+
+        if (filtros.genero && filtros.genero !== '') {
+            query += ' AND o.genero_id = ?';
+            params.push(filtros.genero);
+        }
+
+        if (filtros.artista && filtros.artista !== '') {
+            query += ' AND o.autor_id = ?';
+            params.push(filtros.artista);
+        }
+
+        if (filtros.precio === 'menor') {
+            query += ' ORDER BY o.precioObra ASC';
+        } else if (filtros.precio === 'mayor') {
+            query += ' ORDER BY o.precioObra DESC';
+        } else {
+            query += ' ORDER BY o.id DESC';
+        }
+
+        const [rows] = await db.execute(query, params);
+        return rows;
     }
-
-    if (filtros.genero && filtros.genero !== '') {
-        query += ' AND o.genero_id = ?';
-        params.push(filtros.genero);
-    }
-
-    if (filtros.artista && filtros.artista !== '') {
-        query += ' AND o.autor_id = ?';
-        params.push(filtros.artista);
-    }
-
-    if (filtros.precio === 'menor') {
-        query += ' ORDER BY o.precioObra ASC';
-    } else if (filtros.precio === 'mayor') {
-        query += ' ORDER BY o.precioObra DESC';
-    } else {
-        query += ' ORDER BY o.id DESC';
-    }
-
-    const [rows] = await db.execute(query, params);
-    return rows;
-}
 
     // 2. Obtener una Obra por ID con TODOS sus detalles
     static async obtenerPorId(id) {
@@ -68,7 +68,7 @@ class ObraModel {
                 orf.metal, orf.pureza, orf.piedraPreciosa
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN genero g ON o.genero_id = g.Id
+            INNER JOIN generos g ON o.genero_id = g.id
             LEFT JOIN escultura e ON o.id = e.obra_id
             LEFT JOIN pintura p ON o.id = p.obra_id
             LEFT JOIN fotografia f ON o.id = f.obra_id
@@ -83,7 +83,7 @@ class ObraModel {
 
     // 3. Obtener listas para los filtros
     static async obtenerGeneros() {
-        const [rows] = await db.execute('SELECT * FROM genero');
+        const [rows] = await db.execute('SELECT * FROM generos');
         return rows;
     }
 
@@ -101,7 +101,7 @@ class ObraModel {
 
     // Reservar obra
     static async reservarById(id, compradorId) {
-        const query = "UPDATE obra SET estatus = 'Reservada', reservado_por = ?, fecha_reserva = CURDATE() WHERE id = ? AND estatus = 'Disponible'";
+        const query = "UPDATE obra SET estatus = 'Reservada', reservado_por = ?, fecha_reserva = CURRENT_DATE WHERE id = ? AND estatus = 'Disponible'";
         const [result] = await db.execute(query, [compradorId, id]);
         return result.affectedRows > 0;
     }
@@ -127,7 +127,7 @@ class ObraModel {
                    g.nombre AS nombre_genero
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN genero g ON o.genero_id = g.id
+            INNER JOIN generos g ON o.genero_id = g.id
             ORDER BY o.id DESC
         `;
         const [rows] = await db.execute(sql);
@@ -141,7 +141,7 @@ class ObraModel {
                    g.nombre AS nombre_genero
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN genero g ON o.genero_id = g.id
+            INNER JOIN generos g ON o.genero_id = g.id
             WHERE o.estatus = 'Reservada'
             ORDER BY o.id DESC
         `;
@@ -157,7 +157,7 @@ class ObraModel {
                    g.nombre AS nombre_genero, o.reservado_por, o.fecha_reserva
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN genero g ON o.genero_id = g.id
+            INNER JOIN generos g ON o.genero_id = g.id
             WHERE o.estatus = 'Reservada' AND o.reservado_por = ?
             ORDER BY o.fecha_reserva DESC
         `;
@@ -169,7 +169,7 @@ class ObraModel {
     static async crear(datos, fotoFilename) {
         const sqlObra = `INSERT INTO obra
             (genero_id, autor_id, nombre, fechaCreacion, precioObra, porcentajeGanancia, estatus, foto)
-            VALUES (?, ?, ?, CURDATE(), ?, ?, 'Disponible', ?)`;
+            VALUES (?, ?, ?, CURRENT_DATE, ?, ?, 'Disponible', ?)`;
         
         const [result] = await db.execute(sqlObra, [
             datos.genero_id, datos.autor_id, datos.nombre, 
@@ -416,7 +416,7 @@ class ObraModel {
         const sql = `
             SELECT o.*, g.nombre as nombre_genero 
             FROM obra o
-            INNER JOIN genero g ON o.genero_id = g.Id
+            INNER JOIN generos g ON o.genero_id = g.id
             WHERE o.autor_id = ?
             ORDER BY o.fechaCreacion DESC
         `;
@@ -428,8 +428,8 @@ class ObraModel {
     static async obtenerEstadisticasGeneros() {
         const sql = `
             SELECT g.nombre, COUNT(o.id) as total 
-            FROM genero g
-            LEFT JOIN obra o ON o.genero_id = g.Id
+            FROM generos g
+            LEFT JOIN obra o ON o.genero_id = g.id
             GROUP BY g.nombre
         `;
         const [rows] = await db.execute(sql);

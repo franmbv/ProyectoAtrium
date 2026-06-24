@@ -2,13 +2,13 @@ const db = require('../config/db');
 
 class UsuarioModel {
 
-    // 1. Método para Registrar un Nuevo Usuario
+    // 1. Método para Registrar un Nuevo Usuario (Adaptado a PostgreSQL)
     static async crear(datos, rol = 2) {
         try {
             const query = `
-                INSERT INTO Usuario 
+                INSERT INTO usuario 
                 (rol_id, nombre, apellido, cedula, gmail, login, password, fechaRegistro) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE())
+                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)
             `;
             
             const [result] = await db.execute(query, [
@@ -30,7 +30,7 @@ class UsuarioModel {
 
     // 2. Método para Buscar por Login (Para el proceso de Autenticación)
     static async buscarPorLogin(login) {
-        const query = `SELECT * FROM Usuario WHERE login = ?`;
+        const query = `SELECT * FROM usuario WHERE login = ?`;
         const [rows] = await db.execute(query, [login]);
         
         return rows[0];
@@ -38,26 +38,26 @@ class UsuarioModel {
 
     // 3. Método auxiliar para verificar duplicados antes de registrar
     static async buscarPorEmail(email) {
-        const query = `SELECT * FROM Usuario WHERE gmail = ?`;
+        const query = `SELECT * FROM usuario WHERE gmail = ?`;
         const [rows] = await db.execute(query, [email]);
         return rows[0];
     }
     
     // 4. Método para buscar por ID (Útil para las variables de sesión)
     static async buscarPorId(id) {
-        const query = `SELECT * FROM Usuario WHERE id = ?`;
+        const query = `SELECT * FROM usuario WHERE id = ?`;
         const [rows] = await db.execute(query, [id]);
         return rows[0];
     }
 
-    //5. Obtener las preguntas y respuestas de un usuario
+    // 5. Obtener las preguntas y respuestas de un usuario
     static async obtenerPreguntasSeguridad(usuarioId) {
         const sql = `
             SELECT 
                 cp.pregunta, 
                 aqc.respuesta 
             FROM asignacion_q_comprador aqc
-            JOIN catalogopreguntas cp ON aqc.pregunta_id = cp.Id
+            JOIN catalogopreguntas cp ON aqc.pregunta_id = cp.id
             WHERE aqc.comprador_id = ?
         `;
         
@@ -67,7 +67,7 @@ class UsuarioModel {
 
     // 6. Obtener el catálogo de preguntas (Para mostrar en el formulario de registro)
     static async obtenerCatalogoPreguntas() {
-        const sql = `SELECT Id, pregunta FROM catalogopreguntas ORDER BY Id ASC`;
+        const sql = `SELECT id, pregunta FROM catalogopreguntas ORDER BY id ASC`;
         const [rows] = await db.execute(sql);
         return rows;
     }
@@ -150,6 +150,7 @@ class UsuarioModel {
         await db.execute(sql, [passwordHash, id]);
         return true;
     }
+
 }
 
 module.exports = UsuarioModel;

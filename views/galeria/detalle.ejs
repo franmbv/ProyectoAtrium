@@ -10,7 +10,6 @@
         --at-navy-darkest: #020617; 
         --at-card-bg: #161b22;     
         --at-orange: #f97316;      
-        --at-orange-glow: rgba(249, 115, 22, 0.4);
         --at-border: rgba(255, 255, 255, 0.1);
     }
 
@@ -188,11 +187,44 @@
 
 <div class="detail-wrapper">
     <% 
-        /* Precio completo para la vista de detalle */
-        const priceFormat = new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
+        /* LÓGICA DE FORMATEO COMPACTO PROFESIONAL (K, M, B, T, P, E) */
+        const formatShorthandMetric = (val) => {
+            if (val === undefined || val === null) return '0';
+            
+            // Sanitizar la cadena eliminando símbolos de dólar, comas de miles o espacios
+            let cleanVal = String(val).replace(/[^0-9.-]/g, '');
+            
+            // Si el formato viene con comas para decimales, normalizar a punto
+            if (String(val).includes(',') && !String(val).includes('.')) {
+                cleanVal = String(val).replace(/[^0-9,-]/g, '').replace(',', '.');
+            }
+            
+            const num = parseFloat(cleanVal);
+            if (isNaN(num) || num === 0) return '0';
+            
+            const absolute = Math.abs(num);
+            const sign = num < 0 ? '-' : '';
+            
+            if (absolute >= 1e18) { // Quintillones (E)
+                return sign + (absolute / 1e18).toFixed(1).replace(/\.0$/, '') + 'E';
+            }
+            if (absolute >= 1e15) { // Cuadrillones (P)
+                return sign + (absolute / 1e15).toFixed(1).replace(/\.0$/, '') + 'P';
+            }
+            if (absolute >= 1e12) { // Billones (T)
+                return sign + (absolute / 1e12).toFixed(1).replace(/\.0$/, '') + 'T';
+            }
+            if (absolute >= 1e9) {  // Miles de millones (B)
+                return sign + (absolute / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+            }
+            if (absolute >= 1e6) {  // Millones (M)
+                return sign + (absolute / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+            }
+            if (absolute >= 1e3) {  // Miles (K)
+                return sign + (absolute / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+            }
+            return sign + num.toLocaleString('en-US', { maximumFractionDigits: 1 });
+        };
     %>
 
     <div class="container-fluid">
@@ -200,9 +232,7 @@
             <div class="row g-0">
                 <!-- Columna Imagen (Aumentada para lucir la obra) -->
                 <div class="col-lg-7 img-column-detail">
-                    <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" 
-                         class="img-detail-pano" 
-                         alt="<%= obra.nombre %>">
+                    <img src="<%= (obra.foto && obra.foto.startsWith('http')) ? obra.foto : ('/uploads/' + (obra.foto || 'default_obra.jpg')) %>" class="img-detail-pano" alt="<%= obra.nombre %>">
                 </div>
                 
                 <!-- Columna Datos -->
@@ -217,8 +247,8 @@
                         </a>
                     </p>
                     
-                    <!-- Precio completo en la vista de detalle -->
-                    <div class="price-value-pano">$<%= priceFormat.format(parseFloat(obra.precioObra || 0)) %></div>
+                    <!-- Precio compacto asimétrico de alta gama en la vista de detalle -->
+                    <div class="price-value-pano">$<%= formatShorthandMetric(obra.precioObra) %></div>
 
                     <!-- FICHA TÉCNICA -->
                     <div class="specs-box-modern">

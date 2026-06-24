@@ -175,7 +175,7 @@
                         <select name="genero_id" class="form-select input-custom" id="genero_id" required>
                             <option value="">Seleccionar</option>
                             <% generos.forEach(g => { %>
-                                <option value="<%= g.Id %>"><%= g.nombre %></option>
+                                <option value="<%= g.id || g.Id %>"><%= g.nombre %></option>
                             <% }) %>
                         </select>
                     </div>

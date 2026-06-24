@@ -26,16 +26,17 @@ class InfoCompradorModel {
         return rows[0];
     }
 
-    // 2. REGISTRAR MEMBRESÍA (Usado en el Registro del Usuario)
+    // 2. REGISTRAR MEMBRESÍA (Usado en el Registro del Usuario - Transacción PostgreSQL)
     static async crear(idUsuario, codigoSeguridad, nroTarjeta, direccion) {
-        const connection = await db.getConnection(); 
+        // Adquirir un cliente aislado del pool de pg para la transacción
+        const client = await db.connect(); 
         try {
-            await connection.beginTransaction();
+            await client.query('BEGIN');
 
             const sqlInfo = `
                 INSERT INTO info_comprador 
                 (comprador_id, codigoSeguridad, nroTarjeta, estado, fechaGeneracion, pais, estado_residencia, ciudad, municipio, calle) 
-                VALUES (?, ?, ?, 'Activo', CURDATE(), ?, ?, ?, ?, ?)
+                VALUES ($1, $2, $3, 'Activo', CURRENT_DATE, $4, $5, $6, $7, $8)
             `;
 
             const paramsInfo = [
@@ -49,23 +50,23 @@ class InfoCompradorModel {
                 toDbValue(direccion?.calle, 'Pendiente')
             ];
 
-            await connection.execute(sqlInfo, paramsInfo);
+            await client.query(sqlInfo, paramsInfo);
 
             const sqlMembresia = `
                 INSERT INTO membresia 
                 (comprador_id, montoPagado, fechaPago, estadoMembresia) 
-                VALUES (?, 10, CURDATE(), 1)
+                VALUES ($1, 10, CURRENT_DATE, 1)
             `;
-            await connection.execute(sqlMembresia, [idUsuario]);
+            await client.query(sqlMembresia, [idUsuario]);
 
-            await connection.commit();
+            await client.query('COMMIT');
             return true;
 
         } catch (error) {
-            await connection.rollback();
+            await client.query('ROLLBACK');
             throw error;
         } finally {
-            connection.release();
+            client.release(); // Liberar el cliente de vuelta al pool
         }
     }
 

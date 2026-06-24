@@ -8,9 +8,9 @@ class ArtistaModel {
         return rows;
     }
 
-    // 2. PARA SELECTS Y GALERÍA: Trae solo los que pueden vender/aparecer
+    // 2. PARA SELECTS Y GALERÍA: Trae solo los que pueden vender/aparecer (Corregido para PostgreSQL)
     static async listarActivos() {
-        const [rows] = await db.execute('SELECT * FROM artista WHERE estado = "Activo" ORDER BY nombre ASC');
+        const [rows] = await db.execute("SELECT * FROM artista WHERE estado = 'Activo' ORDER BY nombre ASC");
         return rows;
     }
 

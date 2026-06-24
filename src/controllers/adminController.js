@@ -17,13 +17,62 @@ const ejs = require('ejs');
 const path = require('path');
 const fs = require('fs');
 
-
 //Librerias de Excel
 const { Parser } = require('json2csv');
 
 const axios = require('axios'); 
 
-// Importar Axios en caso de que no esté definido al inicio del archivo
+// --- INICIALIZACIÓN DE LA CONEXIÓN A SUPABASE STORAGE ---
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
+// FUNCIÓN HELPER ADAPTATIVA DE SUBIDA REUTILIZABLE (Tolerante a fallos de RAM/Disco)
+const subirImagenASupabase = async (file, subcarpeta) => {
+    if (!file) return null;
+    try {
+        let fileBuffer;
+        
+        // Adaptación automática para MemoryStorage (buffer) o DiskStorage (path)
+        if (file.buffer) {
+            fileBuffer = file.buffer;
+        } else if (file.path) {
+            fileBuffer = fs.readFileSync(file.path);
+        } else {
+            throw new Error("No se detectaron datos binarios en el archivo subido.");
+        }
+
+        const filename = `${subcarpeta}/${Date.now()}-${file.originalname}`;
+
+        // Subir al bucket público 'atrium-images'
+        const { data, error } = await supabase.storage
+            .from('atrium-images')
+            .upload(filename, fileBuffer, {
+                contentType: file.mimetype,
+                duplex: 'half'
+            });
+
+        if (error) throw error;
+
+        // Obtener la URL pública del CDN de Supabase
+        const { data: publicUrlData } = supabase.storage
+            .from('atrium-images')
+            .getPublicUrl(filename);
+
+        // Limpieza segura del disco local si existía una ruta física temporal
+        if (file.path && fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+        }
+
+        console.log(`🟢 Imagen de ${subcarpeta} subida con éxito a Supabase:`, publicUrlData.publicUrl);
+        return publicUrlData.publicUrl;
+
+    } catch (error) {
+        console.error(`❌ [Supabase Error] Subida de ${subcarpeta} fallida, aplicando fallback local:`, error.message);
+        // Si falla la subida, conservamos el filename local para evitar caídas del flujo
+        return file.filename || null;
+    }
+};
+
 const AdminController = {
 
     // 1. DASHBOARD PRINCIPAL
@@ -55,7 +104,7 @@ const AdminController = {
         }
     },
 
- // NUEVO: Ver Historial de Obra en Cassandra
+    // Historial de Obra en Cassandra
     historialObra: async (req, res) => {
         try {
             const idObra = req.params.id;
@@ -92,9 +141,8 @@ const AdminController = {
             res.status(500).send('Error interno al cargar el historial de trazabilidad.');
         }
     },
-// ... (dentro de AdminController en src/controllers/adminController.js)
 
-    // Controlador para consultar la Bitácora de Seguridad en Cassandra
+    // Bitácora de Seguridad en Cassandra
     verBitacoraSeguridad: async (req, res) => {
         try {
             const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'https://museoatrium-auditoria.onrender.com';
@@ -130,7 +178,7 @@ const AdminController = {
         }
     },
 
-    // Controlador para consultar el Reporte de Auditoría Fiscal en Cassandra
+    // Reporte de Auditoría Fiscal en Cassandra
     verAuditoriaReportes: async (req, res) => {
         try {
             const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'https://museoatrium-auditoria.onrender.com';
@@ -165,53 +213,107 @@ const AdminController = {
         }
     },
 
-    // Agregar dentro de AdminController en src/controllers/adminController.js:
-verDocumentacion: (req, res) => {
-    try {
-        res.render('admin/documentacion');
-    } catch (error) {
-        console.error('Error al cargar la documentación:', error);
-        res.status(500).send('Error interno al cargar la documentación');
-    }
-},
-
-
-// Agregar dentro de AdminController en src/controllers/adminController.js:
-verAuditoriaMembresias: async (req, res) => {
-    try {
-        const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'https://museoatrium-auditoria.onrender.com';
-        
-        const id_comprador = req.query.id_comprador ? parseInt(req.query.id_comprador) : 26;
-        const paging_state = req.query.paging_state || '';
-
-        let codigos = [];
-        let next_paging_state = null;
-
+    verDocumentacion: (req, res) => {
         try {
-            const response = await axios.get(`${auditoriaApiUrl}/membresias/codigos`, {
-                params: {
-                    id_comprador,
-                    page_size: 20,
-                    paging_state: paging_state || undefined
-                }
-            });
-            codigos = response.data.datos || [];
-            next_paging_state = response.data.paging_state || null;
-        } catch (errApi) {
-            console.error('Error al recuperar códigos de membresía de Cassandra:', errApi.message);
+            res.render('admin/documentacion');
+        } catch (error) {
+            console.error('Error al cargar la documentación:', error);
+            res.status(500).send('Error interno al cargar la documentación');
         }
+    },
 
-        res.render('admin/auditoria-membresias', {
-            codigos,
-            id_comprador,
-            paging_state: next_paging_state
-        });
-    } catch (error) {
-        console.error('Error en verAuditoriaMembresias:', error);
-        res.status(500).send('Error interno del servidor.');
-    }
-},
+    verAuditoriaMembresias: async (req, res) => {
+        try {
+            const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'https://museoatrium-auditoria.onrender.com';
+            
+            const id_comprador = req.query.id_comprador ? parseInt(req.query.id_comprador) : 26;
+            const paging_state = req.query.paging_state || '';
 
+            let codigos = [];
+            let next_paging_state = null;
+
+            try {
+                const response = await axios.get(`${auditoriaApiUrl}/membresias/codigos`, {
+                    params: {
+                        id_comprador,
+                        page_size: 20,
+                        paging_state: paging_state || undefined
+                    }
+                });
+                codigos = response.data.datos || [];
+                next_paging_state = response.data.paging_state || null;
+            } catch (errApi) {
+                console.error('Error al recuperar códigos de membresía de Cassandra:', errApi.message);
+            }
+
+            res.render('admin/auditoria-membresias', {
+                codigos,
+                id_comprador,
+                paging_state: next_paging_state
+            });
+        } catch (error) {
+            console.error('Error en verAuditoriaMembresias:', error);
+            res.status(500).send('Error interno del servidor.');
+        }
+    },
+
+    // Gestión de Categorías/Disciplinas NoSQL
+    gestionCategorias: async (req, res) => {
+        try {
+            const [categorias] = await db.query("SELECT * FROM generos ORDER BY nombre ASC");
+            res.render('admin/gestion-categorias', { categorias });
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al cargar categorías");
+        }
+    },
+
+    guardarCategoria: async (req, res) => {
+        try {
+            const { nombre, detallesNombres, detallesTipos } = req.body;
+
+            // 1. Guardar la categoría en la base de datos relacional de PostgreSQL
+            const [result] = await db.query("INSERT INTO generos (nombre) VALUES ($1) RETURNING id", [nombre]);
+            const nuevoId = result.id;
+
+            // 2. Construir el diccionario de metadatos de tipos de datos
+            const detallesDict = {};
+            if (detallesNombres && detallesTipos) {
+                const nombresArray = Array.isArray(detallesNombres) ? detallesNombres : [detallesNombres];
+                const tiposArray = Array.isArray(detallesTipos) ? detallesTipos : [detallesTipos];
+
+                for (let i = 0; i < nombresArray.length; i++) {
+                    const campoNombre = nombresArray[i].trim().toLowerCase().replace(/\s+/g, '_'); // Normalizar a snake_case
+                    const campoTipo = tiposArray[i];
+                    if (campoNombre) {
+                        detallesDict[campoNombre] = campoTipo;
+                    }
+                }
+            }
+
+            // 3. Sincronizar de forma asíncrona con MongoDB
+            await MongoSyncService.syncCategoria({
+                id_sql: nuevoId,
+                nombre_categoria: nombre.trim(),
+                detalles: detallesDict
+            });
+
+            res.redirect('/admin/categorias');
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al guardar la categoría polimórfica");
+        }
+    },
+
+    obtenerEspecificacionesCategoria: async (req, res) => {
+        try {
+            const id = req.params.id;
+            const response = await axios.get(`${MONGO_API_URL}/category/${id}`);
+            res.json(response.data);
+        } catch (error) {
+            res.status(500).json({ error: "No se pudo recuperar la especificación de la categoría" });
+        }
+    },
 
     // 2. GESTION DE OBRAS
     gestionObras: async (req, res) => {
@@ -227,29 +329,37 @@ verAuditoriaMembresias: async (req, res) => {
 
     guardarObra: async (req, res) => {
         try {
-            const foto = req.file ? req.file.filename : null;
+            // Subir imagen de obra a Supabase de forma adaptativa
+            const foto = req.file ? await subirImagenASupabase(req.file, 'obras') : null;
+
             if (req.body.obra_id) {
                 const actualizada = await ObraModel.actualizar(req.body.obra_id, req.body, foto);
                 if (!actualizada) {
                     return res.status(404).send('Obra no encontrada');
                 }
                 
-                // --- SYNC MONGO ---
+                // --- SYNC MONGO (Asíncrono para no retrasar la redirección) ---
                 req.body.foto = foto || req.body.foto_actual;
-                await MongoSyncService.syncObra(req.body, true);
+                MongoSyncService.syncObra(req.body, true).catch(err => {
+                    console.error("❌ Falló la sincronización asíncrona de obra en MongoDB:", err.message);
+                });
 
                 return res.redirect('/admin/inventario');
             }
 
             const nuevaObraId = await ObraModel.crear(req.body, foto);
 
-            // --- SYNC MONGO ---
+            // --- SYNC MONGO (Asíncrono) ---
             req.body.id = nuevaObraId;
             req.body.foto = foto;
-            await MongoSyncService.syncObra(req.body, false);
+            MongoSyncService.syncObra(req.body, false).catch(err => {
+                console.error("❌ Falló la sincronización asíncrona de obra en MongoDB:", err.message);
+            });
 
-            // --- SYNC NEO4J ---
-            await Neo4jSyncService.syncObra(req.body);
+            // --- SYNC NEO4J (Asíncrono) ---
+            Neo4jSyncService.syncObra(req.body).catch(err => {
+                console.error("❌ Falló la sincronización asíncrona de obra en Neo4j:", err.message);
+            });
 
             res.redirect('/admin/gestion-obras');
         } catch (error) {
@@ -388,16 +498,21 @@ verAuditoriaMembresias: async (req, res) => {
                 return res.send("<script>alert('Error: Ya existe un artista registrado con ese nombre y apellido.'); window.location.href='/admin/gestion-artistas';</script>");
             }
 
-            const foto = req.file ? req.file.filename : null;
+            // Subir imagen del artista a Supabase
+            const foto = req.file ? await subirImagenASupabase(req.file, 'artistas') : null;
             const nuevoArtistaId = await ArtistaModel.crear(req.body, foto);
 
-            // --- SYNC MONGO ---
+            // --- SYNC MONGO (Asíncrono) ---
             req.body.id = nuevoArtistaId;
             req.body.foto = foto;
-            await MongoSyncService.syncArtista(req.body, false);
+            MongoSyncService.syncArtista(req.body, false).catch(err => {
+                console.error("❌ Falló la sincronización asíncrona de artista en MongoDB:", err.message);
+            });
 
-            // --- SYNC NEO4J ---
-            await Neo4jSyncService.syncArtista(req.body);
+            // --- SYNC NEO4J (Asíncrono) ---
+            Neo4jSyncService.syncArtista(req.body).catch(err => {
+                console.error("❌ Falló la sincronización asíncrona de artista en Neo4j:", err.message);
+            });
 
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
@@ -421,15 +536,18 @@ verAuditoriaMembresias: async (req, res) => {
     actualizarArtista: async (req, res) => {
         try {
             const id = req.params.id;
-            const foto = req.file ? req.file.filename : null;
             
+            // Subir imagen del artista a Supabase
+            const foto = req.file ? await subirImagenASupabase(req.file, 'artistas') : null;
             await ArtistaModel.actualizar(id, req.body, foto);
 
-            // --- SYNC MONGO ---
+            // --- SYNC MONGO (Asíncrono) ---
             req.body.id = id;
             if (foto) req.body.foto = foto;
             else req.body.foto = req.body.foto_actual; // si la tienes en el form
-            await MongoSyncService.syncArtista(req.body, true);
+            MongoSyncService.syncArtista(req.body, true).catch(err => {
+                console.error("❌ Falló la sincronización asíncrona de artista en MongoDB:", err.message);
+            });
 
             res.redirect('/admin/gestion-artistas');
         } catch (error) {
@@ -458,10 +576,6 @@ verAuditoriaMembresias: async (req, res) => {
             await ArtistaModel.eliminarLogico(req.params.id);
 
             // --- SYNC MONGO ---
-            // El backend python permite borrarlo fisicamente, o podemos hacer update de inactivo.
-            // Según tu esquema de Mongo no hay un endpoint de desactivar suave. 
-            // Eliminaremos de mongo, o podemos actualizar para que no rompa si tiene obras.
-            // Para ser seguros con la referencialidad, actualizamos estado.
             const artista = await ArtistaModel.obtenerPorId(req.params.id);
             if(artista) {
                 artista.estado_activo = false;
@@ -801,7 +915,7 @@ verAuditoriaMembresias: async (req, res) => {
         if (req.session.usuario && req.session.usuario.rol === 3) {
             return next();
         }
-        res.redirect('/admin/dashboard?error=Acceso restringido: Solo los Superadministradores pueden crear nuevas cuentas.');
+        res.redirect('/admin/dashboard?error=Access restricted: Only Super Administrators can create new accounts.');
     },
 
     listarAdmins: async (req, res) => {
@@ -863,37 +977,32 @@ verAuditoriaMembresias: async (req, res) => {
         }    
     },
 
-//NUEVO EXPORTACIÓN A EXCEL:
     exportarVentasExcel: async (req, res) => {
-    try {
-        // Buscamos todas las ventas (puedes reusar tu método de VentaModel)
-        const ventas = await VentaModel.obtenerVentasPorPeriodo(); 
+        try {
+            const ventas = await VentaModel.obtenerVentasPorPeriodo();
 
-        // Formateamos los datos para que el Excel sea "humano"
-        const datosFormateados = ventas.map(v => ({
-            "Factura": v.codigoDeFactura,
-            "Fecha": new Date(v.fechaDeVenta).toLocaleDateString(),
-            "Obra": v.nombre_obra,
-            "Comprador": `${v.nombre_comprador} ${v.nombre_apellido}`,
-            "Precio Base": v.precioFinalVenta - v.iva - v.gananciaMuseoDolares,
-            "IVA (16%)": v.iva,
-            "Comision Museo": v.gananciaMuseoDolares,
-            "Total Final": v.precioFinalVenta
-        }));
+            const datosFormateados = ventas.map(v => ({
+                "Factura": v.codigoDeFactura,
+                "Fecha": new Date(v.fechaDeVenta).toLocaleDateString(),
+                "Obra": v.nombre_obra,
+                "Comprador": `${v.nombre_comprador} ${v.nombre_apellido}`,
+                "Precio Base": v.precioFinalVenta - v.iva - v.gananciaMuseoDolares,
+                "IVA (16%)": v.iva,
+                "Comision Museo": v.gananciaMuseoDolares,
+                "Total Final": v.precioFinalVenta
+            }));
 
-        // Convertimos a CSV (que Excel abre automáticamente)
-        const json2csvParser = new Parser();
-        const csv = json2csvParser.parse(datosFormateados);
+            const json2csvParser = new Parser();
+            const csv = json2csvParser.parse(datosFormateados);
 
-        // Configuramos la respuesta para que el navegador lo descargue
-        res.header('Content-Type', 'text/csv');
-        res.attachment(`Reporte_Ventas_Atrium_${Date.now()}.csv`);
-        return res.send(csv);
+            res.header('Content-Type', 'text/csv');
+            res.attachment(`Reporte_Ventas_Atrium_${Date.now()}.csv`);
+            return res.send(csv);
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Error al exportar datos");
-    }
+        } catch (error) {
+            console.error(error);
+            res.status(500).send("Error al exportar datos");
+        }
     },
 
     pantallaNLPQuery: async (req, res) => {

@@ -209,7 +209,7 @@
                         <div class="mt-4">
                             <div class="current-photo-box">
                                 <p class="small text-white-50 mb-2 fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Foto Actual</p>
-                                <img src="/uploads/<%= artista.fotografia %>" class="img-edit-preview" alt="Foto Artista">
+                                <img src="<%= (artista.fotografia && artista.fotografia.startsWith('http')) ? artista.fotografia : ('/uploads/' + (artista.fotografia || 'user.png')) %>" class="img-edit-preview" alt="Foto Artista">
                             </div>
                         </div>
                     <% } %>

@@ -2,7 +2,7 @@ const db = require('../config/db');
 
 class VentaModel {
 
-    // 1. REGISTRAR VENTA (Adaptado a la nueva BD sin direccion_id)
+    // 1. REGISTRAR VENTA (Adaptado a la nueva BD sin de PostgreSQL)
     static async crear(datos) {
         const sql = `INSERT INTO venta (
             comprador_id, administrador_id, obra_id, 
@@ -10,7 +10,7 @@ class VentaModel {
             codigoDeFactura, iva, 
             gananciaMuseoDolares, gananciaMuseoPorcentaje, 
             precioFinalVenta, fechaDeVenta
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`;
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)`;
         
         // El orden del array DEBE coincidir con los ? de arriba
         const params = [
@@ -79,7 +79,7 @@ class VentaModel {
         return rows;
     }
 
-    // 2b. OBRAS VENDIDAS: Listado con filtro por periodo
+    // 2b. OBRAS VENDIDAS: Listado con filtro por periodo (Adaptado a PostgreSQL)
     static async obtenerObrasVendidasPorPeriodo(fechaInicio, fechaFin) {
         let sql = `
             SELECT v.codigoDeFactura, v.fechaDeVenta,
@@ -89,7 +89,7 @@ class VentaModel {
             FROM venta v
             JOIN obra o ON v.obra_id = o.id
             JOIN artista a ON o.autor_id = a.id
-            JOIN genero g ON o.genero_id = g.id
+            JOIN generos g ON o.genero_id = g.id
         `;
 
         const params = [];
@@ -126,10 +126,8 @@ class VentaModel {
 
     // 4. DASHBOARD: Total histórico recaudado por el museo (suma de precioFinalVenta)
     static async totalRecaudado() {
-        // Sumamos todo lo que hay en la columna precioFinalVenta
         const sql = 'SELECT COALESCE(SUM(precioFinalVenta), 0) as total FROM venta';
         const [rows] = await db.execute(sql);
-        // Devolvemos el número limpio 
         return rows[0].total;
     }
 
@@ -140,6 +138,7 @@ class VentaModel {
         return rows[0].total;
     }
 
+    // 6. LISTAR FACTURAS (Adaptado para los intervalos y concat de PostgreSQL)
     static async listarFacturas(filtros = {}) {
         const condiciones = [];
         const params = [];
@@ -149,20 +148,19 @@ class VentaModel {
         const fechaFin = filtros.fechaFin ? String(filtros.fechaFin).trim() : '';
 
         if (nombre) {
-             // Buscamos por nombre, apellido, nombre completo O código de factura
-            condiciones.push('(u.nombre LIKE ? OR u.apellido LIKE ? OR CONCAT(u.nombre, " ", u.apellido) LIKE ? OR v.codigoDeFactura LIKE ?)');
+            condiciones.push("(u.nombre LIKE ? OR u.apellido LIKE ? OR CONCAT(u.nombre, ' ', u.apellido) LIKE ? OR v.codigoDeFactura LIKE ?)");
             const term = `%${nombre}%`;
             params.push(term, term, term, term);
         }
 
         if (fechaInicio && fechaFin) {
-            condiciones.push('v.fechaDeVenta >= ? AND v.fechaDeVenta < DATE_ADD(?, INTERVAL 1 DAY)');
+            condiciones.push("v.fechaDeVenta >= ? AND v.fechaDeVenta < CAST(? AS DATE) + INTERVAL '1 day'");
             params.push(fechaInicio, fechaFin);
         } else if (fechaInicio) {
             condiciones.push('v.fechaDeVenta >= ?');
             params.push(fechaInicio);
         } else if (fechaFin) {
-            condiciones.push('v.fechaDeVenta < DATE_ADD(?, INTERVAL 1 DAY)');
+            condiciones.push("v.fechaDeVenta < CAST(? AS DATE) + INTERVAL '1 day'");
             params.push(fechaFin);
         }
 

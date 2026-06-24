@@ -137,25 +137,20 @@
     .mini-obra-card {
         background-color: var(--at-card-bg);
         border: 1px solid var(--at-border);
-        border-radius: 16px;
+        border-radius: 20px;
         padding: 15px;
-        transition: all 0.4s ease;
         height: 100%;
-    }
-
-    .mini-obra-card:hover {
-        border-color: var(--at-orange);
-        transform: translateY(-8px);
+        display: flex;
+        flex-direction: column;
     }
 
     .mini-img-box {
         width: 100%;
-        height: 200px;
+        height: 150px;
         border-radius: 10px;
         overflow: hidden;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         position: relative;
-        background: #000;
     }
 
     .mini-img {
@@ -230,7 +225,7 @@
         <div class="container">
             <div class="artist-portrait-frame">
                 <% if(artista.fotografia) { %>
-                    <img src="/uploads/<%= artista.fotografia %>" alt="<%= artista.nombre %>" class="artist-profile-img">
+                    <img src="<%= (artista.fotografia && artista.fotografia.startsWith('http')) ? artista.fotografia : ('/uploads/' + (artista.fotografia || 'user.png')) %>" alt="<%= artista.nombre %>" class="artist-profile-img">
                 <% } else { %>
                     <div class="artist-profile-img bg-dark d-flex align-items-center justify-content-center text-white-50 fs-1"><span role="img">👤</span></div>
                 <% } %>
@@ -271,15 +266,13 @@
                     <p>No se encontraron obras disponibles de este autor.</p>
                 </div>
             <% } else { %>
-                <!-- CONTENEDOR DEL CARRUSEL HORIZONTAL -->
+                <!-- CONTENEDOR DEL CARRUSEL HORIZONTAL (Sintaxis Corregida de la Imagen) -->
                 <div class="art-carousel">
                     <% obras.forEach(o => { %>
                         <div class="art-carousel-item">
                             <div class="mini-obra-card shadow-lg">
                                 <div class="mini-img-box">
-                                    <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" 
-                                         class="mini-img <%= o.estatus !== 'Disponible' ? 'art-unavailable' : '' %>" 
-                                         alt="<%= o.nombre %>">
+                                    <img src="<%= (o.foto && o.foto.startsWith('http')) ? o.foto : ('/uploads/' + (o.foto || 'default_obra.jpg')) %>" class="mini-img <%= o.estatus !== 'Disponible' ? 'art-unavailable' : '' %>" alt="<%= o.nombre %>">
                                     
                                     <% if (o.estatus === 'Vendida') { %>
                                         <div class="status-overlay">ADQUIRIDA</div>
