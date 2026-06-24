@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // URL base del microservicio de Python (Neo4j y Recomendaciones)
-const NEO4J_API_URL = process.env.NEO4J_API_URL || 'http://localhost:8000';
+const NEO4J_API_URL = process.env.NEO4J_API_URL || 'https://neo4j-4g5x.onrender.com';
 
 const Neo4jSyncService = {
     // ==========================================
