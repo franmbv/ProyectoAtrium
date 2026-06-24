@@ -200,8 +200,7 @@
             <div class="row g-0">
                 <!-- Columna Imagen (Aumentada para lucir la obra) -->
                 <div class="col-lg-7 img-column-detail">
-                    <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" 
-                         class="img-detail-pano" 
+                    <img src="<%= (obra.foto && obra.foto.startsWith('http')) ? obra.foto : ('/uploads/' + (obra.foto || 'default_obra.jpg')) %>" class="img-detail-pano" alt="<%= obra.nombre %>">
                          alt="<%= obra.nombre %>">
                 </div>
                 

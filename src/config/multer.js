@@ -1,17 +1,21 @@
 const multer = require('multer');
-const path = require('path');
 
-// Configuramos dónde se guardan los archivos
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/uploads/'); // Carpeta de destino
-    },
-    filename: (req, file, cb) => {
-        // Le ponemos un nombre único: fecha + nombre original
-        cb(null, Date.now() + path.extname(file.originalname));
+// Guardamos el archivo temporalmente en la memoria RAM (Buffer)
+// Esto evita usar el disco efímero de Render y nos permite enviar los bytes directos a Supabase
+const storage = multer.memoryStorage();
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        // Validamos que sea una imagen para evitar archivos maliciosos
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('El archivo debe ser una imagen válida (jpg, png, jpeg, webp)'), false);
+        }
     }
 });
 
-const upload = multer({ storage: storage });
-// Exportamos el middleware ya configurado para un solo archivo (campo: "foto")
+// Exportamos el middleware configurado para procesar un solo archivo del campo "foto"
 module.exports = upload.single('foto');

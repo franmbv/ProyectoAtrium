@@ -318,7 +318,7 @@
                                  data-search="<%= obra.nombre %> <%= obra.nombre_artista %> <%= obra.apellido_artista %>">
                                 <article class="obra-card shadow-lg">
                                     <div class="img-container">
-                                        <img src="<%= obra.foto ? ('/uploads/' + obra.foto) : '/img/default_obra.jpg' %>" class="obra-img" alt="<%= obra.nombre %>">
+                                        <img src="<%= (obra.foto && obra.foto.startsWith('http')) ? obra.foto : ('/uploads/' + (obra.foto || 'default_obra.jpg')) %>" class="obra-img" alt="<%= obra.nombre %>">    
                                     </div>
                                     
                                     <div class="obra-info">

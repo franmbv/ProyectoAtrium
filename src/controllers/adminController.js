@@ -21,9 +21,17 @@ const fs = require('fs');
 //Librerias de Excel
 const { Parser } = require('json2csv');
 
+// Importar Axios en caso de que no esté definido al inicio del archivo
 const axios = require('axios'); 
 
-// Importar Axios en caso de que no esté definido al inicio del archivo
+
+// Inicializar el cliente oficial de Supabase consumiendo las variables del .env
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(
+    process.env.SUPABASE_URL, 
+    process.env.SUPABASE_KEY
+);
+
 const AdminController = {
 
     // 1. DASHBOARD PRINCIPAL
@@ -227,7 +235,72 @@ verAuditoriaMembresias: async (req, res) => {
 
     guardarObra: async (req, res) => {
         try {
-            const foto = req.file ? req.file.filename : null;
+            let foto = req.file ? req.file.filename : null;
+
+            // 🔍 DEPURACIÓN: Imprimir en la terminal qué datos de archivo nos está entregando Multer
+            if (req.file) {
+                console.log("📂 [DEBUG Multer] Objeto req.file recibido:", {
+                    fieldname: req.file.fieldname,
+                    originalname: req.file.originalname,
+                    mimetype: req.file.mimetype,
+                    size: req.file.size,
+                    hasBuffer: !!req.file.buffer,
+                    hasPath: !!req.file.path,
+                    path: req.file.path
+                });
+            }
+
+            // --- PROCESAMIENTO SEGURO DE SUBIDA A SUPABASE ---
+            if (req.file) {
+                try {
+                    let fileBuffer = null;
+
+                    // Extraer los datos binarios de forma adaptativa sin lanzar excepciones
+                    if (req.file.buffer) {
+                        fileBuffer = req.file.buffer; // Caso MemoryStorage
+                    } else if (req.file.path) {
+                        fileBuffer = fs.readFileSync(req.file.path); // Caso DiskStorage
+                    }
+
+                    // Si no se encuentra ningún buffer o ruta válida, no continuar con Supabase
+                    if (!fileBuffer) {
+                        throw new Error("El objeto de archivo de Multer no contiene datos legibles (buffer o path).");
+                    }
+
+                    const filename = `obras/${Date.now()}-${req.file.originalname}`;
+
+                    // Subir el recurso binario al bucket público 'atrium-images'
+                    const { data, error } = await supabase.storage
+                        .from('atrium-images')
+                        .upload(filename, fileBuffer, {
+                            contentType: req.file.mimetype,
+                            duplex: 'half'
+                        });
+
+                    if (error) throw error;
+
+                    // Obtener la URL pública del CDN de Supabase
+                    const { data: publicUrlData } = supabase.storage
+                        .from('atrium-images')
+                        .getPublicUrl(filename);
+
+                    foto = publicUrlData.publicUrl;
+
+                    // Limpieza segura: eliminar el archivo del disco de Render únicamente si existe la ruta física
+                    if (req.file.path && typeof req.file.path === 'string' && fs.existsSync(req.file.path)) {
+                        fs.unlinkSync(req.file.path);
+                    }
+                    
+                    console.log("🟢 Imagen de obra subida con éxito a Supabase:", foto);
+
+                } catch (supabaseError) {
+                    console.error("❌ Falló la subida a Supabase, aplicando fallback local:", supabaseError.message);
+                    // Fallback: si falla Supabase, conservamos el filename local para evitar caídas
+                    foto = req.file.filename;
+                }
+            }
+            // -------------------------------------------------
+
             if (req.body.obra_id) {
                 const actualizada = await ObraModel.actualizar(req.body.obra_id, req.body, foto);
                 if (!actualizada) {
@@ -254,6 +327,8 @@ verAuditoriaMembresias: async (req, res) => {
             res.status(500).send('Error al guardar la obra');
         }
     },
+
+
 
     inventarioObras: async (req, res) => {
         try {

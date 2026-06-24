@@ -319,7 +319,7 @@
                                         data-nombre="<%= o.nombre.toLowerCase() %>" 
                                         data-artista="<%= o.nombre_artista.toLowerCase() %> <%= o.apellido_artista.toLowerCase() %>"
                                         data-price="<%= o.precioObra %>">
-                                        <td><img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" class="img-thumb"></td>
+                                        <td><img src="<%= (o.foto && o.foto.startsWith('http')) ? o.foto : ('/uploads/' + (o.foto || 'default_obra.jpg')) %>" class="img-thumb"></td>
                                         <td class="fw-bold text-white"><%= o.nombre %></td>
                                         <td style="color: #cbd5e1"><%= o.nombre_artista %> <%= o.apellido_artista %></td>
                                         <td><div class="status-indicator st-reserved"><span class="status-dot"></span><%= o.estatus %></div></td>
