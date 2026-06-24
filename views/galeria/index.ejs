@@ -338,7 +338,7 @@
         <% } %>
 
         <div class="row g-4">
-            <!-- FILTROS -->
+            <!-- FILTROS (CORREGIDOS GÉNERO, ARTISTA, PRECIO) -->
             <div class="col-lg-3">
                 <aside class="filter-sidebar">
                     <!-- Formulario unificado -->
@@ -351,27 +351,30 @@
                             <span class="search-icon"><span role="img">🔍</span></span>
                         </div>
 
-                        <span class="filter-label">Disciplina</span>
+                        <!-- MODIFICADO: Disciplina -> Género -->
+                        <span class="filter-label">Género</span>
                         <select name="genero" class="form-select custom-select" onchange="this.form.submit()">
                             <option value="">Todas</option>
                             <% if (locals.generos) { %>
                                 <% generos.forEach(g => { %>
-                                    <option value="<%= g.Id %>" <%= filtros.genero == g.Id ? 'selected' : '' %>><%= g.nombre %></option>
+                                    <option value="<%= g.id || g.Id %>" <%= String(filtros.genero) === String(g.id || g.Id) ? 'selected' : '' %>><%= g.nombre %></option>
                                 <% }) %>
                             <% } %>
                         </select>
 
-                        <span class="filter-label">Maestro</span>
+                        <!-- MODIFICADO: Maestro -> Artista -->
+                        <span class="filter-label">Artista</span>
                         <select name="artista" class="form-select custom-select" onchange="this.form.submit()">
                             <option value="">Todos los artistas</option>
                             <% if (locals.artistas) { %>
                                 <% artistas.forEach(a => { %>
-                                    <option value="<%= a.id %>" <%= filtros.artista == a.id ? 'selected' : '' %>><%= a.nombre %> <%= a.apellido %></option>
+                                    <option value="<%= a.id %>" <%= String(filtros.artista) === String(a.id) ? 'selected' : '' %>><%= a.nombre %> <%= a.apellido %></option>
                                 <% }) %>
                             <% } %>
                         </select>
 
-                        <span class="filter-label">Inversión</span>
+                        <!-- MODIFICADO: Inversión -> Precio -->
+                        <span class="filter-label">Precio</span>
                         <select name="precio" class="form-select custom-select" onchange="this.form.submit()">
                             <option value="">Cualquier precio</option>
                             <option value="menor" <%= filtros.precio == 'menor' ? 'selected' : '' %>>Menor a Mayor</option>
