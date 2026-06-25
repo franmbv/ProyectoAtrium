@@ -8,7 +8,7 @@ const MONGO_API_URL = process.env.MONGO_API_URL || 'http://localhost:8000';
 
 const GaleriaController = {
     
-    // Mostrar la Galería Principal (CON SOPORTE DE PAGINACIÓN)
+   // Mostrar la Galería Principal (CON SOPORTE DE PAGINACIÓN Y FILTRADO DE DISPONIBILIDAD ESTRICTA)
     mostrarGaleria: async (req, res) => {
         try {
             // Capturar la página actual (por defecto la 1) y el límite de obras por lote (12)
@@ -40,7 +40,7 @@ const GaleriaController = {
                 
                 // Mapear la respuesta de Mongo (anidada) a la estructura plana SQL que espera EJS
                 obrasMongo = obrasMongo.map(obra => {
-                    const infoArtista = obra.informacion_artista || {};
+                    const infoArtista = mergeInfo = obra.informacion_artista || {};
                     
                     const generoLocal = generos.find(g => (g.id === obra.genero_id || g.Id === obra.genero_id));
                     const nombreGenero = generoLocal ? generoLocal.nombre : 'Desconocido';
@@ -59,20 +59,25 @@ const GaleriaController = {
                     };
                 });
 
-                // Aplicar filtros locales que el endpoint de Python (aún) no soporta
+                // 1. Filtrado crítico de Negocio: Mostrar EXCLUSIVAMENTE obras Disponibles.
+                obrasMongo = obrasMongo.filter(o => String(o.estatus).toLowerCase() === 'disponible');
+
+                // 2. Aplicar filtros locales que el endpoint de Python (aún) no soporta
                 if (filtros.busqueda) {
                     const termino = filtros.busqueda.toLowerCase();
                     obrasMongo = obrasMongo.filter(o => 
                         o.nombre.toLowerCase().includes(termino) ||
-                        o.nombre_artista.toLowerCase().includes(termino) ||
-                        o.apellido_artista.toLowerCase().includes(termino)
+                        (o.nombre_artista && o.nombre_artista.toLowerCase().includes(termino)) ||
+                        (o.apellido_artista && o.apellido_artista.toLowerCase().includes(termino))
                     );
                 }
 
+                // 3. Filtrar por Artista (Mapeo estricto a String para evitar fallos de tipo)
                 if (filtros.artista) {
-                    obrasMongo = obrasMongo.filter(o => o.autor_id == filtros.artista);
+                    obrasMongo = obrasMongo.filter(o => String(o.autor_id) === String(filtros.artista));
                 }
 
+                // 4. Ordenamiento por Inversión (Precio)
                 if (filtros.precio === 'menor') {
                     obrasMongo.sort((a, b) => a.precioObra - b.precioObra);
                 } else if (filtros.precio === 'mayor') {
@@ -83,6 +88,9 @@ const GaleriaController = {
                 console.error("Error consultando MongoDB, cayendo en fallback SQL:", mongoError.message);
                 // Fallback (Tolerancia a fallos básica)
                 obrasMongo = await ObraModel.obtenerFiltradas(filtros);
+                
+                // AJUSTE CRÍTICO: Filtrar también en el Fallback de SQL por seguridad
+                obrasMongo = obrasMongo.filter(o => String(o.estatus).toLowerCase() === 'disponible');
             }
 
             // --- INTEGRACIÓN SPRINT 3: RECOMENDACIONES NEO4J ---
@@ -119,7 +127,7 @@ const GaleriaController = {
                             axios.get(`${NEO4J_API_URL}/api/v1/recommendations/generos/populares?limit=3`).catch(() => null)
                         ]);
                         populares = {
-                            artistas: artistasPop?.data?.success ? artistasPop.data.data : [],
+                            artistas: artistsPop = artistasPop?.data?.success ? artistasPop.data.data : [],
                             generos: generosPop?.data?.success ? generosPop.data.data : []
                         };
                     } catch (popError) {
@@ -136,7 +144,7 @@ const GaleriaController = {
                 generos,
                 artistas,
                 filtros, 
-                currentPage: page, // Enviar la página actual a la vista para renderizar los controles de paginación
+                currentPage: page, 
                 message,
                 obrasRecomendadas,
                 populares
@@ -147,6 +155,7 @@ const GaleriaController = {
             res.status(500).send("Error interno del servidor");
         }
     },
+
 
     // Mostrar el Detalle de una Obra
     verFichaTecnica: async (req, res) => {
