@@ -78,4 +78,13 @@ router.get('/nlp-query', adminController.pantallaNLPQuery);
 router.post('/nlp-query', adminController.procesarNLPQuery);
 
 router.get('/auditoria/membresias', adminController.verAuditoriaMembresias);
+
+// Gestión de Categorías Polimórficas
+router.get('/categorias', adminController.gestionCategorias);
+router.post('/categorias/guardar', adminController.guardarCategoria);
+router.get('/categorias/especificaciones/:id', adminController.obtenerEspecificacionesCategoria);
+
+// Generación de Biografía con IA
+router.post('/artistas/generar-biografia', adminController.generarBiografiaArtista);
+
 module.exports = router;

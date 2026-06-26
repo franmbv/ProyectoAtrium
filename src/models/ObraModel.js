@@ -9,21 +9,21 @@ class ObraModel {
         return Number(numberValue.toFixed(decimals));
     }
 
-    // 1. Obtener Obras para la Galería (con Filtros)
+    // 1. Obtener Obras para la Galería con Filtros (Corregido 'genero' singular)
     static async obtenerFiltradas(filtros) {
         let query = `
             SELECT o.*, a.nombre as nombre_artista, a.apellido as apellido_artista, g.nombre as nombre_genero 
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN generos g ON o.genero_id = g.id
+            INNER JOIN genero g ON o.genero_id = g.Id
             WHERE o.estatus = 'Disponible'
         `;
         
         const params = [];
 
         if (filtros.busqueda && filtros.busqueda !== '') {
-            query += ' AND (o.nombre LIKE ? OR a.nombre LIKE ? OR a.apellido LIKE ?)';
-            const term = `%${filtros.busqueda}%`;
+            query += ' AND (LOWER(o.nombre) LIKE ? OR LOWER(a.nombre) LIKE ? OR LOWER(a.apellido) LIKE ?)';
+            const term = `%${filtros.busqueda.toLowerCase()}%`;
             params.push(term, term, term);
         }
 
@@ -49,46 +49,43 @@ class ObraModel {
         return rows;
     }
 
-    // 2. Obtener una Obra por ID con TODOS sus detalles
+    // 2. Obtener una Obra por ID con sus detalles polimórficos de forma desacoplada
     static async obtenerPorId(id) {
         const query = `
             SELECT 
                 o.*, 
                 a.nombre as nombre_artista, a.apellido as apellido_artista, a.nacionalidad,
-                g.nombre as nombre_genero,
-                -- Datos de Escultura
-                e.material, e.peso, e.largo, e.ancho, e.profundidad,
-                -- Datos de Pintura
-                p.tecnica, p.soporte,
-                -- Datos de Fotografia
-                f.tipo as tipo_foto, f.papel, f.formato,
-                -- Datos de Ceramica
-                c.tipoArcilla, c.temperaturaCoccion, c.tipoEsmalte,
-                -- Datos de Orfebreria
-                orf.metal, orf.pureza, orf.piedraPreciosa
+                g.nombre as nombre_genero
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN generos g ON o.genero_id = g.id
-            LEFT JOIN escultura e ON o.id = e.obra_id
-            LEFT JOIN pintura p ON o.id = p.obra_id
-            LEFT JOIN fotografia f ON o.id = f.obra_id
-            LEFT JOIN ceramica c ON o.id = c.obra_id
-            LEFT JOIN orfebreria orf ON o.id = orf.obra_id
+            INNER JOIN genero g ON o.genero_id = g.Id
             WHERE o.id = ?
         `;
 
         const [rows] = await db.execute(query, [id]);
-        return rows[0]; 
+        if (!rows[0]) return null;
+
+        const obra = rows[0];
+        
+        // Mapeo transparente: Mueve los campos del JSONB de detalles al nivel raíz
+        if (obra.detalles && typeof obra.detalles === 'object') {
+            Object.keys(obra.detalles).forEach(key => {
+                if (obra[key] === undefined || obra[key] === null) {
+                    obra[key] = obra.detalles[key];
+                }
+            });
+        }
+        return obra; 
     }
 
-    // 3. Obtener listas para los filtros
+    // 3. Obtener listas de géneros para los filtros (Corregido 'genero' singular)
     static async obtenerGeneros() {
-        const [rows] = await db.execute('SELECT * FROM generos');
+        const [rows] = await db.execute('SELECT Id as id, nombre FROM genero ORDER BY nombre ASC');
         return rows;
     }
 
     static async obtenerArtistas() {
-        const [rows] = await db.execute('SELECT id, nombre, apellido FROM artista ORDER BY nombre ASC');
+        const [rows] = await db.execute('SELECT id, nombre, apellido FROM artista WHERE estado = \'Activo\' ORDER BY nombre ASC');
         return rows;
     }
 
@@ -119,7 +116,7 @@ class ObraModel {
         return rows[0].total;
     }
 
-    // INVENTARIO: Listar todas con joins
+    // INVENTARIO: Listar todas con joins (Corregido 'genero' singular)
     static async obtenerInventario() {
         const sql = `
             SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto,
@@ -127,13 +124,14 @@ class ObraModel {
                    g.nombre AS nombre_genero
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN generos g ON o.genero_id = g.id
+            INNER JOIN genero g ON o.genero_id = g.Id
             ORDER BY o.id DESC
         `;
         const [rows] = await db.execute(sql);
         return rows;
     }
 
+    // Obtener Reservadas (Corregido 'genero' singular)
     static async obtenerReservadas() {
         const sql = `
             SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto,
@@ -141,7 +139,7 @@ class ObraModel {
                    g.nombre AS nombre_genero
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN generos g ON o.genero_id = g.id
+            INNER JOIN genero g ON o.genero_id = g.Id
             WHERE o.estatus = 'Reservada'
             ORDER BY o.id DESC
         `;
@@ -149,7 +147,7 @@ class ObraModel {
         return rows;
     }
 
-    // Obtener obras reservadas por un usuario específico
+    // Obtener obras reservadas por un usuario específico (Corregido 'genero' singular)
     static async obtenerReservadasPorUsuario(usuarioId) {
         const sql = `
             SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto,
@@ -157,7 +155,7 @@ class ObraModel {
                    g.nombre AS nombre_genero, o.reservado_por, o.fecha_reserva
             FROM obra o
             INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN generos g ON o.genero_id = g.id
+            INNER JOIN genero g ON o.genero_id = g.Id
             WHERE o.estatus = 'Reservada' AND o.reservado_por = ?
             ORDER BY o.fecha_reserva DESC
         `;
@@ -165,52 +163,43 @@ class ObraModel {
         return rows;
     }
 
-    // CREAR OBRA 
+    // CREAR OBRA DINÁMICA POLIMÓRFICA
     static async crear(datos, fotoFilename) {
+        // Recolectar atributos dinámicos que no pertenecen al esquema plano de base de la obra
+        const detalles = {};
+        const baseKeys = ['genero_id', 'autor_id', 'nombre', 'precioObra', 'porcentajeGanancia', 'foto', 'obra_id', 'foto_actual'];
+        Object.keys(datos).forEach(key => {
+            if (!baseKeys.includes(key)) {
+                detalles[key] = String(datos[key]).trim();
+            }
+        });
+
         const sqlObra = `INSERT INTO obra
-            (genero_id, autor_id, nombre, fechaCreacion, precioObra, porcentajeGanancia, estatus, foto)
-            VALUES (?, ?, ?, CURRENT_DATE, ?, ?, 'Disponible', ?)`;
+            (genero_id, autor_id, nombre, fechaCreacion, precioObra, porcentajeGanancia, estatus, foto, detalles)
+            VALUES (?, ?, ?, CURRENT_DATE, ?, ?, 'Disponible', ?, ?)`;
         
         const [result] = await db.execute(sqlObra, [
-            datos.genero_id, datos.autor_id, datos.nombre, 
-            ObraModel._toDecimal(datos.precioObra), ObraModel._toDecimal(datos.porcentajeGanancia), fotoFilename
+            parseInt(datos.genero_id, 10), 
+            parseInt(datos.autor_id, 10), 
+            datos.nombre, 
+            ObraModel._toDecimal(datos.precioObra), 
+            ObraModel._toDecimal(datos.porcentajeGanancia), 
+            fotoFilename,
+            JSON.stringify(detalles)
         ]);
         
         const obraId = result.insertId;
         const generoId = parseInt(datos.genero_id, 10);
 
-        if (generoId === 1) { // Pintura
-            await db.execute('INSERT INTO pintura (obra_id, tecnica, soporte) VALUES (?, ?, ?)', 
-                [obraId, datos.tecnica, datos.soporte]);
-        } 
-        else if (generoId === 2) { // Escultura
-            await db.execute('INSERT INTO escultura (obra_id, material, peso, largo, ancho, profundidad) VALUES (?, ?, ?, ?, ?, ?)',
-                [
-                    obraId,
-                    datos.material,
-                    ObraModel._toDecimal(datos.peso),
-                    ObraModel._toDecimal(datos.largo),
-                    ObraModel._toDecimal(datos.ancho),
-                    ObraModel._toDecimal(datos.profundidad)
-                ]);
-        }
-        else if (generoId === 3) { // Fotografia
-            await db.execute('INSERT INTO fotografia (obra_id, tipo, papel, formato) VALUES (?, ?, ?, ?)',
-                [obraId, datos.tipo_foto, datos.papel, datos.formato]);
-        }
-        else if (generoId === 4) { // Ceramica
-            await db.execute('INSERT INTO ceramica (obra_id, tipoArcilla, temperaturaCoccion, tipoEsmalte) VALUES (?, ?, ?, ?)',
-                [obraId, datos.tipoArcilla, ObraModel._toDecimal(datos.temperaturaCoccion), datos.tipoEsmalte]);
-        }
-        else if (generoId === 5) { // Orfebreria
-            await db.execute('INSERT INTO orfebreria (obra_id, metal, pureza, piedraPreciosa) VALUES (?, ?, ?, ?)',
-                [obraId, datos.metal, datos.pureza, datos.piedraPreciosa]);
+        // Si es una de las 5 categorías tradicionales, inserta también en su subtabla para redundancia física
+        if (generoId >= 1 && generoId <= 5) {
+            await ObraModel._insertarSubtipo(obraId, generoId, datos);
         }
         
         return obraId;
     }
 
-    // ACTUALIZAR OBRA
+    // ACTUALIZAR OBRA DINÁMICA POLIMÓRFICA
     static async actualizar(id, datos, fotoFilename) {
         const [rows] = await db.execute('SELECT genero_id, foto FROM obra WHERE id = ?', [id]);
         if (rows.length === 0) {
@@ -221,34 +210,49 @@ class ObraModel {
         const nuevoGeneroId = parseInt(datos.genero_id, 10);
         const nuevaFoto = fotoFilename || actual.foto;
 
+        // Recolectar atributos dinámicos
+        const detalles = {};
+        const baseKeys = ['genero_id', 'autor_id', 'nombre', 'precioObra', 'porcentajeGanancia', 'foto', 'obra_id', 'foto_actual'];
+        Object.keys(datos).forEach(key => {
+            if (!baseKeys.includes(key)) {
+                detalles[key] = String(datos[key]).trim();
+            }
+        });
+
         await db.execute(
-            'UPDATE obra SET genero_id = ?, autor_id = ?, nombre = ?, precioObra = ?, porcentajeGanancia = ?, foto = ? WHERE id = ?',
+            'UPDATE obra SET genero_id = ?, autor_id = ?, nombre = ?, precioObra = ?, porcentajeGanancia = ?, foto = ?, detalles = ? WHERE id = ?',
             [
                 nuevoGeneroId,
-                datos.autor_id,
+                parseInt(datos.autor_id, 10),
                 datos.nombre,
                 ObraModel._toDecimal(datos.precioObra),
                 ObraModel._toDecimal(datos.porcentajeGanancia),
                 nuevaFoto,
+                JSON.stringify(detalles),
                 id
             ]
         );
 
+        // Control de subtipos físicos tradicionales
         if (nuevoGeneroId !== actual.genero_id) {
             await db.execute('DELETE FROM pintura WHERE obra_id = ?', [id]);
             await db.execute('DELETE FROM escultura WHERE obra_id = ?', [id]);
             await db.execute('DELETE FROM fotografia WHERE obra_id = ?', [id]);
             await db.execute('DELETE FROM ceramica WHERE obra_id = ?', [id]);
             await db.execute('DELETE FROM orfebreria WHERE obra_id = ?', [id]);
-            await ObraModel._insertarSubtipo(id, nuevoGeneroId, datos);
+            if (nuevoGeneroId >= 1 && nuevoGeneroId <= 5) {
+                await ObraModel._insertarSubtipo(id, nuevoGeneroId, datos);
+            }
         } else {
-            await ObraModel._actualizarSubtipo(id, nuevoGeneroId, datos);
+            if (nuevoGeneroId >= 1 && nuevoGeneroId <= 5) {
+                await ObraModel._actualizarSubtipo(id, nuevoGeneroId, datos);
+            }
         }
 
         return true;
     }
 
-    // ELIMINAR OBRA
+    // ELIMINAR OBRA FÍSICA
     static async eliminar(id) {
         const [rows] = await db.execute('SELECT id FROM obra WHERE id = ?', [id]);
         if (rows.length === 0) {
@@ -266,11 +270,11 @@ class ObraModel {
     }
 
     static async _insertarSubtipo(obraId, generoId, datos) {
-        if (generoId === 1) {
+        if (generoId === 1) { // Pintura
             await db.execute('INSERT INTO pintura (obra_id, tecnica, soporte) VALUES (?, ?, ?)', [
                 obraId, datos.tecnica, datos.soporte
             ]);
-        } else if (generoId === 2) {
+        } else if (generoId === 2) { // Escultura
             await db.execute('INSERT INTO escultura (obra_id, material, peso, largo, ancho, profundidad) VALUES (?, ?, ?, ?, ?, ?)', [
                 obraId,
                 datos.material,
@@ -279,18 +283,18 @@ class ObraModel {
                 ObraModel._toDecimal(datos.ancho),
                 ObraModel._toDecimal(datos.profundidad)
             ]);
-        } else if (generoId === 3) {
+        } else if (generoId === 3) { // Fotografia
             await db.execute('INSERT INTO fotografia (obra_id, tipo, papel, formato) VALUES (?, ?, ?, ?)', [
                 obraId, datos.tipo_foto, datos.papel, datos.formato
             ]);
-        } else if (generoId === 4) {
+        } else if (generoId === 4) { // Ceramica
             await db.execute('INSERT INTO ceramica (obra_id, tipoArcilla, temperaturaCoccion, tipoEsmalte) VALUES (?, ?, ?, ?)', [
                 obraId,
                 datos.tipoArcilla,
                 ObraModel._toDecimal(datos.temperaturaCoccion),
                 datos.tipoEsmalte
             ]);
-        } else if (generoId === 5) {
+        } else if (generoId === 5) { // Orfebreria
             await db.execute('INSERT INTO orfebreria (obra_id, metal, pureza, piedraPreciosa) VALUES (?, ?, ?, ?)', [
                 obraId, datos.metal, datos.pureza, datos.piedraPreciosa
             ]);
@@ -397,26 +401,12 @@ class ObraModel {
         }
     }
 
-    // Actualizar estatus a Vendida
-
-    static async marcarComoVendida(id) {
-        await db.execute("UPDATE obra SET estatus = 'Vendida', reservado_por = NULL, fecha_reserva = NULL WHERE id = ?", [id]);
-    }
-
-    static async marcarComoDisponible(id) {
-        const [result] = await db.execute(
-            "UPDATE obra SET estatus = 'Disponible', reservado_por = NULL, fecha_reserva = NULL WHERE id = ? AND estatus = 'Reservada'",
-            [id]
-        );
-        return result.affectedRows > 0;
-    }
-
-    // --- NUEVO: OBTENER OBRAS POR AUTOR (Para Biografia) ---
+    // --- NUEVO: OBTENER OBRAS POR AUTOR (Para Biografia - Corregido 'genero' singular) ---
     static async obtenerPorAutor(autorId) {
         const sql = `
             SELECT o.*, g.nombre as nombre_genero 
             FROM obra o
-            INNER JOIN generos g ON o.genero_id = g.id
+            INNER JOIN genero g ON o.genero_id = g.Id
             WHERE o.autor_id = ?
             ORDER BY o.fechaCreacion DESC
         `;
@@ -424,12 +414,12 @@ class ObraModel {
         return rows;
     }
 
-    // ESTADÍSTICAS 1: Obras por Género
+    // ESTADÍSTICAS 1: Obras por Género (Corregido 'genero' singular)
     static async obtenerEstadisticasGeneros() {
         const sql = `
             SELECT g.nombre, COUNT(o.id) as total 
-            FROM generos g
-            LEFT JOIN obra o ON o.genero_id = g.id
+            FROM genero g
+            LEFT JOIN obra o ON o.genero_id = g.Id
             GROUP BY g.nombre
         `;
         const [rows] = await db.execute(sql);

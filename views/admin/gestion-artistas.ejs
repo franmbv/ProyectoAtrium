@@ -206,9 +206,46 @@
         border: 2px solid rgba(255,255,255,0.1);
     }
 
-      .input-custom::placeholder {
+    .input-custom::placeholder {
         color: #cbd5e1 !important;
         opacity: 1;
+    }
+
+    /* SISTEMA DE PUNTOS DE PAGINACIÓN MODERNOS */
+    .modern-dots-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        margin-top: 35px;
+    }
+
+    .modern-dot {
+        width: 14px;
+        height: 14px;
+        background: #334155;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: transparent;
+        font-size: 0.65rem;
+        font-weight: 900;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modern-dot:hover {
+        background: var(--at-orange);
+        color: black;
+        transform: scale(1.15);
+    }
+
+    .modern-dot.active {
+        background: var(--at-orange);
+        color: black;
+        width: 32px;
+        border-radius: 100px;
     }
 </style>
 
@@ -235,9 +272,18 @@
                     
                     <div class="col-md-4"><label class="form-label-custom">Nacionalidad</label><input type="text" name="nacionalidad" class="form-control input-custom" required></div>
                     
-                    <div class="col-md-4"><label class="form-label-custom">Nacimiento</label><input type="date" name="fechaNac" class="form-control input-custom"></div>
-                    <div class="col-md-4"><label class="form-label-custom">Fallecimiento</label><input type="date" name="fechaFal" class="form-control input-custom"></div>
-                    <div class="col-12"><label class="form-label-custom">Biografía</label><textarea name="biografia" class="form-control input-custom" rows="3"></textarea></div>
+                    <div class="col-md-4"><label class="form-label-custom">Nacimiento</label><input type="date" name="fechaNac" class="form-control input-custom" style="color-scheme: dark;"></div>
+                    <div class="col-md-4"><label class="form-label-custom">Fallecimiento</label><input type="date" name="fechaFal" class="form-control input-custom" style="color-scheme: dark;"></div>
+                    
+                    <!-- BIOGRAFÍA CON GENERADOR IA INTEGRADO -->
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label-custom m-0">Biografía</label>
+                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="autogenerarBiografia()">✨ Autogenerar con IA</button>
+                        </div>
+                        <textarea name="biografia" id="biografia" class="form-control input-custom" rows="3" placeholder="Escriba o autogenere la biografía..."></textarea>
+                    </div>
+
                     <div class="col-md-12"><label class="form-label-custom">Fotografía</label><input type="file" name="foto" class="form-control input-custom" accept="image/*" style="padding: 8px !important;"></div>
                     <div class="col-12 text-end"><button type="submit" class="btn btn-atrium-orange px-5">Guardar Artista</button></div>
                 </form>
@@ -248,8 +294,8 @@
         <div class="smart-filter-bar">
             <div class="row g-3 align-items-end">
                 <div class="col-md-8">
-                    <label class="small fw-bold text-white-50 mb-2 d-block">BÚSQUEDA DE MAESTROS</label>
-                    <input type="text" id="artistSearch" class="form-control input-custom" placeholder="Buscar por nombre o nacionalidad...">
+                    <label class="small fw-bold text-white-50 mb-2 d-block">BÚSQUEDA CRUZADA (MAESTROS U OBRAS)</label>
+                    <input type="text" id="artistSearch" class="form-control input-custom" placeholder="Buscar por nombre, nacionalidad u obras del autor...">
                 </div>
                 <div class="col-md-4">
                     <button type="button" id="btnClearArtistFilters" class="btn btn-clear-filters w-100">
@@ -262,22 +308,24 @@
         <!-- LISTADO DE ARTISTAS -->
         <div class="admin-card p-0 overflow-hidden">
             <div class="table-responsive">
-                <table class="table table-atrium align-middle text-center">
+                <table class="table table-atrium align-middle text-center" id="artistsTable">
                     <thead>
                         <tr>
                             <th style="width: 100px;">Perfil</th>
                             <th>Nombre Completo</th>
                             <th>Nacionalidad</th>
-                            <th>Estado</th> <!-- Columna Estado -->
+                            <th>Obras Relacionadas</th>
+                            <th>Estado</th> 
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="artistTableBody">
                         <% artistas.forEach(a => { %>
-                            <!-- Atributos de búsqueda para el JS -->
+                            <!-- Atributos de búsqueda cruzada para el JS con protección preventiva -->
                             <tr class="artist-row" 
-                                data-name="<%= a.nombre.toLowerCase() %> <%= a.apellido.toLowerCase() %>"
-                                data-nat="<%= a.nacionalidad.toLowerCase() %>">
+                                data-name="<%= a.nombre.toLowerCase() %> <%= a.apellido ? a.apellido.toLowerCase() : '' %>"
+                                data-nat="<%= a.nacionalidad ? a.nacionalidad.toLowerCase() : '' %>"
+                                data-obras="<%= (typeof a.obras_asociadas !== 'undefined' && a.obras_asociadas) ? a.obras_asociadas.toLowerCase() : '' %>">
                                 <td>
                                     <% if(a.fotografia) { %>
                                         <img src="<%= (a.fotografia && a.fotografia.startsWith('http')) ? a.fotografia : ('/uploads/' + (a.fotografia || 'user.png')) %>" class="img-artist-thumb" alt="Foto">
@@ -292,8 +340,15 @@
                                 <td>
                                     <span class="badge bg-dark border border-secondary text-white-50 px-3 py-2"><%= a.nacionalidad %></span>
                                 </td>
-                                
-                                <!-- MODIFICADO: Estado con diseño de Punto + Texto -->
+                                <td class="text-start">
+                                    <% if(typeof a.obras_asociadas !== 'undefined' && a.obras_asociadas) { %>
+                                        <div class="small text-truncate" style="max-width: 200px; color: var(--at-yellow-text);" title="<%= a.obras_asociadas %>">
+                                            <%= a.obras_asociadas %>
+                                        </div>
+                                    <% } else { %>
+                                        <span class="text-white-50 small">Sin obras registradas</span>
+                                    <% } %>
+                                </td>
                                 <td> 
                                     <% if (a.estado === 'Activo') { %>
                                         <div class="status-indicator-text st-active">
@@ -305,7 +360,6 @@
                                         </div>
                                     <% } %>
                                 </td>
-
                                 <td>
                                     <div class="d-flex gap-2 justify-content-center">
                                         <a href="/admin/editar-artista/<%= a.id %>" class="btn-edit-soft">Editar</a>
@@ -319,10 +373,16 @@
                                 </td>
                             </tr>
                         <% }) %>
+                        <tr id="noResultsRow" style="display: none;">
+                            <td colspan="6" class="p-5 text-warning opacity-75">No hay coincidencia de maestros ni obras asociadas en este listado.</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- CONTENEDOR DE PUNTOS INTERACTIVOS (PAGINACIÓN MODERNISTA) -->
+        <div class="modern-dots-container" id="paginationDots"></div>
 
         <!-- REGRESO -->
         <div class="text-start mt-5 mb-5">
@@ -337,23 +397,78 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const itemsPerPage = 10; // Cantidad máxima de artistas por hoja
+        let currentPage = 1;
+        let filteredRows = [];
+
+        const rows = Array.from(document.querySelectorAll('.artist-row'));
+        const paginationDotsContainer = document.getElementById('paginationDots');
+
+        function initPagination() {
+            filteredRows = rows;
+            showPage(1);
+        }
+
+        function showPage(page) {
+            currentPage = page;
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+
+            // Ocultar todas las filas primero
+            rows.forEach(r => r.style.display = 'none');
+
+            // Mostrar solo las correspondientes al segmento actual del filtro
+            filteredRows.slice(start, end).forEach(r => {
+                r.style.display = '';
+            });
+
+            renderDots();
+        }
+
+        function renderDots() {
+            paginationDotsContainer.innerHTML = '';
+            const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+
+            if (totalPages <= 1) return; // Si hay una sola página, no mostramos puntos
+
+            for (let i = 1; i <= totalPages; i++) {
+                const dot = document.createElement('div');
+                dot.className = `modern-dot ${i === currentPage ? 'active' : ''}`;
+                dot.title = `Página ${i}`;
+                dot.innerText = i; 
+
+                dot.addEventListener('click', () => {
+                    showPage(i);
+                });
+
+                paginationDotsContainer.appendChild(dot);
+            }
+        }
+
+        // BÚSQUEDA CRUZADA (Búsqueda en tiempo real por artistas, nacionalidad u obras)
         const searchInput = document.getElementById('artistSearch');
         const btnClear = document.getElementById('btnClearArtistFilters');
-        const rows = document.querySelectorAll('.artist-row');
+        const noResultsRow = document.getElementById('noResultsRow');
 
         function filterArtists() {
             const term = searchInput.value.toLowerCase().trim();
             
-            rows.forEach(row => {
-                const name = row.getAttribute('data-name');
-                const nat = row.getAttribute('data-nat');
-                
-                if (name.includes(term) || nat.includes(term)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+            if (term === "") {
+                filteredRows = rows;
+                noResultsRow.style.display = 'none';
+            } else {
+                filteredRows = rows.filter(row => {
+                    const name = row.getAttribute('data-name') || '';
+                    const nat = row.getAttribute('data-nat') || '';
+                    const obras = row.getAttribute('data-obras') || '';
+                    
+                    return name.includes(term) || nat.includes(term) || obras.includes(term);
+                });
+
+                noResultsRow.style.display = filteredRows.length === 0 ? '' : 'none';
+            }
+
+            showPage(1);
         }
 
         searchInput.addEventListener('input', filterArtists);
@@ -362,5 +477,46 @@
             searchInput.value = '';
             filterArtists();
         });
+
+        // Inicialización al cargar la página
+        initPagination();
     });
+
+    // GENERADOR DE BIOGRAFÍAS CON INTELIGENCIA ARTIFICIAL (GEMINI)
+    async function autogenerarBiografia() {
+        const nombre = document.querySelector('input[name="nombre"]').value.trim();
+        const apellido = document.querySelector('input[name="apellido"]').value.trim();
+        const nacionalidad = document.querySelector('input[name="nacionalidad"]').value.trim();
+
+        if (!nombre || !nacionalidad) {
+            alert("⚠️ Por favor, ingrese al menos el Nombre y la Nacionalidad para guiar al redactor de Inteligencia Artificial.");
+            return;
+        }
+
+        const txtArea = document.getElementById('biografia');
+        const originalPlaceholder = txtArea.placeholder;
+        txtArea.value = "";
+        txtArea.placeholder = "Redactando biografía artística profesional con Inteligencia Artificial (Gemini)...";
+
+        try {
+            const res = await fetch('/admin/artistas/generar-biografia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, apellido, nacionalidad })
+            });
+            const data = await res.json();
+
+            if (data.success && data.biografia) {
+                txtArea.value = data.biografia;
+            } else {
+                alert("La IA no pudo procesar la solicitud. Se aplicará el fallback local.");
+                txtArea.value = `Maestro contemporáneo nacido en ${nacionalidad}. Ha desarrollado una obra enfocada en la estética y los lenguajes visuales del siglo XXI, integrando su colección pública al Museo Atrium.`;
+            }
+        } catch (err) {
+            console.error("Fallo del puente de comunicación con la IA:", err);
+            alert("Fallo de comunicación de red con el módulo generativo.");
+        } finally {
+            txtArea.placeholder = originalPlaceholder;
+        }
+    }
 </script>

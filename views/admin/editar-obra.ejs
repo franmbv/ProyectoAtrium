@@ -1,14 +1,13 @@
 <%- include('../partials/head') %>
 <%- include('../partials/navbar') %>
 
-<!-- Tipografías de alta gama -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
     :root {
         --at-navy-deep: #0f172a;   
         --at-navy-darkest: #020617; 
-        --at-card-bg: #161b22;     /* Azul Carbono */
+        --at-card-bg: #161b22;     
         --at-orange: #f97316;      
         --at-orange-glow: rgba(249, 115, 22, 0.4);
         --at-border: rgba(255, 255, 255, 0.1);
@@ -29,7 +28,6 @@
         letter-spacing: -1.5px;
     }
 
-    /* CARD PRINCIPAL */
     .form-card {
         background-color: var(--at-card-bg) !important;
         border: 1px solid var(--at-border) !important;
@@ -43,9 +41,9 @@
         color: #ffffff;
         font-size: 0.8rem;
         font-weight: 700;
+        margin-bottom: 8px;
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin-bottom: 8px;
     }
 
     .input-custom {
@@ -59,29 +57,10 @@
 
     .input-custom:focus {
         border-color: var(--at-orange) !important;
-        box-shadow: 0 0 12px var(--at-orange-glow) !important;
+        box-shadow: 0 0 10px var(--at-orange-glow) !important;
         outline: none;
     }
 
-    .input-custom::placeholder { color: #94a3b8; }
-
-    /* ESTILO DE LA FOTO ACTUAL */
-    .current-photo-container {
-        background: #0d1117;
-        border: 1px solid var(--at-border);
-        padding: 15px;
-        border-radius: 12px;
-        display: inline-block;
-        margin-bottom: 15px;
-    }
-
-    .img-edit-preview {
-        max-height: 200px;
-        border-radius: 8px;
-        border: 1px solid var(--at-orange-glow);
-    }
-
-    /* RECUADRO DE DETALLES TÉCNICOS (PUNTEADO) */
     #wrapper-detalles-tecnicos {
         border: 1px dashed var(--at-orange);
         background: rgba(249, 115, 22, 0.03);
@@ -100,8 +79,7 @@
         display: block;
     }
 
-    /* BOTONES */
-    .btn-atrium-save {
+    .btn-atrium-publish {
         background-color: var(--at-orange) !important;
         color: white !important;
         border: none;
@@ -110,50 +88,46 @@
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 1px;
-        transition: 0.3s;
-        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
+        cursor: pointer;
     }
-    .btn-atrium-save:hover { transform: translateY(-3px); box-shadow: 0 0 20px var(--at-orange-glow); }
 
-    .btn-atrium-outline {
+    .btn-atrium-publish:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 25px var(--at-orange-glow) !important;
+    }
+
+    .btn-atrium-back {
         background: transparent;
-        color: #94a3b8;
+        color: #64748b;
         border: 1px solid #334155;
         border-radius: 100px;
         padding: 10px 25px;
         font-weight: 600;
         text-decoration: none;
-        transition: 0.3s;
     }
-    .btn-atrium-outline:hover { color: white; border-color: white; background: rgba(255,255,255,0.03); }
-
-    select option { background-color: #0d1117; color: white; }
 </style>
 
 <div class="admin-page-wrapper">
     <div class="container" style="max-width: 1000px;">
-        
         <div class="form-card">
-            <div class="d-flex justify-content-between align-items-center mb-5">
-                <h2 class="admin-title m-0"><span role="img">✏️</span>Editar Obra</h2>
-                <a href="/admin/inventario" class="btn-atrium-outline">← Volver al Inventario</a>
-            </div>
-
-            <form action="/admin/obras/<%= obra.id %>/editar" method="POST" enctype="multipart/form-data">
+            <h2 class="admin-title mb-5"><span role="img">✏️</span>Editar Obra</h2>
+            
+            <form action="/admin/guardar-obra" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="obra_id" value="<%= obra.id %>">
                 <input type="hidden" name="foto_actual" value="<%= obra.foto %>">
-                
-                <!-- Fila 1: Nombre, Género, Artista -->
+
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <label class="form-label-custom">Nombre de la Obra</label>
                         <input type="text" name="nombre" class="form-control input-custom" value="<%= obra.nombre %>" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label-custom">Género</label>
+                        <label class="form-label-custom">Género / Disciplina</label>
                         <select name="genero_id" class="form-select input-custom" id="genero_id" required>
                             <% generos.forEach(g => { %>
-                                <option value="<%= g.id || g.Id %>" <%= String(g.id || g.Id) === String(obra.genero_id) ? 'selected' : '' %>><%= g.nombre %></option>
+                                <option value="<%= g.id %>" <%= String(g.id) === String(obra.genero_id) ? 'selected' : '' %>><%= g.nombre %></option>
                             <% }) %>
                         </select>
                     </div>
@@ -167,192 +141,133 @@
                     </div>
                 </div>
 
-                <!-- Fila 2: Precio y Ganancia (COMPATIBILIDAD CON MINÚSCULAS DE POSTGRESQL) -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <label class="form-label-custom">Precio Base ($)</label>
-                        <input type="number" name="precioObra" class="form-control input-custom" value="<%= obra.precioobra || obra.precioObra %>" required min="0" step="0.01" inputmode="decimal">
+                        <input type="number" name="precioObra" class="form-control input-custom" value="<%= obra.precioObra %>" required min="0" step="0.01">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label-custom">% Ganancia Museo</label>
-                        <input type="number" name="porcentajeGanancia" min="5" max="10" step="0.01" inputmode="decimal" class="form-control input-custom" value="<%= obra.porcentajeganancia || obra.porcentajeGanancia %>" required>
+                        <input type="number" name="porcentajeGanancia" min="5" max="10" step="0.01" class="form-control input-custom" value="<%= obra.porcentajeGanancia %>" required>
                     </div>
                 </div>
 
-                <!-- Fila 3: Gestión de Imagen con soporte Supabase -->
-                <div class="row g-4 mb-4">
+                <div class="row g-4 mb-4 align-items-center">
                     <div class="col-md-6">
-                        <label class="form-label-custom">Imagen Actual</label>
-                        <div class="current-photo-container">
-                            <img src="<%= (obra.foto && obra.foto.startsWith('http')) ? obra.foto : ('/uploads/' + (obra.foto || 'default_obra.jpg')) %>" 
-                                 alt="<%= obra.nombre %>" 
-                                 class="img-edit-preview"
-                                 onerror="this.src='/img/default_obra.jpg'">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label-custom">Reemplazar Fotografía (Opcional)</label>
+                        <label class="form-label-custom">Imagen de la Obra</label>
                         <input type="file" name="foto" class="form-control input-custom" accept="image/*" style="padding: 8px !important;">
-                        <p class="text-white-50 small mt-2">Deje vacío para mantener la imagen actual.</p>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <img src="<%= (obra.foto && obra.foto.startsWith('http')) ? obra.foto : ('/uploads/' + (obra.foto || 'default.png')) %>" style="max-height: 120px; border-radius: 10px; border: 1px solid var(--at-border);" alt="Preview">
                     </div>
                 </div>
 
-                <!-- RECUADRO DE DETALLES TÉCNICOS (DINÁMICOS COMPATIBLES CON MINÚSCULAS DE POSTGRESQL) -->
-                <div id="wrapper-detalles-tecnicos">
-                    <span class="tech-header">Detalles Técnicos</span>
-
-                    <!-- Pintura (1) -->
-                    <div class="row g-3" data-genero="1" style="display: none;">
-                        <div class="col-md-6">
-                            <label class="form-label-custom">Técnica</label>
-                            <input type="text" name="tecnica" class="form-control input-custom" value="<%= obra.tecnica || '' %>">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label-custom">Soporte</label>
-                            <input type="text" name="soporte" class="form-control input-custom" value="<%= obra.soporte || '' %>">
-                        </div>
-                    </div>
-
-                    <!-- Escultura (2) -->
-                    <div class="row g-3" data-genero="2" style="display: none;">
-                        <div class="col-md-4">
-                            <label class="form-label-custom">Material</label>
-                            <input type="text" name="material" class="form-control input-custom" value="<%= obra.material || '' %>">
-                        </div>
-                        <div class="col-md-2"><label class="form-label-custom">Peso (kg)</label><input type="number" step="0.01" name="peso" class="form-control input-custom" value="<%= obra.peso || '' %>"></div>
-                        <div class="col-md-2"><label class="form-label-custom">Largo</label><input type="number" step="0.01" name="largo" class="form-control input-custom" value="<%= obra.largo || '' %>"></div>
-                        <div class="col-md-2"><label class="form-label-custom">Ancho</label><input type="number" step="0.01" name="ancho" class="form-control input-custom" value="<%= obra.ancho || '' %>"></div>
-                        <div class="col-md-2"><label class="form-label-custom">Prof.</label><input type="number" step="0.01" name="profundidad" class="form-control input-custom" value="<%= obra.profundidad || '' %>"></div>
-                    </div>
-
-                    <!-- Fotografía (3) -->
-                    <div class="row g-3" data-genero="3" style="display: none;">
-                        <div class="col-md-4"><label class="form-label-custom">Tipo</label><input type="text" name="tipo_foto" class="form-control input-custom" value="<%= obra.tipo_foto || '' %>"></div>
-                        <div class="col-md-4"><label class="form-label-custom">Papel</label><input type="text" name="papel" class="form-control input-custom" value="<%= obra.papel || '' %>"></div>
-                        <div class="col-md-4"><label class="form-label-custom">Formato</label><input type="text" name="formato" class="form-control input-custom" value="<%= obra.formato || '' %>"></div>
-                    </div>
-
-                    <!-- Cerámica (4) -->
-                    <div class="row g-3" data-genero="4" style="display: none;">
-                        <div class="col-md-4"><label class="form-label-custom">Tipo de arcilla</label><input type="text" name="tipoArcilla" class="form-control input-custom" value="<%= obra.tipoarcilla || obra.tipoArcilla || '' %>"></div>
-                        <div class="col-md-4"><label class="form-label-custom">Temp. (°C)</label><input type="number" step="0.01" inputmode="decimal" name="temperaturaCoccion" class="form-control input-custom" value="<%= obra.temperaturacoccion || obra.temperaturaCoccion || '' %>"></div>
-                        <div class="col-md-4"><label class="form-label-custom">Esmalte</label><input type="text" name="tipoEsmalte" class="form-control input-custom" value="<%= obra.tipoesmalte || obra.tipoEsmalte || '' %>"></div>
-                    </div>
-
-                    <!-- Orfebrería (5) -->
-                    <div class="row g-3" data-genero="5" style="display: none;">
-                        <div class="col-md-4"><label class="form-label-custom">Metal</label><input type="text" name="metal" class="form-control input-custom" value="<%= obra.metal || '' %>"></div>
-                        <div class="col-md-4"><label class="form-label-custom">Pureza</label><input type="text" name="pureza" class="form-control input-custom" value="<%= obra.pureza || '' %>"></div>
-                        <div class="col-md-4">
-                            <label class="form-label-custom">Piedra preciosa</label>
-                            <select name="piedraPreciosa" class="form-select input-custom">
-                                <option value="1" <%= String(obra.piedrapreciosa || obra.piedraPreciosa) === '1' ? 'selected' : '' %>>Sí</option>
-                                <option value="0" <%= String(obra.piedrapreciosa || obra.piedraPreciosa) === '0' ? 'selected' : '' %>>No</option>
-                            </select>
-                        </div>
+                <!-- CONTENEDOR TÉCNICO DINÁMICO -->
+                <div id="wrapper-detalles-tecnicos" style="display: none;">
+                    <span class="tech-header">Atributos del Género (MongoDB Schema)</span>
+                    <div id="dynamic-fields-container" class="row g-3">
+                        <!-- Campos polimórficos inyectados vía AJAX por JS -->
                     </div>
                 </div>
 
-                <div class="text-end pt-4">
-                    <button type="submit" class="btn btn-atrium-save">Guardar Cambios</button>
+                <div class="text-end pt-3">
+                    <button type="submit" class="btn btn-atrium-publish">Actualizar Obra</button>
                 </div>
             </form>
+        </div>
+
+        <div class="text-center mt-5 mb-5">
+            <a href="/admin/inventario" class="btn btn-atrium-back shadow-sm">
+                ← Volver al Inventario
+            </a>
         </div>
     </div>
 </div>
 
 <script>
-    (document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
         const generoSelect = document.getElementById('genero_id');
-        const bloques = Array.from(document.querySelectorAll('[data-genero]'));
+        const technicalWrapper = document.getElementById('wrapper-detalles-tecnicos');
+        const dynamicContainer = document.getElementById('dynamic-fields-container');
 
-        const setRequired = (block, isRequired) => {
-            block.querySelectorAll('input, select').forEach((field) => {
-                if(field.type !== 'hidden' && field.name !== 'piedraPreciosa') field.required = isRequired;
-            });
+        // Valores iniciales que ya tiene la obra cargados en la base de datos
+        const valoresPrecargados = JSON.parse('<%- JSON.stringify(obra.detalles || {}) %>');
+
+        const labelTranslate = {
+            tecnica: "Técnica Artística", soporte: "Soporte Físico", material: "Material Utilizado",
+            peso: "Peso de la Obra (Kg)", largo: "Largo (cm)", ancho: "Ancho (cm)",
+            profundidad: "Profundidad (cm)", tipo_foto: "Tipo de Fotografía", papel: "Papel de Impresión",
+            formato: "Formato / Proporción", tipoArcilla: "Tipo de Arcilla",
+            temperaturaCoccion: "Temperatura de Cocción (°C)", tipoEsmalte: "Tipo de Esmalte",
+            metal: "Metal Base", pureza: "Pureza del Metal", piedraPreciosa: "Contiene Piedras Preciosas"
         };
 
-        const setupDecimalField = (input, options = {}) => {
-            if (!input) return;
+        const cargarCamposCategoria = async (generoId) => {
+            if (!generoId) {
+                technicalWrapper.style.display = 'none';
+                dynamicContainer.innerHTML = '';
+                return;
+            }
 
-            const { min = null, max = null } = options;
+            try {
+                const res = await fetch(`/admin/categorias/especificaciones/${generoId}`);
+                if (!res.ok) throw new Error("Fallo al obtener especificaciones");
+                const data = await res.json();
 
-            const normalizeValue = () => {
-                if (!input.value) {
-                    input.setCustomValidity('');
-                    return;
+                dynamicContainer.innerHTML = '';
+
+                if (data && data.detalles && Object.keys(data.detalles).length > 0) {
+                    technicalWrapper.style.display = 'block';
+
+                    Object.entries(data.detalles).forEach(([campo, tipo]) => {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-6 mb-3';
+
+                        const friendlyLabel = labelTranslate[campo] || campo.charAt(0).toUpperCase() + campo.slice(1);
+                        const valorActual = valoresPrecargados[campo] || "";
+                        let inputHTML = '';
+
+                        if (tipo === 'Boolean') {
+                            inputHTML = `
+                                <label class="form-label-custom">${friendlyLabel}</label>
+                                <select name="${campo}" class="form-select input-custom" required>
+                                    <option value="false" ${valorActual === 'false' ? 'selected' : ''}>No</option>
+                                    <option value="true" ${valorActual === 'true' ? 'selected' : ''}>Sí</option>
+                                </select>
+                            `;
+                        } else if (tipo === 'Integer') {
+                            inputHTML = `
+                                <label class="form-label-custom">${friendlyLabel}</label>
+                                <input type="number" step="1" name="${campo}" class="form-control input-custom" value="${valorActual}" required min="0">
+                            `;
+                        } else if (tipo === 'Decimal') {
+                            inputHTML = `
+                                <label class="form-label-custom">${friendlyLabel}</label>
+                                <input type="number" step="0.01" name="${campo}" class="form-control input-custom" value="${valorActual}" required min="0">
+                            `;
+                        } else {
+                            inputHTML = `
+                                <label class="form-label-custom">${friendlyLabel}</label>
+                                <input type="text" name="${campo}" class="form-control input-custom" value="${valorActual}" required>
+                            `;
+                        }
+
+                        col.innerHTML = inputHTML;
+                        dynamicContainer.appendChild(col);
+                    });
+                } else {
+                    technicalWrapper.style.display = 'none';
                 }
-
-                input.value = input.value.replace(',', '.');
-                const valueNumber = Number(input.value);
-
-                if (!Number.isFinite(valueNumber)) {
-                    input.setCustomValidity('Ingresa un numero valido.');
-                    return;
-                }
-
-                if (min !== null && valueNumber < min) {
-                    input.setCustomValidity(`El valor minimo permitido es ${Number(min).toFixed(2)}.`);
-                    return;
-                }
-
-                if (max !== null && valueNumber > max) {
-                    input.setCustomValidity(`El valor maximo permitido es ${Number(max).toFixed(2)}.`);
-                    return;
-                }
-
-                const parts = input.value.split('.');
-                if (parts[1] && parts[1].length > 2) {
-                    input.value = `${parts[0]}.${parts[1].slice(0, 2)}`;
-                }
-
-                const isValid = /^\d+(\.\d{0,2})?$/.test(input.value);
-                input.setCustomValidity(isValid ? '' : 'Solo se permiten 2 decimales.');
-            };
-
-            input.addEventListener('input', normalizeValue);
-            input.addEventListener('blur', () => {
-                if (!input.value) return;
-                const valueNumber = Number(input.value);
-                if (Number.isFinite(valueNumber)) {
-                    input.value = valueNumber.toFixed(2);
-                }
-                normalizeValue();
-            });
-
-            if (input.value) {
-                const valueNumber = Number(String(input.value).replace(',', '.'));
-                if (Number.isFinite(valueNumber)) {
-                    input.value = valueNumber.toFixed(2);
-                }
+            } catch (err) {
+                console.error("Error al renderizar los campos:", err);
+                technicalWrapper.style.display = 'none';
             }
         };
 
-        const toggleBloques = () => {
-            const generoId = generoSelect.value;
-            bloques.forEach((block) => {
-                const active = block.getAttribute('data-genero') === generoId;
-                block.style.display = active ? 'flex' : 'none';
-                setRequired(block, active);
-            });
-        };
-
-        generoSelect.addEventListener('change', toggleBloques);
-        toggleBloques(); // Ejecutar al cargar para mostrar el género actual
-        const decimalFields = [
-            { selector: 'input[name="precioObra"]', options: { min: 0 } },
-            { selector: 'input[name="porcentajeGanancia"]', options: { min: 5, max: 10 } },
-            { selector: 'input[name="peso"]', options: { min: 0 } },
-            { selector: 'input[name="largo"]', options: { min: 0 } },
-            { selector: 'input[name="ancho"]', options: { min: 0 } },
-            { selector: 'input[name="profundidad"]', options: { min: 0 } },
-            { selector: 'input[name="temperaturaCoccion"]', options: { min: 0 } }
-        ];
-
-        decimalFields.forEach(({ selector, options }) => {
-            setupDecimalField(document.querySelector(selector), options);
-        });
-    }))();
+        generoSelect.addEventListener('change', (e) => cargarCamposCategoria(e.target.value));
+        // Carga inicial basada en el género actual de la obra
+        if (generoSelect.value) cargarCamposCategoria(generoSelect.value);
+    });
 </script>
 
 <%- include('../partials/footer') %>

@@ -43,26 +43,24 @@ const subirImagenASupabase = async (file, subcarpeta) => {
 const AdminController = {
 
     // 1. DASHBOARD PRINCIPAL
-   dashboard: async (req, res) => {
+    dashboard: async (req, res) => {
         try {
-            // Asegúrate de que Promise.all reciba y asigne las 6 variables
             const [totalObras, recaudado, gananciaMuseo, membresias, statsGeneros, statsEstatus] = await Promise.all([
                 ObraModel.contarInventarioActivo(),
                 VentaModel.totalRecaudado(),
                 VentaModel.totalGananciaMuseo(),
                 InfoCompradorModel.contarActivas(),
-                ObraModel.obtenerEstadisticasGeneros(), // Variable statsGeneros
-                ObraModel.obtenerEstadisticasEstatus()  // Variable statsEstatus
+                ObraModel.obtenerEstadisticasGeneros(),
+                ObraModel.obtenerEstadisticasEstatus()
             ]);
 
             res.render('admin/dashboard', {
                 stats: { totalObras, recaudado, gananciaMuseo, membresias },
-                charts: { generos: statsGeneros, estatus: statsEstatus }, // Ahora sí existen
+                charts: { generos: statsGeneros, estatus: statsEstatus },
                 errorMsg: null
             });
         } catch (error) {
             console.error('Error en Dashboard:', error);
-            // En caso de error, pasamos arrays vacíos para que no falle la vista
             res.render('admin/dashboard', {
                 stats: { totalObras: 0, recaudado: 0, gananciaMuseo: 0, membresias: 0 },
                 charts: { generos: [], estatus: [] },
@@ -93,7 +91,6 @@ const AdminController = {
                     historial = response.data.sort((a, b) => new Date(b.fecha_evento) - new Date(a.fecha_evento));
                 }
             } catch (apiError) {
-                // Manejar de manera segura si la API no tiene registros o devuelve un error (ej. 404)
                 console.warn(`[Cassandra API Warn] No se pudo obtener el historial para la obra ${idObra}:`, apiError.message);
             }
 
@@ -114,9 +111,8 @@ const AdminController = {
         try {
             const auditoriaApiUrl = process.env.AUDITORIA_API_URL || 'https://museoatrium-auditoria.onrender.com';
             
-            // Parámetros por defecto para evitar campos vacíos
             const login_usuario = req.query.login_usuario ? String(req.query.login_usuario).trim() : 'frantest';
-            const desde = req.query.desde || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // Hace 30 días
+            const desde = req.query.desde || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             const hasta = req.query.hasta || new Date().toISOString().split('T')[0];
 
             let logs = [];
@@ -224,10 +220,10 @@ const AdminController = {
         }
     },
 
-    // Gestión de Categorías/Disciplinas NoSQL
+    // Gestión de Categorías/Disciplinas NoSQL (Corregido 'genero' singular)
     gestionCategorias: async (req, res) => {
         try {
-            const [categorias] = await db.query("SELECT * FROM generos ORDER BY nombre ASC");
+            const [categorias] = await db.execute("SELECT Id, nombre FROM genero ORDER BY nombre ASC");
             res.render('admin/gestion-categorias', { categorias });
         } catch (error) {
             console.error(error);
@@ -235,46 +231,64 @@ const AdminController = {
         }
     },
 
+   // Guardar Categoría Dinámica Polimórfica (Con validación preventiva de duplicados)
     guardarCategoria: async (req, res) => {
         try {
             const { nombre, detallesNombres, detallesTipos } = req.body;
+            const nombreNormalizado = nombre.trim();
 
-            // 1. Guardar la categoría en la base de datos relacional de PostgreSQL
-            const [result] = await db.query("INSERT INTO generos (nombre) VALUES ($1) RETURNING id", [nombre]);
-            const nuevoId = result.id;
+            // 1. Validación preventiva: Verificar si el género ya existe en PostgreSQL (ignora mayúsculas/minúsculas)
+            const [existe] = await db.execute(
+                "SELECT Id FROM genero WHERE LOWER(nombre) = LOWER(?) LIMIT 1", 
+                [nombreNormalizado]
+            );
 
-            // 2. Construir el diccionario de metadatos de tipos de datos
+            if (existe.length > 0) {
+                // Recuperar categorías actuales para recargar la vista con el mensaje de error
+                const [categorias] = await db.execute("SELECT Id, nombre FROM genero ORDER BY nombre ASC");
+                return res.render('admin/gestion-categorias', { 
+                    categorias, 
+                    error: `El género "${nombreNormalizado}" ya se encuentra registrado en el sistema.` 
+                });
+            }
+
+            // 2. Guardar la categoría en PostgreSQL si no está duplicada
+            const [result] = await db.execute("INSERT INTO genero (nombre) VALUES (?)", [nombreNormalizado]);
+            const nuevoId = result.insertId;
+
+            // 3. Construir el diccionario de metadatos de tipos de datos NoSQL
             const detallesDict = {};
             if (detallesNombres && detallesTipos) {
                 const nombresArray = Array.isArray(detallesNombres) ? detallesNombres : [detallesNombres];
                 const tiposArray = Array.isArray(detallesTipos) ? detallesTipos : [detallesTipos];
 
                 for (let i = 0; i < nombresArray.length; i++) {
-                    const campoNombre = nombresArray[i].trim().toLowerCase().replace(/\s+/g, '_'); // Normalizar a snake_case
-                    const campoTipo = tiposArray[i];
+                    const campoNombre = nombresArray[i].trim().toLowerCase().replace(/\s+/g, '_');
+                    const campoTipo = tiposArray[i]; // String, Integer, Decimal, Boolean
                     if (campoNombre) {
                         detallesDict[campoNombre] = campoTipo;
                     }
                 }
             }
 
-            // 3. Sincronizar de forma asíncrona con MongoDB
+            // 4. Sincronizar con el catálogo de MongoDB
             await MongoSyncService.syncCategoria({
                 id_sql: nuevoId,
-                nombre_categoria: nombre.trim(),
+                nombre_categoria: nombreNormalizado,
                 detalles: detallesDict
             });
 
-            res.redirect('/admin/categorias');
+            res.redirect('/admin/categorias?success=Categoría guardada con éxito');
         } catch (error) {
-            console.error(error);
-            res.status(500).send("Error al guardar la categoría polimórfica");
+            console.error("Error al guardar categoría:", error);
+            res.status(500).send("Error interno al procesar la categoría polimórfica");
         }
     },
 
     obtenerEspecificacionesCategoria: async (req, res) => {
         try {
             const id = req.params.id;
+            const MONGO_API_URL = process.env.MONGO_API_URL || 'https://mongo-mp55.onrender.com';
             const response = await axios.get(`${MONGO_API_URL}/category/${id}`);
             res.json(response.data);
         } catch (error) {
@@ -294,7 +308,7 @@ const AdminController = {
         }
     },
 
-  // GUARDAR OBRA (Transaccional Políglota con Inserciones de Especialización SQL)
+    // GUARDAR OBRA (Transaccional Políglota con Inserciones de Especialización SQL)
     guardarObra: async (req, res) => {
         const client = await db.connect(); // Adquirir cliente aislado para la transacción relacional
         try {
@@ -303,12 +317,13 @@ const AdminController = {
 
             if (req.body.obra_id) {
                 // Flujo de actualización (se mantiene síncrono estándar)
-                const actualizada = await ObraModel.actualizar(req.body.obra_id, req.body, foto);
-                if (!updated) {
+                const fotoFinal = foto || req.body.foto_actual;
+                const actualizada = await ObraModel.actualizar(req.body.obra_id, req.body, fotoFinal);
+                if (!actualizada) {
                     return res.status(404).send('Obra no encontrada');
                 }
                 
-                req.body.foto = foto || req.body.foto_actual;
+                req.body.foto = fotoFinal;
                 await MongoSyncService.syncObra(req.body, true);
 
                 return res.redirect('/admin/inventario');
@@ -316,9 +331,18 @@ const AdminController = {
                 // 2. INICIAR TRANSACCIÓN EN POSTGRESQL (Para garantizar atomicidad)
                 await client.query('BEGIN');
 
+                // Recolectar propiedades dinámicas de los detalles que no son campos del modelo base
+                const detalles = {};
+                const baseKeys = ['genero_id', 'autor_id', 'nombre', 'precioObra', 'porcentajeGanancia', 'foto', 'obra_id', 'foto_actual'];
+                Object.keys(req.body).forEach(key => {
+                    if (!baseKeys.includes(key)) {
+                        detalles[key] = String(req.body[key]).trim();
+                    }
+                });
+
                 const sqlObra = `INSERT INTO obra
-                    (genero_id, autor_id, nombre, fechaCreacion, precioObra, porcentajeGanancia, estatus, foto)
-                    VALUES ($1, $2, $3, CURRENT_DATE, $4, $5, 'Disponible', $6) RETURNING id`;
+                    (genero_id, autor_id, nombre, fechaCreacion, precioObra, porcentajeGanancia, estatus, foto, detalles)
+                    VALUES ($1, $2, $3, CURRENT_DATE, $4, $5, 'Disponible', $6, $7) RETURNING id`;
                 
                 const resObra = await client.query(sqlObra, [
                     parseInt(req.body.genero_id, 10),
@@ -326,14 +350,16 @@ const AdminController = {
                     req.body.nombre,
                     parseFloat(req.body.precioObra),
                     parseFloat(req.body.porcentajeGanancia),
-                    foto
+                    foto,
+                    JSON.stringify(detalles)
                 ]);
 
                 const nuevaObraId = resObra.rows[0].id;
                 req.body.id = nuevaObraId;
                 req.body.foto = foto;
+                req.body.detalles = detalles;
 
-                // 3. INSERCIÓN DE ESPECIALIZACIÓN EN LAS TABLAS HIJAS RELACIONALES (SQL)
+                // 3. INSERCIÓN DE ESPECIALIZACIÓN EN LAS TABLAS HIJAS RELACIONALES (SQL - Legado)
                 const generoId = parseInt(req.body.genero_id, 10);
 
                 if (generoId === 1) { // Pintura
@@ -385,18 +411,17 @@ const AdminController = {
 
                 // 6. Si todo el flujo fue exitoso, confirmamos la transacción relacional
                 await client.query('COMMIT');
-                res.redirect('/admin/gestion-obras');
+                res.redirect('/admin/inventario');
             }
         } catch (error) {
-            // Revertir toda la transacción relacional (madre e hijas) en caso de cualquier fallo en la red NoSQL
+            // Revertir toda la transacción relacional en caso de cualquier fallo en la red NoSQL
             await client.query('ROLLBACK');
-            console.error("❌ Transacción Políglota Fallida (Rollback relacional aplicado):", error.message);
+            console.error("❌ Transacción Políglota Fallida:", error.message);
             res.status(500).send(`Error al guardar la obra en el ecosistema: ${error.message}`);
         } finally {
             client.release(); // Liberar el cliente de vuelta al pool
         }
     },
-
 
     inventarioObras: async (req, res) => {
         try {
@@ -425,7 +450,6 @@ const AdminController = {
                 return res.status(404).send('Obra no encontrada o no reservada');
             }
 
-            // --- SYNC MONGO ---
             const obraCompleta = await ObraModel.obtenerPorId(req.params.id);
             if (obraCompleta) await MongoSyncService.syncObra(obraCompleta, true);
 
@@ -477,10 +501,9 @@ const AdminController = {
                 return res.status(404).send('Obra no encontrada');
             }
 
-            // --- SYNC MONGO ---
             req.body.obra_id = req.params.id;
             if (foto) req.body.foto = foto;
-            else req.body.foto = req.body.foto_actual; // Se asume que viene del form si no hay nueva
+            else req.body.foto = req.body.foto_actual;
             await MongoSyncService.syncObra(req.body, true);
 
             res.redirect('/admin/inventario');
@@ -497,7 +520,6 @@ const AdminController = {
                 return res.status(404).send('Obra no encontrada');
             }
 
-            // --- SYNC MONGO ---
             await MongoSyncService.deleteObra(req.params.id);
 
             res.redirect('/admin/inventario');
@@ -507,7 +529,6 @@ const AdminController = {
         }
     },
 
-    // 3. GESTION DE ARTISTAS
     gestionArtistas: async (req, res) => {
         try {
             const artistas = await ArtistaModel.listar();
@@ -528,20 +549,19 @@ const AdminController = {
                 return res.send("<script>alert('Error: Ya existe un artista registrado con ese nombre y apellido.'); window.location.href='/admin/gestion-artistas';</script>");
             }
 
-            // Subir imagen del artista a Supabase
             const foto = req.file ? await subirImagenASupabase(req.file, 'artistas') : null;
             const nuevoArtistaId = await ArtistaModel.crear(req.body, foto);
 
-            // --- SYNC MONGO (Asíncrono) ---
             req.body.id = nuevoArtistaId;
             req.body.foto = foto;
-            MongoSyncService.syncArtista(req.body, false).catch(err => {
-                console.error("❌ Falló la sincronización asíncrona de artista en MongoDB:", err.message);
-            });
-
-            // --- SYNC NEO4J (Asíncrono) ---
-            Neo4jSyncService.syncArtista(req.body).catch(err => {
-                console.error("❌ Falló la sincronización asíncrona de artista en Neo4j:", err.message);
+            
+            setImmediate(() => {
+                MongoSyncService.syncArtista(req.body, false).catch(err => {
+                    console.error("❌ Falló la sincronización asíncrona de artista en MongoDB:", err.message);
+                });
+                Neo4jSyncService.syncArtista(req.body).catch(err => {
+                    console.error("❌ Falló la sincronización asíncrona de artista en Neo4j:", err.message);
+                });
             });
 
             res.redirect('/admin/gestion-artistas');
@@ -566,17 +586,17 @@ const AdminController = {
     actualizarArtista: async (req, res) => {
         try {
             const id = req.params.id;
-            
-            // Subir imagen del artista a Supabase
             const foto = req.file ? await subirImagenASupabase(req.file, 'artistas') : null;
             await ArtistaModel.actualizar(id, req.body, foto);
 
-            // --- SYNC MONGO (Asíncrono) ---
             req.body.id = id;
             if (foto) req.body.foto = foto;
-            else req.body.foto = req.body.foto_actual; // si la tienes en el form
-            MongoSyncService.syncArtista(req.body, true).catch(err => {
-                console.error("❌ Falló la sincronización asíncrona de artista en MongoDB:", err.message);
+            else req.body.foto = req.body.foto_actual;
+            
+            setImmediate(() => {
+                MongoSyncService.syncArtista(req.body, true).catch(err => {
+                    console.error("❌ Falló la sincronización asíncrona de artista en MongoDB:", err.message);
+                });
             });
 
             res.redirect('/admin/gestion-artistas');
@@ -590,7 +610,6 @@ const AdminController = {
         try {
             await ArtistaModel.activarLogico(req.params.id);
             
-            // --- SYNC MONGO ---
             const artista = await ArtistaModel.obtenerPorId(req.params.id);
             if(artista) await MongoSyncService.syncArtista(artista, true);
 
@@ -605,7 +624,6 @@ const AdminController = {
         try {
             await ArtistaModel.eliminarLogico(req.params.id);
 
-            // --- SYNC MONGO ---
             const artista = await ArtistaModel.obtenerPorId(req.params.id);
             if(artista) {
                 artista.estado_activo = false;
@@ -619,7 +637,6 @@ const AdminController = {
         }
     },
 
-    // 4. FACTURACION Y VENTAS
     pantallaFactura: async (req, res) => {
         try {
             const obra = await ObraModel.obtenerPorId(req.params.id);
@@ -692,112 +709,64 @@ const AdminController = {
 
             await ObraModel.marcarComoVendida(obra_id);
 
-            // --- SYNC MONGO ---
-            const obraCompletaSync = await ObraModel.obtenerPorId(obra_id);
-            if (obraCompletaSync) await MongoSyncService.syncObra(obraCompletaSync, true);
+            // Operaciones asíncronas liberadas del hilo principal
+            setImmediate(async () => {
+                const obraCompletaSync = await ObraModel.obtenerPorId(obra_id);
+                if (obraCompletaSync) MongoSyncService.syncObra(obraCompletaSync, true).catch(() => {});
+                Neo4jSyncService.syncCompra(comprador_id, obra_id, total).catch(() => {});
 
-            // --- SYNC NEO4J COMPRA ---
-            await Neo4jSyncService.syncCompra(comprador_id, obra_id, total);
+                enviarAuditoria('/obras/historico', {
+                    id_obra: parseInt(obra_id),
+                    estatus_anterior: 'Reservada',
+                    estatus_nuevo: 'Vendida',
+                    usuario_id: admin_id,
+                    ip_origen: req.ip || '127.0.0.1',
+                    fecha_evento: new Date().toISOString()
+                }).catch(() => {});
 
-            // --- AUDITORÍA DE OBRA EN CASSANDRA ---
-            await enviarAuditoria('/obras/historico', {
-                id_obra: parseInt(obra_id),
-                estatus_anterior: 'Reservada',
-                estatus_nuevo: 'Vendida',
-                usuario_id: admin_id,
-                ip_origen: req.ip || '127.0.0.1',
-                fecha_evento: new Date().toISOString()
-            });
+                enviarAuditoria('/reportes/facturacion', {
+                    anio: new Date().getFullYear(),
+                    mes: new Date().getMonth() + 1,
+                    id_factura: parseInt(codigo.split('-')[1].slice(-8)) || Math.floor(Math.random() * 100000),
+                    fecha_emision: new Date().toISOString(),
+                    id_comprador: parseInt(comprador_id),
+                    monto_neto: precioBase.toFixed(2),
+                    iva_calculado: iva.toFixed(2),
+                    ganancia_museo: ganancia.toFixed(2),
+                    estado: "PAGADA"
+                }).catch(() => {});
 
-            // --- AUDITORÍA DE FACTURACIÓN EN CASSANDRA ---
-            const ahoraFactura = new Date();
-            await enviarAuditoria('/reportes/facturacion', {
-                anio: ahoraFactura.getFullYear(),
-                mes: ahoraFactura.getMonth() + 1,
-                id_factura: parseInt(codigo.split('-')[1].slice(-8)) || Math.floor(Math.random() * 100000),
-                fecha_emision: ahoraFactura.toISOString(),
-                id_comprador: parseInt(comprador_id),
-                monto_neto: precioBase.toFixed(2),
-                iva_calculado: iva.toFixed(2),
-                ganancia_museo: ganancia.toFixed(2),
-                estado: "PAGADA"
-            });
+                try {
+                    const facturaData = await VentaModel.obtenerFacturaPorCodigo(codigo);
+                    const compradorData = await UsuarioModel.buscarPorId(comprador_id);
 
-            // --- LÓGICA DE GENERACIÓN DE PDF AUTOMÁTICA CON AUTO-DETECCIÓN ---
-            try {
-                const facturaData = await VentaModel.obtenerFacturaPorCodigo(codigo);
-                const compradorData = await UsuarioModel.buscarPorId(comprador_id);
+                    if (compradorData && compradorData.gmail) {
+                        let fotoPDF = "";
+                        const htmlFactura = await ejs.renderFile(
+                            path.join(__dirname, '../../views/admin/factura-detalle.ejs'), 
+                            { factura: facturaData, fotoPDF: fotoPDF }
+                        );
 
-                if (compradorData && compradorData.gmail) {
-                    
-                    // --- PROCESAR IMAGEN PARA PDF (BASE64) ---
-                    let fotoPDF = "";
-                    try {
-                        const imagePath = path.join(__dirname, '../../public/uploads', facturaData.foto);
-                        if (fs.existsSync(imagePath)) {
-                            const bitmap = fs.readFileSync(imagePath);
-                            fotoPDF = `data:image/png;base64,${bitmap.toString('base64')}`;
-                        }
-                    } catch (e) { console.error("Error cargando imagen para PDF"); }
+                        const browser = await puppeteer.launch({
+                            headless: "new",
+                            args: ['--no-sandbox', '--disable-setuid-sandbox']
+                        });
 
-                    const htmlFactura = await ejs.renderFile(
-                        path.join(__dirname, '../../views/admin/factura-detalle.ejs'), 
-                        { factura: facturaData, fotoPDF: fotoPDF }
-                    );
+                        const page = await browser.newPage();
+                        await page.setContent(htmlFactura, { waitUntil: 'domcontentloaded', timeout: 30000 });
+                        const pdfBuffer = await page.pdf({
+                            format: 'A4',
+                            printBackground: true,
+                            margin: { top: '0.5cm', bottom: '0.5cm', left: '0.5cm', right: '0.5cm' }
+                        });
 
-                    // ALGORITMO DE BÚSQUEDA DE NAVEGADORES (Windows / Linux)
-                    const appData = process.env.LOCALAPPDATA;
-                    const progFiles = process.env.PROGRAMFILES;
-                    const progFiles86 = process.env["ProgramFiles(x86)"];
-
-                    const commonPaths = [
-                        path.join(progFiles, 'Google/Chrome/Application/chrome.exe'),
-                        path.join(progFiles86, 'Google/Chrome/Application/chrome.exe'),
-                        path.join(progFiles86, 'Microsoft/Edge/Application/msedge.exe'),
-                        path.join(appData, 'Programs/Opera GX/opera.exe'),
-                        path.join(appData, 'Programs/Opera/opera.exe'),
-                        path.join(progFiles, 'BraveSoftware/Brave-Browser/Application/brave.exe'),
-                        path.join(progFiles, 'Mozilla Firefox/firefox.exe'),
-                        path.join(appData, 'Programs/Zen/zen.exe'),
-                        '/usr/bin/google-chrome',
-                        '/usr/bin/firefox'
-                    ];
-
-                    const executablePath = commonPaths.find(p => p && fs.existsSync(p));
-                    if (!executablePath) throw new Error("No se detectó ningún navegador instalado.");
-
-                    const browser = await puppeteer.launch({
-                        executablePath: executablePath,
-                        headless: "new",
-                        args: ['--no-sandbox', '--disable-setuid-sandbox']
-                    });
-
-                    const page = await browser.newPage();
-                    // Evita cuelgues por CDNs/scripts externos al generar el PDF en servidor.
-                    await page.setRequestInterception(true);
-                    page.on('request', (request) => {
-                        const url = request.url();
-                        if (url.startsWith('http://') || url.startsWith('https://')) {
-                            return request.abort();
-                        }
-                        return request.continue();
-                    });
-
-                    await page.setContent(htmlFactura, { waitUntil: 'domcontentloaded', timeout: 60000 });
-                    
-                    const pdfBuffer = await page.pdf({
-                        format: 'A4',
-                        printBackground: true,
-                        margin: { top: '0.5cm', bottom: '0.5cm', left: '0.5cm', right: '0.5cm' }
-                    });
-
-                    await browser.close();
-                    await sendReservaAceptada(compradorData.gmail, obraObj.nombre, codigo, pdfBuffer);
-                    console.log('✅ Factura PDF generada y enviada satisfactoriamente.');
+                        await browser.close();
+                        await sendReservaAceptada(compradorData.gmail, facturaData.nombre_obra, codigo, pdfBuffer);
+                    }
+                } catch (errPdf) {
+                    console.error('❌ Error crítico en generación de PDF:', errPdf.message);
                 }
-            } catch (errPdf) {
-                console.error('❌ Error crítico en generación de PDF:', errPdf.message);
-            }
+            });
 
             res.redirect('/admin/reportes-ventas');
 
@@ -1032,6 +1001,25 @@ const AdminController = {
         } catch (error) {
             console.error(error);
             res.status(500).send("Error al exportar datos");
+        }
+    },
+
+    // Método para procesar y retornar la biografía generada por la IA
+    generarBiografiaArtista: async (req, res) => {
+        try {
+            const { nombre, apellido, nacionalidad } = req.body;
+            const AIService = require('../services/AIService');
+
+            const biografia = await AIService.generarBiografiaArtista(
+                nombre ? nombre.trim() : '',
+                apellido ? apellido.trim() : '',
+                nacionalidad ? nacionalidad.trim() : ''
+            );
+
+            res.json({ success: true, biografia });
+        } catch (error) {
+            console.error("Error al generar biografía con IA:", error.message);
+            res.status(500).json({ success: false, error: "No se pudo generar la biografía." });
         }
     },
 

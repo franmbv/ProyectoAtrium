@@ -65,7 +65,7 @@
         outline: none;
     }
 
-    /* ESTILIZACIÓN DEL BOTÓN EXAMINAR */
+    /* Estilización del Botón Examinar */
     .input-custom[type="file"] {
         padding: 0 !important;
         display: flex;
@@ -194,10 +194,13 @@
                     <input type="text" name="nacionalidad" class="form-control input-custom" value="<%= artista.nacionalidad %>" required>
                 </div>
 
-                <!-- Biografía -->
+                <!-- Biografía con Generador IA Integrado -->
                 <div class="mb-4">
-                    <label class="form-label-custom">Biografía</label>
-                    <textarea name="biografia" class="form-control input-custom" rows="5" placeholder="Escriba aquí la reseña del artista..."><%= artista.descripcion %></textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label-custom m-0">Biografía</label>
+                        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="autogenerarBiografia()">✨ Autogenerar con IA</button>
+                    </div>
+                    <textarea name="biografia" id="biografia" class="form-control input-custom" rows="5" placeholder="Escriba aquí la reseña del artista..."><%= artista.descripcion %></textarea>
                 </div>
 
                 <!-- Foto -->
@@ -230,3 +233,43 @@
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+    // GENERADOR DE BIOGRAFÍAS CON INTELIGENCIA ARTIFICIAL (GEMINI)
+    async function autogenerarBiografia() {
+        const nombre = document.querySelector('input[name="nombre"]').value.trim();
+        const apellido = document.querySelector('input[name="apellido"]').value.trim();
+        const nacionalidad = document.querySelector('input[name="nacionalidad"]').value.trim();
+
+        if (!nombre || !nacionalidad) {
+            alert("⚠️ Por favor, ingrese al menos el Nombre y la Nacionalidad para guiar al redactor de Inteligencia Articial.");
+            return;
+        }
+
+        const txtArea = document.getElementById('biografia');
+        const originalPlaceholder = txtArea.placeholder;
+        txtArea.value = "";
+        txtArea.placeholder = "Redactando biografía artística profesional con Inteligencia Artificial (Gemini)...";
+
+        try {
+            const res = await fetch('/admin/artistas/generar-biografia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, apellido, nacionalidad })
+            });
+            const data = await res.json();
+
+            if (data.success && data.biografia) {
+                txtArea.value = data.biografia;
+            } else {
+                alert("La IA no pudo procesar la solicitud. Se aplicará el fallback local.");
+                txtArea.value = `Maestro contemporáneo nacido en ${nacionalidad}. Ha desarrollado una obra enfocada en la estética y los lenguajes visuales del siglo XXI, integrando su colección pública al Museo Atrium.`;
+            }
+        } catch (err) {
+            console.error("Fallo del puente de comunicación con la IA:", err);
+            alert("Fallo de comunicación de red con el módulo generativo.");
+        } finally {
+            txtArea.placeholder = originalPlaceholder;
+        }
+    }
+</script>

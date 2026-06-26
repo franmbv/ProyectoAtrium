@@ -1,0 +1,192 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .admin-page-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 60px 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .admin-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: white;
+        letter-spacing: -1.5px;
+    }
+
+    .form-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-label-custom {
+        display: block;
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .input-custom {
+        background-color: #0d1117 !important;
+        border: 1px solid var(--at-border) !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        transition: all 0.3s;
+    }
+
+    .input-custom:focus {
+        border-color: var(--at-orange) !important;
+        box-shadow: 0 0 10px rgba(249, 115, 22, 0.4) !important;
+        outline: none;
+    }
+
+    .btn-atrium-orange {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        border: none;
+        border-radius: 100px;
+        padding: 12px 30px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+    }
+
+    .btn-atrium-orange:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(249, 115, 22, 0.4);
+    }
+
+    .attribute-row {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    select option {
+        background-color: #0d1117;
+        color: white;
+    }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="container" style="max-width: 900px;">
+        
+        <div class="form-card">
+            <h2 class="admin-title mb-4"><span role="img">⚙️</span> Configurar Nuevo Género Artístico</h2>
+            <p class="text-white-50 mb-5">Defina un género en el sistema y configure sus especificaciones técnicas de forma tipada.</p>
+
+            <!-- SECCIÓN DE MENSAJES DE ERROR / EXCEPCIONES -->
+            <% if (locals.error) { %>
+                <div class="alert alert-danger bg-danger bg-opacity-10 border-0 text-danger mb-4 text-center" style="border-radius: 12px;">
+                    ⚠️ <%= error %>
+                </div>
+            <% } %>
+
+            <!-- SECCIÓN DE MENSAJES DE ÉXITO -->
+            <% if (locals.success) { %>
+                <div class="alert alert-success bg-success bg-opacity-10 border-0 text-success mb-4 text-center" style="border-radius: 12px; color: #4ade80 !important;">
+                    ✅ <%= success %>
+                </div>
+            <% } %>
+
+            <form action="/admin/categorias/guardar" method="POST">
+                <!-- Nombre del Género -->
+                <div class="mb-4">
+                    <label class="form-label-custom">Nombre del Género / Disciplina</label>
+                    <input type="text" name="nombre" class="form-control input-custom" placeholder="Ej: Videoarte, Instalación, Escultura 3D" required>
+                </div>
+
+                <!-- Contenedor de Atributos Dinámicos -->
+                <div class="mb-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="form-label-custom m-0">Especificaciones Técnicas Requeridas</span>
+                        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="agregarAtributo()">+ Añadir Atributo</button>
+                    </div>
+
+                    <div id="attributes-container" class="d-flex flex-column gap-3">
+                        <!-- Fila inicial de muestra -->
+                        <div class="row g-2 align-items-center attribute-row">
+                            <div class="col-md-6">
+                                <input type="text" name="detallesNombres" class="form-control input-custom" placeholder="Nombre de la propiedad (Ej: duracion_minutos)" required>
+                            </div>
+                            <div class="col-md-5">
+                                <select name="detallesTipos" class="form-select input-custom" required>
+                                    <option value="String">Texto (String)</option>
+                                    <option value="Integer">Número Entero (Integer)</option>
+                                    <option value="Decimal">Número Decimal (Decimal)</option>
+                                    <option value="Boolean">Booleano (Sí/No)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-1 text-end">
+                                <button type="button" class="btn btn-danger btn-sm rounded-circle" onclick="eliminarAtributo(this)">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="/admin/dashboard" class="btn btn-outline-secondary rounded-pill px-4 text-white-50 text-decoration-none">Cancelar</a>
+                    <button type="submit" class="btn-atrium-orange">Guardar Género Artístico</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function agregarAtributo() {
+        const container = document.getElementById('attributes-container');
+        const row = document.createElement('div');
+        row.className = 'row g-2 align-items-center attribute-row';
+        row.innerHTML = `
+            <div class="col-md-6">
+                <input type="text" name="detallesNombres" class="form-control input-custom" placeholder="Nombre de la propiedad" required>
+            </div>
+            <div class="col-md-5">
+                <select name="detallesTipos" class="form-select input-custom" required>
+                    <option value="String">Texto (String)</option>
+                    <option value="Integer">Número Entero (Integer)</option>
+                    <option value="Decimal">Número Decimal (Decimal)</option>
+                    <option value="Boolean">Booleano (Sí/No)</option>
+                </select>
+            </div>
+            <div class="col-md-1 text-end">
+                <button type="button" class="btn btn-danger btn-sm rounded-circle" onclick="eliminarAtributo(this)">✕</button>
+            </div>
+        `;
+        container.appendChild(row);
+    }
+
+    function eliminarAtributo(button) {
+        const container = document.getElementById('attributes-container');
+        if (container.children.length > 1) {
+            button.closest('.attribute-row').remove();
+        } else {
+            alert("El género debe contener al menos un atributo técnico para ser válido.");
+        }
+    }
+</script>
+
+<%- include('../partials/footer') %>
