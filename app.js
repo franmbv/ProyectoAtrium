@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const session = require('express-session'); // ¡VITAL para ti (Persona 2)!
+const session = require('express-session');
 require('dotenv').config();
 
 const app = express();
@@ -10,8 +10,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // --- MIDDLEWARES BASE ---
-app.use(express.static(path.join(__dirname, 'public'))); // Archivos estáticos 
-app.use(express.urlencoded({ extended: true })); // Para capturar formularios 
+app.use(express.static(path.join(__dirname, 'public'))); 
+app.use(express.urlencoded({ extended: true })); 
 app.use(express.json());
 
 // CONFIGURACIÓN DE SESIÓN 
@@ -22,28 +22,52 @@ app.use(session({
     cookie: { secure: false } 
 }));
 
-
 // Exponer la sesión a todas las vistas
 app.use((req, res, next) => {
     res.locals.usuario = req.session?.usuario || null;
     next();
 });
 
+// ====================================================================
+// 📊 SISTEMA DE LOGS TÉCNICOS EN TIEMPO REAL (MONITOR DE TRANSACCIONES)
+// ====================================================================
+app.use((req, res, next) => {
+    const hora = new Date().toLocaleTimeString('es-ES');
+    console.log(`🌐 [${hora}] ${req.method} ${req.url}`);
+    next();
+});
 
 // --- RUTA RAÍZ ---
 app.get('/', (req, res) => {
-    //res.redirect('/galeria'); 
-    res.render('landing'); // Renderiza la nueva portada
+    res.render('home'); 
 });
 
-// --- 3. IMPORTACIÓN DE RUTAS ---
+// Reemplaza la ruta /descubrir en tu app.js por esta versión dinámica:
+app.get('/descubrir', async (req, res) => {
+    try {
+        const ObraModel = require('./src/models/ObraModel');
+        // Buscamos las obras disponibles ordenadas de mayor a menor valor
+        const disponibles = await ObraModel.obtenerFiltradas({ precio: 'mayor' });
+        
+        // La obra de la semana será de forma dinámica la de mayor valor de nuestro catálogo
+        const obraSemana = disponibles[0] || null;
+
+        res.render('landing', { obraSemana });
+    } catch (error) {
+        console.error("Fallo al cargar obra de la semana en la Landing:", error.message);
+        res.render('landing', { obraSemana: null });
+    }
+});
+
+
+// --- IMPORTACIÓN DE RUTAS ---
 const authRoutes = require('./src/routes/authRoutes'); 
 const pagoRoutes = require('./src/routes/pagoRoutes');
 const galeriaRoutes = require('./src/routes/galeriaRoutes'); 
 const adminRoutes = require('./src/routes/adminRoutes');
-const usuarioRoutes = require('./src/routes/usuarioRoutes'); // Importamos tus rutas de usuario
+const usuarioRoutes = require('./src/routes/usuarioRoutes'); 
 
-// --- 4. USO DE RUTAS ---
+// --- USO DE RUTAS ---
 app.use('/auth', authRoutes);  
 app.use('/pagos', pagoRoutes);
 app.use('/galeria', galeriaRoutes); 
@@ -51,13 +75,28 @@ app.use('/admin', adminRoutes);
 app.use('/usuario', usuarioRoutes); 
 
 app.use((req, res) => {
+    console.warn(`⚠️ [404 NOT FOUND] Ruta no localizada: ${req.method} ${req.url}`);
     res.status(404).send('Página no encontrada (404)');
+});
+
+// ====================================================================
+// ❌ MANEJADOR DE ERRORES GLOBAL (EVITA CAÍDAS Y MUESTRA LOGS EN CONSOLA)
+// ====================================================================
+app.use((err, req, res, next) => {
+    const hora = new Date().toLocaleTimeString('es-ES');
+    console.error(`\n❌ [${hora}] [CRITICAL SERVER ERROR]:`);
+    console.error(err.stack);
+    console.error("====================================================================\n");
+    res.status(500).send('Error interno del servidor (500)');
 });
 
 // --- LEVANTAR SERVIDOR ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor activo en puerto ${PORT}`);
+    console.log(`\n====================================================================`);
+    console.log(`🚀 SERVIDOR ATRIUM INICIADO EXITOSAMENTE`);
+    console.log(`📡 Escuchando en el puerto: ${PORT}`);
+    console.log(`====================================================================\n`);
 });
 
 module.exports = app;

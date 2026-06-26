@@ -168,37 +168,44 @@
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <label class="form-label-custom">Nombre</label>
-                        <input type="text" name="nombre" class="form-control input-custom" value="<%= artista.nombre %>" required>
+                        <input type="text" name="nombre" id="inputNombre" class="form-control input-custom" value="<%= artista.nombre %>" required onblur="validarExistenciaArtista()">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label-custom">Apellido</label>
-                        <input type="text" name="apellido" class="form-control input-custom" value="<%= artista.apellido %>">
+                        <input type="text" name="apellido" id="inputApellido" class="form-control input-custom" value="<%= artista.apellido %>" onblur="validarExistenciaArtista()">
                     </div>
+                </div>
+
+                <!-- BOTÓN DINÁMICO DE AUTOCOMPLETADO EN EDICIÓN (Alineado a la izquierda) -->
+                <div class="col-12 text-start d-none mb-4" id="ai-autocomplete-container">
+                    <button type="button" class="btn btn-sm py-2 px-4 border border-warning" style="background: rgba(249, 115, 22, 0.1); color: var(--at-orange); border-radius: 50px; font-weight: 800;" onclick="ejecutarAutocompletadoCompleto()">
+                        ✨ Artista Real Identificado: ¿Autocompletar Perfil completo?
+                    </button>
                 </div>
 
                 <!-- Fechas -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <label class="form-label-custom">Fecha de Nacimiento</label>
-                        <input type="date" name="fechaNac" class="form-control input-custom" value="<%= artista.fechaNac ? new Date(artista.fechaNac).toISOString().split('T')[0] : '' %>" style="color-scheme: dark;">
+                        <input type="date" name="fechaNac" id="inputFechaNac" class="form-control input-custom" value="<%= artista.fechaNac ? new Date(artista.fechaNac).toISOString().split('T')[0] : '' %>" style="color-scheme: dark;">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label-custom">Fecha de Fallecimiento</label>
-                        <input type="date" name="fechaFal" class="form-control input-custom" value="<%= artista.fechaFal ? new Date(artista.fechaFal).toISOString().split('T')[0] : '' %>" style="color-scheme: dark;">
+                        <input type="date" name="fechaFal" id="inputFechaFal" class="form-control input-custom" value="<%= artista.fechaFal ? new Date(artista.fechaFal).toISOString().split('T')[0] : '' %>" style="color-scheme: dark;">
                     </div>
                 </div>
 
                 <!-- Nacionalidad -->
                 <div class="mb-4">
                     <label class="form-label-custom">Nacionalidad</label>
-                    <input type="text" name="nacionalidad" class="form-control input-custom" value="<%= artista.nacionalidad %>" required>
+                    <input type="text" name="nacionalidad" id="inputNacionalidad" class="form-control input-custom" value="<%= artista.nacionalidad %>" required>
                 </div>
 
                 <!-- Biografía con Generador IA Integrado -->
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="form-label-custom m-0">Biografía</label>
-                        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="autogenerarBiografia()">✨ Autogenerar con IA</button>
+                        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" id="btn-biografia-ia" onclick="autogenerarSoloBiografia()">✨ Autogenerar con IA</button>
                     </div>
                     <textarea name="biografia" id="biografia" class="form-control input-custom" rows="5" placeholder="Escriba aquí la reseña del artista..."><%= artista.descripcion %></textarea>
                 </div>
@@ -235,21 +242,87 @@
 <%- include('../partials/footer') %>
 
 <script>
-    // GENERADOR DE BIOGRAFÍAS CON INTELIGENCIA ARTIFICIAL (GEMINI)
-    async function autogenerarBiografia() {
-        const nombre = document.querySelector('input[name="nombre"]').value.trim();
-        const apellido = document.querySelector('input[name="apellido"]').value.trim();
-        const nacionalidad = document.querySelector('input[name="nacionalidad"]').value.trim();
+    let perfilDetectado = null;
 
-        if (!nombre || !nacionalidad) {
-            alert("⚠️ Por favor, ingrese al menos el Nombre y la Nacionalidad para guiar al redactor de Inteligencia Articial.");
+    // 1. SISTEMA PREVENTIVO DE EXISTENCIA
+    async function validarExistenciaArtista() {
+        const nombre = document.getElementById('inputNombre').value.trim();
+        const apellido = document.getElementById('inputApellido').value.trim();
+        
+        const autocompleteContainer = document.getElementById('ai-autocomplete-container');
+        const btnBiografiaIa = document.getElementById('btn-biografia-ia');
+
+        if (!nombre) {
+            autocompleteContainer.classList.add('d-none');
+            btnBiografiaIa.classList.remove('d-none');
+            perfilDetectado = null;
             return;
         }
 
-        const txtArea = document.getElementById('biografia');
-        const originalPlaceholder = txtArea.placeholder;
-        txtArea.value = "";
-        txtArea.placeholder = "Redactando biografía artística profesional con Inteligencia Artificial (Gemini)...";
+        try {
+            const res = await fetch('/admin/artistas/generar-biografia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, apellido })
+            });
+            const data = await res.json();
+
+            if (data.success && data.profile) {
+                perfilDetectado = data.profile;
+
+                if (perfilDetectado.existe) {
+                    autocompleteContainer.classList.remove('d-none'); 
+                    btnBiografiaIa.classList.add('d-none');          
+                } else {
+                    autocompleteContainer.classList.add('d-none');
+                    btnBiografiaIa.classList.remove('d-none');
+                }
+            }
+        } catch (e) {
+            console.error("Fallo de red en validación previa de IA:", e);
+        }
+    }
+
+    // 2. EJECUTAR AUTOCOMPLETADO
+    function ejecutarAutocompletadoCompleto() {
+        if (!perfilDetectado) return;
+
+        const nacionalidadInput = document.getElementById('inputNacionalidad');
+        const nacimientoInput = document.getElementById('inputFechaNac');
+        const fallecimientoInput = document.getElementById('inputFechaFal');
+        const biografiaInput = document.getElementById('biografia');
+
+        if (nacionalidadInput && perfilDetectado.nacionalidad) {
+            nacionalidadInput.value = perfilDetectado.nacionalidad;
+        }
+        if (nacimientoInput && perfilDetectado.fechaNac) {
+            nacimientoInput.value = perfilDetectado.fechaNac;
+        }
+        if (fallecimientoInput && perfilDetectado.fechaFal) {
+            fallecimientoInput.value = perfilDetectado.fechaFal;
+        }
+        if (biografiaInput && perfilDetectado.biografia) {
+            biografiaInput.value = perfilDetectado.biografia;
+        }
+
+        document.getElementById('ai-autocomplete-container').classList.add('d-none');
+    }
+
+    // 3. GENERADOR DE BIOGRAFÍA TRADICIONAL
+    async function autogenerarSoloBiografia() {
+        const nombre = document.getElementById('inputNombre').value.trim();
+        const apellido = document.getElementById('inputApellido').value.trim();
+        const nacionalidad = document.getElementById('inputNacionalidad').value.trim();
+
+        if (!nombre) {
+            alert("⚠️ Por favor, ingrese el nombre del artista.");
+            return;
+        }
+
+        const biografiaInput = document.getElementById('biografia');
+        const originalPlaceholder = biografiaInput.placeholder;
+        biografiaInput.value = "";
+        biografiaInput.placeholder = "Redactando biografía artística profesional con Llama-3...";
 
         try {
             const res = await fetch('/admin/artistas/generar-biografia', {
@@ -259,17 +332,16 @@
             });
             const data = await res.json();
 
-            if (data.success && data.biografia) {
-                txtArea.value = data.biografia;
+            if (data.success && data.profile) {
+                biografiaInput.value = data.profile.biografia;
             } else {
-                alert("La IA no pudo procesar la solicitud. Se aplicará el fallback local.");
-                txtArea.value = `Maestro contemporáneo nacido en ${nacionalidad}. Ha desarrollado una obra enfocada en la estética y los lenguajes visuales del siglo XXI, integrando su colección pública al Museo Atrium.`;
+                biografiaInput.value = `Maestro contemporáneo nacido en ${nacionalidad || 'su país de origen'}. Su obra se enfoca en el desarrollo de lenguajes visuales avanzados.`;
             }
         } catch (err) {
-            console.error("Fallo del puente de comunicación con la IA:", err);
-            alert("Fallo de comunicación de red con el módulo generativo.");
+            console.error(err);
+            alert("No se pudo conectar con el servicio de IA.");
         } finally {
-            txtArea.placeholder = originalPlaceholder;
+            biografiaInput.placeholder = originalPlaceholder;
         }
     }
 </script>

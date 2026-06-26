@@ -9,6 +9,21 @@ class ObraModel {
         return Number(numberValue.toFixed(decimals));
     }
 
+    // Método de consulta plana optimizado para alimentar el contexto de Groq/Llama-3.1
+    static async obtenerCatalogoParaIA() {
+        const sql = `
+            SELECT o.nombre, o.precioObra,
+                   g.nombre as genero,
+                   a.nombre as artista_nombre, a.apellido as artista_apellido
+            FROM obra o
+            INNER JOIN artista a ON o.autor_id = a.id
+            INNER JOIN genero g ON o.genero_id = g.Id
+            WHERE o.estatus = 'Disponible'
+        `;
+        const [rows] = await db.execute(sql);
+        return rows;
+    }
+
     // 1. Obtener Obras para la Galería con Filtros (Corregido 'genero' singular)
     static async obtenerFiltradas(filtros) {
         let query = `

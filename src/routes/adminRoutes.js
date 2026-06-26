@@ -5,6 +5,9 @@ const adminController = require('../controllers/adminController');
 const AuthController = require('../controllers/AuthController');
 const upload = require('../config/multer');
 
+// ... (Mantener tus importaciones anteriores)
+const IAController = require('../controllers/IAController');
+
 // Proteger todas las rutas de admin
 router.use(AuthController.verificarSesion);
 
@@ -86,5 +89,6 @@ router.get('/categorias/especificaciones/:id', adminController.obtenerEspecifica
 
 // Generación de Biografía con IA
 router.post('/artistas/generar-biografia', adminController.generarBiografiaArtista);
+router.post('/ia/curador', IAController.curadorVirtual);
 
 module.exports = router;

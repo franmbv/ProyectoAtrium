@@ -54,7 +54,6 @@
         margin-bottom: 10px;
     }
 
-    /* ESTILO BARRA DE BÚSQUEDA */
     .search-container {
         position: relative;
         margin-bottom: 25px;
@@ -278,7 +277,11 @@
                 </h3>
                 <p class="text-white-50 mb-4" style="font-size: 0.9rem;">Basado en tus adquisiciones y disciplinas preferidas.</p>
                 <div class="row g-4">
-                    <% obrasRecomendadas.forEach(rec => { %>
+                    <% 
+                       // Mostrar sugerencias que estén estrictamente disponibles
+                       const sugerenciasDisponibles = obrasRecomendadas.filter(r => String(r.estatus).toLowerCase() === 'disponible');
+                       sugerenciasDisponibles.forEach(rec => { 
+                    %>
                         <div class="col-md-4">
                             <div class="obra-card shadow-lg p-3" style="background: #0d1117 !important; border: 1px solid rgba(255,255,255,0.05) !important;">
                                 <div class="img-container mb-3" style="height: 160px;">
@@ -306,7 +309,7 @@
                     <% if (populares.artistas && populares.artistas.length > 0) { %>
                         <div class="col-md-6">
                             <div class="p-3 rounded-4" style="background: #0d1117 !important; border: 1px solid rgba(255,255,255,0.05);">
-                                <h5 class="text-white mb-3" style="font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--at-orange);">👨‍¢ Artistas Populares</h5>
+                                <h5 class="text-white mb-3" style="font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--at-orange);">👨‍🎨 Artistas Populares</h5>
                                 <ul class="list-group list-group-flush bg-transparent">
                                     <% populares.artistas.forEach((art, idx) => { %>
                                         <li class="list-group-item bg-transparent text-white border-0 px-0 d-flex justify-content-between align-items-center">
@@ -390,18 +393,22 @@
                 </aside>
             </div>
 
-            <!-- GRILLA DE OBRAS -->
+            <!-- GRILLA DE OBRAS (Filtrado por defecto para mostrar SOLO OBRAS DISPONIBLES) -->
             <div class="col-lg-9">
                 <div class="row g-4" id="artGrid">
                     <% if (locals.obras && obras.length > 0) { %>
-                        <% obras.forEach((obra, index) => { %>
-                            <!-- Añadimos data-search para que el JS sepa qué texto buscar -->
+                        <% 
+                           // Lógica de Negocio: Mostrar estrictamente obras disponibles en el catálogo público
+                           const disponibles = obras.filter(o => String(o.estatus).toLowerCase() === 'disponible');
+                           if (disponibles.length > 0) {
+                               disponibles.forEach((obra, index) => { 
+                        %>
                             <div class="col-md-6 col-xl-4 art-item" 
                                  style="--delay: <%= index * 100 %>ms"
-                                 data-search="<%= obra.nombre %> <%= obra.nombre_artista %> <%= obra.apellido_artista %>">
+                                 data-search="<%= obra.nombre %> <%= obra.nombre_artista %> <%= obra.apellido_artista %>"
+                                 data-obra-titulo="<%= obra.nombre.toLowerCase() %>">
                                 <article class="obra-card shadow-lg">
                                     <div class="img-container">
-                                        <!-- CORREGIDO: Lógica híbrida para las fotos de la grilla -->
                                         <img src="<%= (obra.foto && obra.foto.startsWith('http')) ? obra.foto : ('/uploads/' + (obra.foto || 'default_obra.jpg')) %>" class="obra-img" alt="<%= obra.nombre %>" onerror="this.src='/img/default_obra.jpg'">
                                     </div>
                                     
@@ -413,7 +420,6 @@
                                                 <%= obra.nombre_artista %> <%= obra.apellido_artista %>
                                             </a>
                                         </p>
-                                        <!-- CORREGIDO: Tolerancia a minúsculas en el fallback del catálogo -->
                                         <div class="obra-price text-start">$<%= shortFormat.format(parseFloat(obra.precioobra || obra.precioObra || 0)) %></div>
                                         
                                         <a href="/galeria/detalle/<%= obra.id %>" class="btn-atrium-pill">
@@ -422,16 +428,22 @@
                                     </div>
                                 </article>
                             </div>
-                        <% }) %>
+                        <%     }); 
+                           } else { %>
+                            <div class="col-12 text-center py-5">
+                                <h4 class="text-white-50 fw-light">No hay obras de arte disponibles en este momento.</h4>
+                            </div>
+                        <% } %>
                     <% } else { %>
                         <div class="col-12 text-center py-5">
                             <h4 class="text-white-50 fw-light">No hay resultados.</h4>
                             <a href="/galeria" style="color: var(--at-orange)">Ver todo el catálogo</a>
                         </div>
                     <% } %>
-                    <!-- Contenedor para cuando no hay resultados en la búsqueda real -->
+                    
+                    <!-- Contenedor para cuando no hay resultados en la búsqueda real o de IA -->
                     <div id="noResults" class="col-12 text-center py-5 d-none">
-                        <h4 class="text-white-50 fw-light">No se encontraron coincidencias en esta vista.</h4>
+                        <h4 class="text-white-50 fw-light">No se encontraron coincidencias para la selección inteligente.</h4>
                     </div>
                 </div>
 
@@ -446,7 +458,6 @@
                         
                         <span class="text-white-50 font-monospace small">Página <%= currentPage %></span>
                         
-                        <!-- Si el lote actual tiene 12 obras (lote completo), habilitar botón para ir a la siguiente -->
                         <% if (obras.length === 12) { %>
                             <a href="/galeria?page=<%= currentPage + 1 %>&genero=<%= filtros.genero || '' %>&artista=<%= filtros.artista || '' %>&precio=<%= filtros.precio || '' %>&busqueda=<%= filtros.busqueda || '' %>" class="btn btn-back-atrium" style="padding: 10px 24px; border-radius:100px; text-decoration:none; font-size:0.85rem;">
                                 Siguiente →
@@ -460,47 +471,142 @@
     </div>
 </div>
 
+<!-- BOTÓN FLOTANTE IA (ESTILO ATRIUM CON SOPORTE MODO CLARO) -->
+<button type="button" class="btn shadow-lg" data-bs-toggle="modal" data-bs-target="#modalIA" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000; background: var(--at-orange); border-radius: 50px; padding: 15px 25px; color: white; font-weight: 800; border: none; transition: 0.3s; box-shadow: 0 0 15px var(--at-orange-glow) !important;">
+    ✨ BÚSQUEDA INTELIGENTE
+</button>
+
+<!-- MODAL DEL BUSCADOR IA -->
+<div class="modal fade" id="modalIA" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: #161b22; border: 1px solid var(--at-orange); border-radius: 20px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white">✨ Filtrado por IA (Llama-3.1)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-white-50 small mb-4">
+                    Describe lo que buscas y nuestra IA ocultará las obras que no coincidan.<br>
+                    <span style="color: var(--at-orange);">Ej: "Arte moderno venezolano", "Pinturas de paisajes", "Obras alegres para mi sala".</span>
+                </p>
+                <div class="input-group mb-3">
+                    <input type="text" id="userQuery" class="form-control bg-dark text-white border-secondary" placeholder="¿Qué deseas encontrar?">
+                    <button class="btn" style="background: var(--at-orange); color: white; font-weight: bold;" type="button" onclick="consultarCurador()" id="btnSendIA">Filtrar</button>
+                </div>
+                <div id="ia-feedback" class="text-warning small mt-2" style="display: none; font-weight: bold;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <%- include('../partials/footer') %>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const searchInput = document.getElementById('realTimeSearch');
+    // LÓGICA DEL FILTRO POR IA (MODIFICADO PARA MANEJO EXACTO DEL DOM Y REDUCCIÓN DE BLOQUEOS)
+    async function consultarCurador() {
+        const pregunta = document.getElementById('userQuery').value.trim();
+        const btn = document.getElementById('btnSendIA');
+        const feedback = document.getElementById('ia-feedback');
         const artItems = document.querySelectorAll('.art-item');
         const noResults = document.getElementById('noResults');
 
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase().trim();
-            let hasVisibleItems = false;
+        if (!pregunta) return;
 
+        btn.disabled = true;
+        btn.innerText = "⏳ ...";
+        feedback.style.display = "block";
+        feedback.innerText = "Consultando catálogo...";
+        feedback.className = "text-info small mt-2";
+
+        try {
+            const res = await fetch('/admin/ia/curador', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pregunta })
+            });
+
+            if (!res.ok) throw new Error("Fallo de red");
+
+            const data = await res.json();
+            const recomendaciones = data.recomendaciones || [];
+
+            if (recomendaciones.length === 0) {
+                feedback.className = "text-warning small mt-2";
+                feedback.innerText = "La IA no ha encontrado obras que coincidan en nuestro inventario actual.";
+                return;
+            }
+
+            feedback.className = "text-success small mt-2";
+            feedback.innerText = `¡Filtradas ${recomendaciones.length} obras coincidentes!`;
+
+            let count = 0;
             artItems.forEach(item => {
-                const searchText = item.getAttribute('data-search').toLowerCase();
+                const titulo = (item.getAttribute('data-obra-titulo') || '').toLowerCase().trim();
                 
-                if (searchText.includes(term)) {
+                // Mapeo flexible de coincidencia para nombres parciales de obras
+                const match = recomendaciones.some(rec => {
+                    const cleanRec = rec.toLowerCase().trim();
+                    return cleanRec.includes(titulo) || titulo.includes(cleanRec);
+                });
+                
+                if (match) {
                     item.style.display = 'block';
-                    hasVisibleItems = true;
+                    count++;
                 } else {
                     item.style.display = 'none';
                 }
             });
 
-            // Mostrar mensaje si no hay resultados locales
-            if (!hasVisibleItems && term !== "") {
-                noResults.classList.remove('d-none');
-            } else {
-                noResults.classList.add('d-none');
-            }
-        });
-        
-        // Evitar que el formulario se envíe al presionar Enter en el buscador 
-        // (para que no recargue la página y pierda la fluidez)
-        searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-            }
-        });
+            noResults.classList.toggle('d-none', count > 0);
+
+            setTimeout(() => {
+                const modalEl = document.getElementById('modalIA');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+                feedback.style.display = 'none';
+            }, 1200);
+
+        } catch (e) {
+            console.error(e);
+            feedback.innerText = "Error de red al procesar el filtrado semántico.";
+            feedback.className = "text-danger small mt-2";
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Filtrar";
+        }
+    }
+
+    // Búsqueda local reactiva
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('realTimeSearch');
+        const artItems = document.querySelectorAll('.art-item');
+        const noResults = document.getElementById('noResults');
+
+        if(searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase().trim();
+                let hasVisibleItems = false;
+
+                artItems.forEach(item => {
+                    const searchText = (item.getAttribute('data-search') || '').toLowerCase();
+                    if (searchText.includes(term)) {
+                        item.style.display = 'block';
+                        hasVisibleItems = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                if (!hasVisibleItems && term !== "") {
+                    noResults.classList.remove('d-none');
+                } else {
+                    noResults.classList.add('d-none');
+                }
+            });
+            
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') e.preventDefault();
+            });
+        }
     });
 </script>
-
-<style>
-    @keyframes revealIn { to { opacity: 1; transform: translateY(0); } }
-</style>

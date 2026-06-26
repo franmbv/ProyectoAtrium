@@ -231,7 +231,7 @@ const AdminController = {
         }
     },
 
-   // Guardar Categoría Dinámica Polimórfica (Con validación preventiva de duplicados)
+    // Guardar Categoría Dinámica Polimórfica (Con validación preventiva de duplicados)
     guardarCategoria: async (req, res) => {
         try {
             const { nombre, detallesNombres, detallesTipos } = req.body;
@@ -529,6 +529,7 @@ const AdminController = {
         }
     },
 
+    // 3. GESTION DE ARTISTAS
     gestionArtistas: async (req, res) => {
         try {
             const artistas = await ArtistaModel.listar();
@@ -1004,22 +1005,76 @@ const AdminController = {
         }
     },
 
-    // Método para procesar y retornar la biografía generada por la IA
+    // Método para procesar y retornar la biografía generada por la IA (Groq - Llama-3)
     generarBiografiaArtista: async (req, res) => {
         try {
             const { nombre, apellido, nacionalidad } = req.body;
-            const AIService = require('../services/AIService');
+            
+            // Log de entrada
+            console.log(`\n🧠 [IA REQUEST ACTIVO]: Analizando existencia de "${nombre} ${apellido || ''}"`);
 
-            const biografia = await AIService.generarBiografiaArtista(
-                nombre ? nombre.trim() : '',
-                apellido ? apellido.trim() : '',
-                nacionalidad ? nacionalidad.trim() : ''
-            );
+            const apiKey = process.env.GROQ_API_KEY;
+            if (!apiKey) {
+                console.error("❌ [IA ERROR]: GROQ_API_KEY no se encuentra definida en el archivo .env");
+                return res.status(500).json({ success: false, error: "Falta la API KEY de Groq" });
+            }
 
-            res.json({ success: true, biografia });
+            const prompt = `
+                Analiza al artista plástico, creador visual, pintor, ilustrador o animador: "${nombre} ${apellido || ''}". 
+                Nacionalidad sugerida: "${nacionalidad || 'desconocida'}".
+                
+                TU MISIÓN:
+                1. Determina si este creador realmente existe o existió históricamente. Incluye directores de animación, cineastas, ilustradores, diseñadores gráficos/conceptuales, escultores o pintores (como Hayao Miyazaki, Walt Disney, Akira Toriyama, Pablo Picasso, Vincent van Gogh, etc.) como artistas reales (es decir, existe: true).
+                2. Si el artista/creador es real (EXISTE):
+                   - "existe": true
+                   - "nacionalidad": Su nacionalidad real (ej: "Japonesa", "Española", "Venezolana").
+                   - "fechaNac": Su fecha de nacimiento real en formato estricto "YYYY-MM-DD".
+                   - "fechaFal": Su fecha de fallecimiento real en formato "YYYY-MM-DD" (si aplica) o null (si sigue vivo).
+                   - "biografia": Una biografía artística profesional de tres párrafos cortos.
+                3. Si el artista es completamente ficticio o inventado por el usuario:
+                   - "existe": false
+                   - "nacionalidad": Su nacionalidad sugerida o una estimada de forma lógica.
+                   - "fechaNac": null
+                   - "fechaFal": null
+                   - "biografia": Una biografía ficticia elegante, creativa y verosímil de tres párrafos cortos para una galería de arte contemporáneo.
+
+                REGLA DE FORMATO OBLIGATORIA (ESTRICTA):
+                Devuelve únicamente un objeto JSON plano, sin bloques de código markdown (\`\`\`json), sin textos introductorios ni explicaciones.
+                
+                EJEMPLO DE RESPUESTA ESPERADA:
+                {
+                    "existe": true,
+                    "fechaNac": "1941-01-05",
+                    "fechaFal": null,
+                    "nacionalidad": "Japonesa",
+                    "biografia": "Biografía redactada..."
+                }
+            `;
+
+            const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+                model: "llama-3.1-8b-instant",
+                messages: [
+                    { role: "system", content: "Eres un historiador de arte contemporáneo de la galería del Museo Atrium." },
+                    { role: "user", content: prompt }
+                ],
+                temperature: 0.1
+            }, { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } });
+
+            const rawContent = response.data.choices[0].message.content.trim();
+            
+            // Log de la respuesta del servicio de Groq
+            console.log("🤖 [IA RAW RESPONSE]:", rawContent);
+
+            const cleanJson = rawContent.replace(/```json|```/g, '').trim();
+            const profile = JSON.parse(cleanJson);
+            
+            console.log("📦 [IA PARSED PROFILE]:", profile);
+
+            // Retornamos el objeto structured 'profile' esperado por el frontend
+            res.json({ success: true, profile });
         } catch (error) {
-            console.error("Error al generar biografía con IA:", error.message);
-            res.status(500).json({ success: false, error: "No se pudo generar la biografía." });
+            console.error("❌ [IA ERROR EXCEPTION]:", error.message);
+            res.status(500).json({ success: false, error: "No se pudo procesar la biografía con la IA." });
         }
     },
 

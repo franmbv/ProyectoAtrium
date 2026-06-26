@@ -1,8 +1,8 @@
 <%- include('partials/head') %>
 <%- include('partials/navbar') %>
 
-<!-- Tipografías de alta gama -->
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<!-- Importamos Playfair Display para los títulos elegantes -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
     :root {
@@ -11,86 +11,142 @@
         --at-card-bg: #161b22;     
         --at-orange: #f97316;      
         --at-orange-glow: rgba(249, 115, 22, 0.4);
-        --at-border: rgba(255, 255, 255, 0.1);
+        --at-border: rgba(255, 255, 255, 0.08);
     }
 
-    /* CONTENEDOR PRINCIPAL: Degradado inmersivo */
-    .landing-wrapper {
-        position: relative;
-        overflow: hidden;
-        background: radial-gradient(circle at center, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
-        min-height: calc(100vh - 70px); /* Ajuste para que no flote el footer */
-        display: flex;
-        align-items: center;
-        width: 100%;
+    body {
+        background-color: var(--at-navy-darkest) !important;
+        color: #ffffff !important;
     }
 
-    /* MOSAICO PINTEREST REFINADO */
-    .pinterest-grid {
-        position: absolute;
-        right: -5%;
-        top: 0;
-        width: 55%;
-        height: 120%;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 25px;
-        transform: rotate(-10deg) translateY(-5%);
-        opacity: 0.3;
-        pointer-events: none;
-        z-index: 1;
+    .gallery-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 40px 0 80px 0;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
 
-    .art-brick {
-        width: 100%;
-        height: 450px;
-        border-radius: 24px;
-        background-size: cover;
-        background-position: center;
-        border: 1px solid var(--at-border);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-    }
-
-    /* CARD DE PRESENTACIÓN: Glassmorphism en Azul Carbono */
-    .hero-card {
-        position: relative;
-        z-index: 10;
-        max-width: 750px;
-        background: rgba(22, 27, 34, 0.8) !important; /* Azul Carbono traslúcido */
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        padding: 60px;
-        border-radius: 32px;
-        border: 1px solid var(--at-border);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-        margin-left: 20px;
-    }
-
-    .hero-title {
+    .hero-title-landing {
         font-family: 'Playfair Display', serif;
-        font-size: 4.2rem;
+        font-size: 3.8rem;
         font-weight: 900;
-        line-height: 1;
-        margin-bottom: 25px;
-        letter-spacing: -3px;
-        color: white !important;
+        line-height: 1.1;
+        letter-spacing: -2px;
     }
 
-    .hero-subtitle {
-        font-family: 'Inter', sans-serif;
-        font-size: 1.2rem;
+    .hero-subtitle-landing {
+        font-size: 1.15rem;
+        color: #cbd5e1 !important;
+        line-height: 1.7;
+    }
+
+    /* SECCIONES Y CONTENEDORES */
+    .landing-section {
+        padding: 90px 0;
+        background-color: transparent !important;
+    }
+
+    .section-tag {
+        color: var(--at-orange) !important;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        display: block;
+        margin-bottom: 12px;
+    }
+
+    .section-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: #ffffff !important;
+    }
+
+    /* CARDS PREMIUM (Forzando Fondo Oscuro) */
+    .feature-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 20px !important;
+        padding: 40px 30px !important;
+        height: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(249, 115, 22, 0.3) !important;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.7) !important;
+    }
+
+    .feature-icon {
+        font-size: 35px;
+        color: var(--at-orange);
+        margin-bottom: 20px;
+    }
+
+    .feature-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #ffffff !important;
+        margin-bottom: 12px;
+    }
+
+    .feature-text {
         color: #94a3b8 !important;
+        font-size: 0.95rem;
         line-height: 1.6;
-        margin-bottom: 45px;
-        font-weight: 300;
-        max-width: 550px;
+    }
+
+    /* PASO A PASO - CENTRADO TOTAL */
+    .step-card {
+        text-align: center !important;
+        padding: 20px;
+        background: transparent !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .step-number {
+        font-family: 'Playfair Display', serif;
+        font-size: 4rem;
+        font-weight: 900;
+        color: rgba(249, 115, 22, 0.18) !important; /* Contraste mejorado en modo oscuro */
+        line-height: 1;
+        margin-bottom: 15px;
+        text-align: center !important; 
+        display: block;
+    }
+
+    /* Corrección de números en modo claro */
+    html[data-theme="light"] .step-number {
+        color: rgba(249, 115, 22, 0.45) !important; /* Contraste nítido sobre fondo blanco */
+    }
+
+    .step-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #ffffff !important;
+        margin-bottom: 8px;
+        text-align: center !important; 
+    }
+
+    .step-text {
+        color: #64748b !important;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        text-align: center !important; 
     }
 
     /* BOTONES */
-    .btn-atrium-main {
+    .btn-atrium-cta {
         background-color: var(--at-orange) !important;
         color: white !important;
-        padding: 18px 45px;
+        padding: 16px 35px;
         border-radius: 100px;
         font-weight: 800;
         text-transform: uppercase;
@@ -98,73 +154,247 @@
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 12px;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
-    }
-
-    .btn-atrium-main:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 15px 35px rgba(249, 115, 22, 0.5);
-    }
-
-    .link-register-hero {
-        color: white !important;
-        text-decoration: none;
-        font-weight: 600;
-        margin-left: 35px;
-        padding-bottom: 5px;
-        border-bottom: 2px solid var(--at-orange);
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
         transition: 0.3s;
     }
 
-    .link-register-hero:hover {
-        color: var(--at-orange) !important;
-        border-color: white;
+    .btn-atrium-cta:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px var(--at-orange-glow);
     }
 
-    @media (max-width: 992px) {
-        .pinterest-grid { display: none; }
-        .hero-card { margin: 20px; text-align: center; padding: 40px 30px; }
-        .hero-title { font-size: 3rem; }
-        .hero-subtitle { margin-bottom: 30px; }
-        .link-register-hero { display: block; margin: 30px 0 0 0; border: none; }
+    .btn-atrium-outline-landing {
+        background: transparent;
+        color: #cbd5e1 !important;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 16px 35px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        margin-left: 15px;
+    }
+
+    .btn-atrium-outline-landing:hover {
+        border-color: white;
+        color: white !important;
+        background: rgba(255,255,255,0.02);
+    }
+
+    /* CARD DE MEMBRESÍA */
+    .membership-card-premium {
+        background: radial-gradient(circle at 10% 10%, #1e293b 0%, #0f172a 100%) !important;
+        border: 1px solid rgba(249, 115, 22, 0.3) !important;
+        border-radius: 28px !important;
+        padding: 50px !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .price-tag {
+        font-family: 'Inter', sans-serif;
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: #ffffff !important;
+    }
+
+    .price-tag span {
+        font-size: 1rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+
+    /* ADAPTACIÓN DE IMAGEN SIN FILTROS EXTRAÑOS */
+    .hero-image-week {
+        filter: none !important;
+        opacity: 1 !important;
+        transition: transform 0.5s ease;
+    }
+    
+    html[data-theme="light"] .hero-image-week {
+        filter: invert(1) hue-rotate(180deg) !important; /* Invierte la inversión del HTML para que se vea real */
+    }
+
+    /* CORRECCIÓN DE SÍMBOLOS UNICODE (Fuerzan la herencia de color) */
+    .symbol-fix {
+        color: inherit !important;
+        font-family: 'Inter', sans-serif;
+        font-weight: inherit;
+        display: inline-block;
     }
 </style>
 
-<div class="landing-wrapper">
-    <!-- Mosaico Pinterest Decorativo -->
-    <div class="pinterest-grid">
-        <div class="art-brick" style="background-image: url('https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=400'); margin-top: 60px;"></div>
-        <div class="art-brick" style="background-image: url('https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?q=80&w=400');"></div>
-        <div class="art-brick" style="background-image: url('https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?q=80&w=400'); margin-top: -40px;"></div>
-        <div class="art-brick" style="background-image: url('https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=400');"></div>
-    </div>
-
-    <div class="container">
-        <div class="hero-card shadow-2xl">
-            <h1 class="hero-title">
-                Inmortaliza el <br><span style="color: var(--at-orange)">Arte</span> en tu Espacio.
-            </h1>
-            <p class="hero-subtitle">
-                Atrium es el portal oficial del Museo de Arte Contemporáneo. 
-                Adquiere piezas únicas, apoya al talento nacional y construye 
-                tu legado artístico con certificación institucional.
-            </p>
-            
-            <div class="d-flex align-items-center flex-wrap justify-content-center justify-content-lg-start">
-                <a href="/galeria" class="btn-atrium-main">
-                    Explorar Colección <span style="font-size: 1.2rem;">→</span>
-                </a>
+<div class="gallery-wrapper">
+    
+    <!-- 1. HERO SECTION -->
+    <section class="landing-section py-5">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7 text-start">
+                    <span class="section-tag">Coleccionismo Contemporáneo</span>
+                    <h1 class="hero-title-landing text-white mb-4">
+                        Donde el Arte <br>Encuentra su <span style="color: var(--at-orange);">Legado</span>.
+                    </h1>
+                    <p class="hero-subtitle-landing mb-5">
+                        Museo Atrium es la plataforma políglota definitiva diseñada para la adquisición segura de arte. 
+                        Configure y adquiera piezas únicas con respaldo y trazabilidad inmutable.
+                    </p>
+                    <div class="d-flex flex-wrap justify-content-start">
+                        <a href="/auth/registro" class="btn-atrium-cta">
+                            Registrarme como Coleccionista <span class="symbol-fix">➔</span>
+                        </a>
+                        <a href="/galeria" class="btn-atrium-outline-landing">
+                            Explorar Catálogo
+                        </a>
+                    </div>
+                </div>
                 
-                <% if (!locals.usuario) { %>
-                    <a href="/auth/registro" class="link-register-hero">
-                        Registrarme como comprador
-                    </a>
-                <% } %>
+                <!-- 🖼️ OBRA DE LA SEMANA REAL DESDE POSTGRESQL -->
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="position-relative text-center">
+                        <% if (locals.obraSemana && obraSemana) { %>
+                            <img src="<%= (obraSemana.foto && obraSemana.foto.startsWith('http')) ? obraSemana.foto : ('/uploads/' + (obraSemana.foto || 'default_obra.jpg')) %>" class="img-fluid rounded-4 shadow-2xl hero-image-week" style="border: 1px solid var(--at-border); max-height: 450px; width: 100%; object-fit: cover;" alt="<%= obraSemana.nombre %>" onerror="this.src='https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=600'">
+                            <div class="position-absolute bottom-0 start-0 p-4 m-3 rounded-3" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); border: 1px solid var(--at-border);">
+                                <span class="small text-white-50 d-block" style="font-size: 0.75rem;">Obra de la Semana</span>
+                                <span class="fw-bold text-white">"<%= obraSemana.nombre %>"</span>
+                                <span class="small text-white-50 d-block" style="font-size: 0.7rem;">Por <%= obraSemana.nombre_artista %> <%= obraSemana.apellido_artista %></span>
+                            </div>
+                        <% } else { %>
+                            <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=600" class="img-fluid rounded-4 shadow-2xl hero-image-week" style="border: 1px solid var(--at-border); max-height: 450px; width: 100%; object-fit: cover;" alt="Arte Atrium">
+                            <div class="position-absolute bottom-0 start-0 p-4 m-3 rounded-3" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); border: 1px solid var(--at-border);">
+                                <span class="small text-white-50 d-block" style="font-size: 0.75rem;">Obra de la Semana</span>
+                                <span class="fw-bold text-white">"La Esencia del Vacío"</span>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- 2. BENEFICIOS CLAVE -->
+    <section class="landing-section">
+        <div class="container">
+            <span class="section-tag text-center">Beneficios del Ecosistema</span>
+            <h2 class="section-title text-center text-white mb-5">Diseñado para el Coleccionista Moderno</h2>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="preserve-color">🛡️</span></div>
+                        <h4 class="feature-title">Trazabilidad NoSQL</h4>
+                        <p class="feature-text">
+                            Cada reserva, emisión de factura e historial de propiedad se registra de manera inmutable en nuestro microservicio Cassandra, garantizando un historial de custodia libre de alteraciones.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="preserve-color">✨</span></div>
+                        <h4 class="feature-title">Curaduría por IA</h4>
+                        <p class="text-white-50">
+                            Descubre obras de forma inteligente con nuestro Curador Virtual. Filtra el catálogo en tiempo real usando descripciones semánticas o sentimentales complejas.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="preserve-color">🧾</span></div>
+                        <h4 class="feature-title">Garantía Legal Certificada</h4>
+                        <p class="feature-text">
+                            Reciba una factura fiscal con el 16% de IVA calculado legalmente y el certificado de autenticidad en formato PDF directamente en su correo para proteger su patrimonio.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. PASO A PASO (CENTRADO TOTAL) -->
+    <section class="landing-section" style="background-color: rgba(22, 27, 34, 0.4); border-top: 1px solid var(--at-border); border-bottom: 1px solid var(--at-border);">
+        <div class="container">
+            <span class="section-tag text-center">Fácil y Seguro</span>
+            <h2 class="section-title text-center text-white mb-5">El Camino hacia tu Próxima Adquisición</h2>
+            
+            <div class="row g-4 mt-2 justify-content-center">
+                <div class="col-md-3">
+                    <div class="step-card">
+                        <div class="step-number text-center">01</div>
+                        <h5 class="step-title text-center">Crea tu Perfil</h5>
+                        <p class="step-text text-center">Regístrate y adquiere tu membresía de coleccionista de manera rápida y segura.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="step-card">
+                        <div class="step-number text-center">02</div>
+                        <h5 class="step-title text-center">Filtra con la IA</h5>
+                        <p class="step-text text-center">Describe tu espacio o tus gustos al Curador Virtual para encontrar tu pieza ideal.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="step-card">
+                        <div class="step-number text-center">03</div>
+                        <h5 class="step-title text-center">Reserva tu Obra</h5>
+                        <p class="step-text text-center">Utiliza tu código PIN personal de membresía para bloquear la obra y asegurar tu adquisición.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="step-card">
+                        <div class="step-number text-center">04</div>
+                        <h5 class="step-title text-center">Recibe tu Certificado</h5>
+                        <p class="step-text text-center">Un administrador validará la reserva, emitirá tu factura legal y la enviará a tu correo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. PROPUESTA DE MEMBRESÍA -->
+    <section class="landing-section">
+        <div class="container">
+            <div class="membership-card-premium shadow-2xl">
+                <div class="row align-items-center g-5">
+                    <div class="col-lg-7 text-start">
+                        <span class="section-tag text-start">Membresía Atrium Elite</span>
+                        <h2 class="text-white fw-bold mb-3" style="font-family: 'Playfair Display', serif; font-size: 2.5rem;">Adquiera Acceso Ilimitado</h2>
+                        <p class="text-white-50 mb-4" style="line-height: 1.7;">
+                            Nuestra membresía anual le otorga el estatus de coleccionista certificado en Atrium. 
+                            Bloquee obras exclusivas, reciba certificados de autenticidad emitidos por el museo, acceda a eventos de subasta y cuente con soporte de envío internacional prioritario con DHL y FedEx.
+                        </p>
+                        <div class="d-flex flex-column gap-2 text-white-50 small mb-4">
+                            <span><span class="symbol-fix">✔</span> Bloqueo inmediato de obras con PIN de seguridad.</span>
+                            <span><span class="symbol-fix">✔</span> Emisión de factura legal en formato PDF a su correo.</span>
+                            <span><span class="symbol-fix">✔</span> Búsqueda semántica asistida ilimitada.</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 text-center">
+                        <div class="p-5 rounded-4" style="background: rgba(0,0,0,0.3); border: 1px solid var(--at-border);">
+                            <div class="price-tag">$10 <span>/ Anual</span></div>
+                            <p class="text-white-50 small my-4">Pago único anual mediante pasarela segura encriptada.</p>
+                            <a href="/auth/registro" class="btn-atrium-cta w-100 justify-content-center">Adquirir Membresía</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. FINAL CALL TO ACTION (CTA - COMPLETAMENTE CENTRADA) -->
+    <section class="landing-section text-center" style="border-top: 1px solid var(--at-border);">
+        <div class="container text-center d-flex flex-column align-items-center justify-content-center">
+            <h2 class="section-title text-center text-white mb-3 w-100">Comience su Colección Hoy Mismo</h2>
+            <p class="text-white-50 text-center mb-5" style="max-width: 600px; font-size: 1.1rem; margin-left: auto; margin-right: auto;">
+                Únase a la élite del coleccionismo de arte contemporáneo. Descubra, reserve y adquiera piezas exclusivas con total seguridad jurídica y tecnológica.
+            </p>
+            <a href="/auth/registro" class="btn-atrium-cta shadow-2xl">
+                Registrarme como Coleccionista <span class="symbol-fix">➔</span>
+            </a>
+        </div>
+    </section>
+
 </div>
 
 <%- include('partials/footer') %>
