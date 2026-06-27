@@ -753,6 +753,7 @@ const AdminController = {
 
                         const browser = await puppeteer.launch({
                             headless: "new",
+                            executablePath: process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
                             args: ['--no-sandbox', '--disable-setuid-sandbox']
                         });
 

@@ -15,6 +15,8 @@ const normalizarClavesPostgres = (rows) => {
     // Mapa de traducción de minúsculas de Postgres a CamelCase original de su proyecto
     const camelCaseMap = {
         'id': 'Id',
+        'ventaid': 'ventaId',
+        'obraid': 'obraId',
         'precioobra': 'precioObra',
         'porcentajeganancia': 'porcentajeGanancia',
         'fechanac': 'fechaNac',
