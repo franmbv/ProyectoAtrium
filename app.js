@@ -42,20 +42,29 @@ app.get('/', (req, res) => {
     res.render('home'); 
 });
 
-// Reemplaza la ruta /descubrir en tu app.js por esta versión dinámica:
+// --- 2. LANDING DE MARKETING / COMERCIAL ---
 app.get('/descubrir', async (req, res) => {
     try {
         const ObraModel = require('./src/models/ObraModel');
-        // Buscamos las obras disponibles ordenadas de mayor a menor valor
         const disponibles = await ObraModel.obtenerFiltradas({ precio: 'mayor' });
-        
-        // La obra de la semana será de forma dinámica la de mayor valor de nuestro catálogo
         const obraSemana = disponibles[0] || null;
-
         res.render('landing', { obraSemana });
     } catch (error) {
-        console.error("Fallo al cargar obra de la semana en la Landing:", error.message);
+        console.error("Fallo al cargar la landing de marketing:", error.message);
         res.render('landing', { obraSemana: null });
+    }
+});
+
+// --- 3. LANDING TÉCNICO (Defensa Académica con el Jurado) ---
+app.get('/defensa', async (req, res) => {
+    try {
+        const ObraModel = require('./src/models/ObraModel');
+        const disponibles = await ObraModel.obtenerFiltradas({ precio: 'mayor' });
+        const obraSemana = disponibles[0] || null;
+        res.render('landingTecnico', { obraSemana }); // Renderiza views/LandingTecnico.ejs
+    } catch (error) {
+        console.error("Fallo al cargar la landing técnica:", error.message);
+        res.render('landingTecnico', { obraSemana: null });
     }
 });
 

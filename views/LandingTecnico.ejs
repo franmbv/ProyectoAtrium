@@ -1,0 +1,485 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+
+<!-- Importamos Playfair Display para los títulos elegantes -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@300;400;600;700;800&swap" rel="stylesheet">
+
+<style>
+    :root {
+        --at-navy-deep: #0f172a;   
+        --at-navy-darkest: #020617; 
+        --at-card-bg: #161b22;     
+        --at-orange: #f97316;      
+        --at-orange-glow: rgba(249, 115, 22, 0.4);
+        --at-border: rgba(255, 255, 255, 0.08);
+    }
+
+    body {
+        background-color: var(--at-navy-darkest) !important;
+        color: #ffffff !important;
+    }
+
+    .gallery-wrapper {
+        background: linear-gradient(180deg, var(--at-navy-deep) 0%, var(--at-navy-darkest) 100%) !important;
+        min-height: 100vh;
+        padding: 40px 0 80px 0;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .hero-title-landing {
+        font-family: 'Playfair Display', serif;
+        font-size: 3.8rem;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -2px;
+    }
+
+    .hero-subtitle-landing {
+        font-size: 1.15rem;
+        color: #cbd5e1 !important;
+        line-height: 1.7;
+    }
+
+    /* SECCIONES Y CONTENEDORES */
+    .landing-section {
+        padding: 90px 0;
+        background-color: transparent !important;
+    }
+
+    .section-tag {
+        color: var(--at-orange) !important;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        display: block;
+        margin-bottom: 12px;
+    }
+
+    .section-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: #ffffff !important;
+    }
+
+    /* CARDS PREMIUM */
+    .feature-card {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid var(--at-border) !important;
+        border-radius: 20px !important;
+        padding: 40px 30px !important;
+        height: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(249, 115, 22, 0.3) !important;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.7) !important;
+    }
+
+    .feature-icon {
+        font-size: 35px;
+        color: var(--at-orange);
+        margin-bottom: 20px;
+    }
+
+    .feature-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #ffffff !important;
+        margin-bottom: 12px;
+    }
+
+    .feature-text {
+        color: #94a3b8 !important;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* PASO A PASO - CENTRADO TOTAL */
+    .step-card {
+        text-align: center !important;
+        padding: 20px;
+        background: transparent !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .step-number {
+        font-family: 'Playfair Display', serif;
+        font-size: 4rem;
+        font-weight: 900;
+        color: rgba(249, 115, 22, 0.15) !important;
+        line-height: 1;
+        margin-bottom: 15px;
+        text-align: center !important; 
+        display: block;
+    }
+
+    html[data-theme="light"] .step-number {
+        color: rgba(249, 115, 22, 0.45) !important;
+    }
+
+    .step-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #ffffff !important;
+        margin-bottom: 8px;
+        text-align: center !important; 
+    }
+
+    .step-text {
+        color: #64748b !important;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        text-align: center !important; 
+    }
+
+    /* BOTONES */
+    .btn-atrium-cta {
+        background-color: var(--at-orange) !important;
+        color: white !important;
+        padding: 16px 35px;
+        border-radius: 100px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+        transition: 0.3s;
+    }
+
+    .btn-atrium-cta:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px var(--at-orange-glow);
+    }
+
+    .btn-atrium-outline-landing {
+        background: transparent;
+        color: #cbd5e1 !important;
+        border: 1px solid #334155;
+        border-radius: 100px;
+        padding: 16px 35px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        margin-left: 15px;
+    }
+
+    .btn-atrium-outline-landing:hover {
+        border-color: white;
+        color: white !important;
+        background: rgba(255,255,255,0.02);
+    }
+
+    /* CARD DE MEMBRESÍA */
+    .membership-card-premium {
+        background: radial-gradient(circle at 10% 10%, #1e293b 0%, #0f172a 100%) !important;
+        border: 1px solid rgba(249, 115, 22, 0.3) !important;
+        border-radius: 28px !important;
+        padding: 50px !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .price-tag {
+        font-family: 'Inter', sans-serif;
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: #ffffff !important;
+    }
+
+    .price-tag span {
+        font-size: 1rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+
+    .hero-image-week {
+        filter: none !important;
+        opacity: 1 !important;
+        transition: transform 0.5s ease;
+    }
+    
+    html[data-theme="light"] .hero-image-week {
+        filter: invert(1) hue-rotate(180deg) !important;
+    }
+
+    .symbol-fix {
+        color: inherit !important;
+        font-family: 'Inter', sans-serif;
+        font-weight: inherit;
+        display: inline-block;
+    }
+
+    /* SECCIONES DE DEFENSA TÉCNICA */
+    .defense-box {
+        background-color: var(--at-card-bg) !important;
+        border: 1px solid rgba(99, 102, 241, 0.3) !important;
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 0 25px rgba(99, 102, 241, 0.1) !important;
+        text-align: left;
+    }
+</style>
+
+<div class="gallery-wrapper">
+    
+    <!-- 1. HERO SECTION -->
+    <section class="landing-section py-5">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7 text-start">
+                    <span class="section-tag">Coleccionismo Contemporáneo</span>
+                    <h1 class="hero-title-landing text-white mb-4">
+                        Donde el Arte <br>Encuentra su <span style="color: var(--at-orange);">Legado</span>.
+                    </h1>
+                    <p class="hero-subtitle-landing mb-5">
+                        Museo Atrium es la plataforma políglota definitiva diseñada para la adquisición segura de arte. 
+                        Configure y adquiera piezas únicas con respaldo y trazabilidad inmutable.
+                    </p>
+                    <div class="d-flex flex-wrap justify-content-start">
+                        <a href="/auth/registro" class="btn-atrium-cta">
+                            Registrarme como Coleccionista <span class="symbol-fix">➔</span>
+                        </a>
+                        <a href="/galeria" class="btn-atrium-outline-landing">
+                            Explorar Catálogo
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 🖼️ OBRA DE LA SEMANA REAL DESDE POSTGRESQL -->
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="position-relative text-center">
+                        <% if (locals.obraSemana && obraSemana) { %>
+                            <img src="<%= (obraSemana.foto && obraSemana.foto.startsWith('http')) ? obraSemana.foto : ('/uploads/' + (obraSemana.foto || 'default_obra.jpg')) %>" class="img-fluid rounded-4 shadow-2xl hero-image-week" style="border: 1px solid var(--at-border); max-height: 450px; width: 100%; object-fit: cover;" alt="<%= obraSemana.nombre %>" onerror="this.src='https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=600'">
+                            <div class="position-absolute bottom-0 start-0 p-4 m-3 rounded-3" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); border: 1px solid var(--at-border);">
+                                <span class="small text-white-50 d-block" style="font-size: 0.75rem;">Obra de la Semana</span>
+                                <span class="fw-bold text-white">"<%= obraSemana.nombre %>"</span>
+                                <span class="small text-white-50 d-block" style="font-size: 0.7rem;">Por <%= obraSemana.nombre_artista %> <%= obraSemana.apellido_artista %></span>
+                            </div>
+                        <% } else { %>
+                            <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=600" class="img-fluid rounded-4 shadow-2xl hero-image-week" style="border: 1px solid var(--at-border); max-height: 450px; width: 100%; object-fit: cover;" alt="Arte Atrium">
+                            <div class="position-absolute bottom-0 start-0 p-4 m-3 rounded-3" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); border: 1px solid var(--at-border);">
+                                <span class="small text-white-50 d-block" style="font-size: 0.75rem;">Obra de la Semana</span>
+                                <span class="fw-bold text-white">"La Esencia del Vacío"</span>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. DEFENSA TÉCNICA - REQUISITO EXIGIDO POR EL JURADO (SPRINT 4) -->
+    <section class="landing-section" id="juryPanel">
+        <div class="container">
+            <span class="section-tag text-center">Panel del Jurado Examinador</span>
+            <h2 class="section-title text-center text-white mb-5">Arquitectura y Defensa del Proyecto</h2>
+            
+            <div class="defense-box">
+                <div class="accordion" id="accordionTechnical">
+                    
+                    <!-- Diagrama de Arquitectura -->
+                    <div class="accordion-item bg-transparent border-0 mb-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-white border-0 rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#tech1" style="font-weight: bold; border: 1px solid var(--at-border);">
+                                📡 1. Diagrama de Arquitectura de Red y Microservicios
+                            </button>
+                        </h2>
+                        <div id="tech1" class="accordion-collapse collapse" data-bs-parent="#accordionTechnical">
+                            <div class="accordion-body text-white-50 small" style="line-height: 1.8;">
+                                <p>La plataforma está estructurada en una arquitectura de microservicios con persistencia políglota:</p>
+                                <ul>
+                                    <li><strong>Core Transaccional (SQL)</strong>: PostgreSQL gestiona las compras y finanzas bajo transacciones ACID estrictas.</li>
+                                    <li><strong>Catálogo Dinámico (NoSQL Documental)</strong>: MongoDB almacena las obras con sus atributos polimórficos de forma flexible.</li>
+                                    <li><strong>Históricos y Auditoría (NoSQL Column Family)</strong>: Apache Cassandra registra de manera inmutable la trazabilidad de seguridad y emisión de códigos.</li>
+                                    <li><strong>Recomendaciones (NoSQL Grafos)</strong>: Neo4j AuraDB procesa el grafo de relaciones para generar sugerencias semánticas inteligentes.</li>
+                                </ul>
+                                <div class="text-center mt-3">
+                                    <div class="p-3 bg-black rounded-3 text-warning font-monospace" style="font-size: 0.8rem;">
+                                        [PostgreSQL (ACID)] ── replicas asincronas ──> [MongoDB Atlas] & [Neo4j Cloud] & [Cassandra]
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Justificación Teórica Avanzada -->
+                    <div class="accordion-item bg-transparent border-0 mb-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-white border-0 rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#tech2" style="font-weight: bold; border: 1px solid var(--at-border);">
+                                🧮 2. Justificación Teórica: Consistencia Eventual y Teorema CAP
+                            </button>
+                        </h2>
+                        <div id="tech2" class="accordion-collapse collapse" data-bs-parent="#accordionTechnical">
+                            <div class="accordion-body text-white-50 small" style="line-height: 1.8;">
+                                <p><strong>Teorema CAP (Consistencia, Disponibilidad, Tolerancia al Particionado)</strong>:</p>
+                                <ul>
+                                    <li><strong>PostgreSQL (CP - Consistencia / Tolerancia al Particionado)</strong>: El core del museo prioriza la consistencia. No se puede permitir que se vendan obras duplicadas, por lo que bloquea las escrituras concurrentes mediante transacciones tradicionales.</li>
+                                    <li><strong>Cassandra y Neo4j (AP - Disponibilidad / Tolerancia al Particionado)</strong>: Las auditorías y sugerencias priorizan la alta disponibilidad. Si un nodo de la red se desconecta, las escrituras de logs y lecturas de recomendaciones se siguen procesando de forma fluida.</li>
+                                    <li><strong>Consistencia Eventual</strong>: La réplica entre Postgres y Neo4j/MongoDB se procesa de forma asíncrona no bloqueante. Los datos alcanzan una consistencia eventual garantizada en milisegundos tras la confirmación en el core SQL.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Documentación de las APIs -->
+                    <div class="accordion-item bg-transparent border-0 mb-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-dark text-white border-0 rounded-3" type="button" data-bs-toggle="collapse" data-bs-target="#tech3" style="font-weight: bold; border: 1px solid var(--at-border);">
+                                📄 3. Documentación de las APIs Integradas (Swagger)
+                            </button>
+                        </h2>
+                        <div id="tech3" class="accordion-collapse collapse" data-bs-parent="#accordionTechnical">
+                            <div class="accordion-body text-white-50 small">
+                                <p>Acceda a la documentación interactiva Swagger de los microservicios en vivo:</p>
+                                <div class="d-flex gap-3 flex-wrap">
+                                    <a href="https://mongo-mp55.onrender.com/docs" target="_blank" class="btn btn-sm btn-outline-warning rounded-pill px-3">Ver Swagger MongoDB</a>
+                                    <a href="https://neo4j-4g5x.onrender.com/docs" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-3">Ver Swagger Neo4j</a>
+                                    <!-- ENLACE DE AUDITORÍA CASSANDRA INTEGRADO -->
+                                    <a href="https://museo-atrium-auditoria.onrender.com/docs" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3">Ver API Cassandra</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. BENEFICIOS CLAVE -->
+    <section class="landing-section">
+        <div class="container">
+            <span class="section-tag text-center">Beneficios del Ecosistema</span>
+            <h2 class="section-title text-center text-white mb-5">Diseñado para el Coleccionista Moderno</h2>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="preserve-color">🛡️</span></div>
+                        <h4 class="feature-title">Trazabilidad NoSQL</h4>
+                        <p class="feature-text">
+                            Cada reserva, emisión de factura e historial de propiedad se registra de manera inmutable en nuestro microservicio Cassandra, garantizando un historial de custodia libre de alteraciones.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="preserve-color">✨</span></div>
+                        <h4 class="feature-title">Curaduría por IA</h4>
+                        <p class="text-white-50">
+                            Descubre obras de forma inteligente con nuestro Curador Virtual. Filtra el catálogo en tiempo real usando descripciones semánticas o sentimentales complejas.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><span class="preserve-color">🧾</span></div>
+                        <h4 class="feature-title">Garantía Legal Certificada</h4>
+                        <p class="feature-text">
+                            Reciba una factura fiscal con el 16% de IVA calculado legalmente y el certificado de autenticidad en formato PDF directamente en su correo para proteger su patrimonio.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. PASO A PASO (CENTRADO TOTAL) -->
+    <section class="landing-section" style="background-color: rgba(22, 27, 34, 0.4); border-top: 1px solid var(--at-border); border-bottom: 1px solid var(--at-border);">
+        <div class="container">
+            <span class="section-tag text-center">Fácil y Seguro</span>
+            <h2 class="section-title text-center text-white mb-5">El Camino hacia tu Próxima Adquisición</h2>
+            
+            <div class="row g-4 mt-2 justify-content-center">
+                <div class="col-md-3">
+                    <div class="step-card">
+                        <div class="step-number text-center">01</div>
+                        <h5 class="step-title text-center">Crea tu Perfil</h5>
+                        <p class="step-text text-center">Regístrate y adquiere tu membresía de coleccionista de manera rápida y segura.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="step-card">
+                        <div class="step-number text-center">02</div>
+                        <h5 class="step-title text-center">Filtra con la IA</h5>
+                        <p class="step-text text-center">Describe tu espacio o tus gustos al Curador Virtual para encontrar tu pieza ideal.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="step-card">
+                        <div class="step-number text-center">03</div>
+                        <h5 class="step-title text-center">Reserva tu Obra</h5>
+                        <p class="step-text text-center">Utiliza tu código PIN personal de membresía para bloquear la obra y asegurar tu adquisición.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="step-card">
+                        <div class="step-number text-center">04</div>
+                        <h5 class="step-title text-center">Recibe tu Certificado</h5>
+                        <p class="step-text text-center">Un administrador validará la reserva, emitirá tu factura legal y la enviará a tu correo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. PROPUESTA DE MEMBRESÍA -->
+    <section class="landing-section">
+        <div class="container">
+            <div class="membership-card-premium shadow-2xl">
+                <div class="row align-items-center g-5">
+                    <div class="col-lg-7 text-start">
+                        <span class="section-tag text-start">Membresía Atrium Elite</span>
+                        <h2 class="text-white fw-bold mb-3" style="font-family: 'Playfair Display', serif; font-size: 2.5rem;">Adquiera Acceso Ilimitado</h2>
+                        <p class="text-white-50 mb-4" style="line-height: 1.7;">
+                            Nuestra membresía anual le otorga el estatus de coleccionista certificado en Atrium. 
+                            Bloquee obras exclusivas, reciba certificados de autenticidad emitidos por el museo, acceda a eventos de subasta y cuente con soporte de envío internacional prioritario con DHL y FedEx.
+                        </p>
+                        <div class="d-flex flex-column gap-2 text-white-50 small mb-4">
+                            <span><span class="symbol-fix">✔</span> Bloqueo inmediato de obras con PIN de seguridad.</span>
+                            <span><span class="symbol-fix">✔</span> Emisión de factura legal en formato PDF a su correo.</span>
+                            <span><span class="symbol-fix">✔</span> Búsqueda semántica asistida ilimitada.</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 text-center">
+                        <div class="p-5 rounded-4" style="background: rgba(0,0,0,0.3); border: 1px solid var(--at-border);">
+                            <div class="price-tag">$10 <span>/ Anual</span></div>
+                            <p class="text-white-50 small my-4">Pago único anual mediante pasarela segura encriptada.</p>
+                            <a href="/auth/registro" class="btn-atrium-cta w-100 justify-content-center">Adquirir Membresía</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. FINAL CALL TO ACTION (CTA - COMPLETAMENTE CENTRADA) -->
+    <section class="landing-section text-center" style="border-top: 1px solid var(--at-border);">
+        <div class="container text-center d-flex flex-column align-items-center justify-content-center">
+            <h2 class="section-title text-center text-white mb-3 w-100">Comience su Colección Hoy Mismo</h2>
+            <p class="text-white-50 text-center mb-5" style="max-width: 600px; font-size: 1.1rem; margin-left: auto; margin-right: auto;">
+                Únase a la élite del coleccionismo de arte contemporáneo. Descubra, reserve y adquiera piezas exclusivas con total seguridad jurídica y tecnológica.
+            </p>
+            <a href="/auth/registro" class="btn-atrium-cta shadow-2xl">
+                Registrarme como Coleccionista <span class="symbol-fix">➔</span>
+            </a>
+        </div>
+    </section>
+
+</div>
+
+<%- include('partials/footer') %>

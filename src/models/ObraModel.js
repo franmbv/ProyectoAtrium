@@ -104,9 +104,10 @@ class ObraModel {
         return rows;
     }
 
-    // Buscar obra por nombre
+    // Buscar obra por nombre (BLINDADO: Con uso de TRIM para evitar errores de espacios en blanco)
     static async findByNombre(nombre) {
-        const query = 'SELECT * FROM obra WHERE LOWER(nombre) = LOWER(?) LIMIT 1';
+        // El TRIM elimina espacios accidentales al inicio o final
+        const query = 'SELECT * FROM obra WHERE LOWER(TRIM(nombre)) = LOWER(TRIM(?)) LIMIT 1';
         const [rows] = await db.execute(query, [nombre]);
         return rows[0]; 
     }
@@ -118,7 +119,7 @@ class ObraModel {
         return result.affectedRows > 0;
     }
 
-    // DASHBOARD: Contar obras
+    // DASHBOARD: Contar total de obras
     static async contarTotal() {
         const [rows] = await db.execute('SELECT COUNT(*) AS total FROM obra');
         return rows[0].total;
@@ -133,31 +134,15 @@ class ObraModel {
 
     // INVENTARIO: Listar todas con joins (Corregido 'genero' singular)
     static async obtenerInventario() {
-        const sql = `
-            SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto,
-                   a.nombre AS nombre_artista, a.apellido AS apellido_artista,
-                   g.nombre AS nombre_genero
-            FROM obra o
-            INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN genero g ON o.genero_id = g.Id
-            ORDER BY o.id DESC
-        `;
+        const sql = `SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto, a.nombre AS nombre_artista, a.apellido AS apellido_artista, g.nombre AS nombre_genero FROM obra o INNER JOIN artista a ON o.autor_id = a.id INNER JOIN genero g ON o.genero_id = g.Id ORDER BY o.id DESC`;
         const [rows] = await db.execute(sql);
         return rows;
     }
 
+
     // Obtener Reservadas (Corregido 'genero' singular)
     static async obtenerReservadas() {
-        const sql = `
-            SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto,
-                   a.nombre AS nombre_artista, a.apellido AS apellido_artista,
-                   g.nombre AS nombre_genero
-            FROM obra o
-            INNER JOIN artista a ON o.autor_id = a.id
-            INNER JOIN genero g ON o.genero_id = g.Id
-            WHERE o.estatus = 'Reservada'
-            ORDER BY o.id DESC
-        `;
+        const sql = `SELECT o.id, o.nombre, o.estatus, o.precioObra, o.foto, a.nombre AS nombre_artista, a.apellido AS apellido_artista, g.nombre AS nombre_genero FROM obra o INNER JOIN artista a ON o.autor_id = a.id INNER JOIN genero g ON o.genero_id = g.Id WHERE o.estatus = 'Reservada'`;
         const [rows] = await db.execute(sql);
         return rows;
     }
@@ -206,7 +191,6 @@ class ObraModel {
         const obraId = result.insertId;
         const generoId = parseInt(datos.genero_id, 10);
 
-        // Si es una de las 5 categorías tradicionales, inserta también en su subtabla para redundancia física
         if (generoId >= 1 && generoId <= 5) {
             await ObraModel._insertarSubtipo(obraId, generoId, datos);
         }
@@ -248,7 +232,6 @@ class ObraModel {
             ]
         );
 
-        // Control de subtipos físicos tradicionales
         if (nuevoGeneroId !== actual.genero_id) {
             await db.execute('DELETE FROM pintura WHERE obra_id = ?', [id]);
             await db.execute('DELETE FROM escultura WHERE obra_id = ?', [id]);
@@ -450,6 +433,19 @@ class ObraModel {
         `;
         const [rows] = await db.execute(sql);
         return rows;
+    }
+
+  static async marcarComoVendida(id) {
+        const sql = "UPDATE obra SET estatus = 'Vendida', reservado_por = NULL, fecha_reserva = NULL WHERE id = ?";
+        await db.execute(sql, [id]);
+        console.log(`🟢 [ObraModel] Obra ${id} marcada como VENDIDA en Postgres`);
+    }
+
+
+    static async marcarComoDisponible(id) {
+        const sql = "UPDATE obra SET estatus = 'Disponible', reservado_por = NULL, fecha_reserva = NULL WHERE id = ? AND estatus = 'Reservada'";
+        const [result] = await db.execute(sql, [id]);
+        return result.affectedRows > 0;
     }
 
 }

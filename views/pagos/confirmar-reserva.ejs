@@ -205,21 +205,17 @@
             </div> 
         <% } %>
 
-        <form action="/pagos/confirmar-reserva" method="POST" novalidate>
+       <form action="/pagos/confirmar-reserva" method="POST" novalidate>
+            <!-- CAMPO OCULTO CORRECTO -->
+            <input type="hidden" name="obra_id" value="<%= form.obraId %>" />
+            <input type="hidden" name="obraNombre" value="<%= form.obraNombre %>" />
+    
+            <div class="pin-field">
+
             <!-- CAMPO PIN -->
             <div class="pin-field">
                 <label for="inputPIN" class="pin-label">PIN de 3 Dígitos</label>
-                <input 
-                    type="text" 
-                    name="codigoSeguridad" 
-                    id="inputPIN" 
-                    maxlength="3" 
-                    class="pin-input" 
-                    placeholder="000" 
-                    required 
-                    autofocus
-                    autocomplete="off"
-                >
+                <input type="text" name="codigoSeguridad" id="inputPIN" maxlength="3" class="pin-input" placeholder="000" required autofocusautocomplete="off">
                 <a href="/pagos/recuperar" class="link-recover">¿Problemas con el código? Recupéralo aquí</a>
             </div>
 

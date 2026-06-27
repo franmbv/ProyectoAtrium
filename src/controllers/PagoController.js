@@ -4,13 +4,17 @@ const UsuarioModel = require('../models/UsuarioModel');
 const { sendSecurityCode } = require('../config/mailer');
 const bcrypt = require('bcryptjs');
 const { enviarAuditoria } = require('../config/auditoria');
+// Importa db arriba si vas a usar el log de debug
+const db = require('../config/db'); 
+
 
 const PagoController = {
 
     // GET: Mostrar el formulario
-    mostrarConfirmacion: (req, res) => {
-        // Lógica de limpieza del query param
+     mostrarConfirmacion: (req, res) => {
+        // Capturamos AMBOS parámetros
         let obraNombre = (req.query && req.query.obraNombre) ? String(req.query.obraNombre).trim() : '';
+        let obraId = (req.query && req.query.obraId) ? String(req.query.obraId).trim() : '';
 
         const validNameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ0-9().,\- ]+$/;
 
@@ -24,174 +28,104 @@ const PagoController = {
             req.session.messageInfo = 'Has excedido el número máximo de intentos. Por favor, recupera tu código.';
             return res.redirect('/pagos/recuperar');
         }
+        
         res.render('pagos/confirmar-reserva', { 
             message: null, 
             success: null, 
-            form: { obraNombre }, 
+            form: { obraNombre, obraId }, // Enviamos el ID a la vista
             info: null 
         });
     },
 
-    // POST: Procesar la Reserva
-    // POST: Procesar la Reserva
-    procesarReserva: async (req, res) => {
+   
+     // POST: Procesar la Reserva
+     procesarReserva: async (req, res) => {
         const codigoRaw = req.body.codigoSeguridad ? String(req.body.codigoSeguridad).trim() : '';
-        const obraNombreRaw = req.body.obraNombre ? String(req.body.obraNombre).trim() : '';
+        const obra_id = req.body.obra_id; // Este valor viene del hidden input en tu EJS
 
-        const formData = { codigoSeguridad: codigoRaw, obraNombre: obraNombreRaw };
+        const formData = { 
+            codigoSeguridad: codigoRaw, 
+            obraNombre: req.body.obraNombre,
+            obraId: obra_id 
+        };
+
+        // 1. Validación de seguridad contra inputs vacíos
+        if (!obra_id) {
+            console.error("❌ [DEBUG COMPRA] ID de obra recibido vacío.");
+            return res.status(400).send("Error: ID de obra no recibido.");
+        }
 
         if (!/^\d{3}$/.test(codigoRaw)) {
             return res.render('pagos/confirmar-reserva', {
-                message: 'El código debe ser de 3 dígitos numéricos.',
+                message: 'El código debe ser de 3 dígitos.',
                 success: false,
                 form: formData
             });
         }
 
-        const validNameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ0-9().,\- ]+$/;
-
-        if (!validNameRegex.test(obraNombreRaw)) {
-            return res.render('pagos/confirmar-reserva', {
-                message: 'Nombre de obra inválido (solo letras).',
-                success: false,
-                form: formData
-            });
-        }
-
-        // Inicializar contador de intentos fallidos si no existe
-        if (!req.session.failedAttempts) {
-            req.session.failedAttempts = 0;
-        }
-
-        // Si está en estado de bloqueo (>=3), forzar ir al flujo de recuperación
-        if (req.session.failedAttempts >= 3) {
-            req.session.messageInfo = 'Has excedido el número máximo de intentos. Por favor, recupera tu código.';
-            return res.redirect('/pagos/recuperar');
-        }
         try {
-            // 🔍 LOG 1: Verificar qué ID de usuario está en la sesión antes de buscar en PostgreSQL
-            console.log(`\n🔍 [DEBUG COMPRA] ID del comprador en sesión: ${req.session.usuario?.id}`);
-            console.log(`🔍 [DEBUG COMPRA] Código ingresado por el cliente: ${codigoRaw}`);
+            console.log(`\n🔍 [DEBUG COMPRA] ID comprador: ${req.session.usuario?.id} | ID Obra: ${obra_id}`);
 
             const membresia = await InfoCompradorModel.buscarPorCodigoyUsuario(codigoRaw, req.session.usuario?.id);
 
             if (!membresia) {
-                // ❌ LOG 2: Si entra aquí, el código falló o no coincide con la sesión en PostgreSQL
-                console.log(`❌ [DEBUG COMPRA] No se encontró membresía válida para el código ${codigoRaw} y el usuario ${req.session.usuario?.id}`);
-                
-                req.session.failedAttempts += 1;
-
-                if (req.session.failedAttempts >= 3) {
-                    req.session.messageInfo = 'Has excedido el número máximo de intentos. Por seguridad, debes recuperar tu código.';
-                    return res.redirect('/pagos/recuperar');
-                } else {
-                    return res.render('pagos/confirmar-reserva', {
-                        message: `Código de seguridad incorrecto o no encontrado. Intentos restantes: ${3 - req.session.failedAttempts}`,
-                        success: false,
-                        form: formData
-                    });
-                }
-            }
-
-            // Resetear intentos en caso de éxito
-            req.session.failedAttempts = 0;
-
-            if (membresia.estado && membresia.estado.toLowerCase() !== 'activo') {
-                console.log(`❌ [DEBUG COMPRA] La membresía existe pero no está ACTIVA. Estado: ${membresia.estado}`);
+                req.session.failedAttempts = (req.session.failedAttempts || 0) + 1;
                 return res.render('pagos/confirmar-reserva', {
-                    message: 'Licencia Vencida / Inactiva.',
+                    message: `Código incorrecto.`,
                     success: false,
                     form: formData
                 });
             }
 
-            const obra = await ObraModel.findByNombre(obraNombreRaw);
+            req.session.failedAttempts = 0;
 
-            if (!obra) {
-                console.log(`❌ [DEBUG COMPRA] La obra "${obraNombreRaw}" no existe.`);
-                req.session.flash = { type: 'error', message: 'La obra solicitada no existe.' };
-                req.session.message = { 
-                    type: 'error', 
-                    text: `La obra "${obraNombreRaw}" no existe en el catálogo.` 
-                };
-                return res.redirect('/galeria');
-            }
+            // 2. BUSCAR POR ID (Infalible)
+            const obra = await ObraModel.obtenerPorId(obra_id);
 
-            if (obra.estatus && obra.estatus.toLowerCase() !== 'disponible') {
-                console.log(`❌ [DEBUG COMPRA] La obra "${obraNombreRaw}" existe pero NO está disponible. Estatus: ${obra.estatus}`);
-                req.session.flash = { type: 'warning', message: 'Esta obra ya no se encuentra disponible.' };
-                req.session.message = { 
-                    type: 'error', 
-                    text: `Lo sentimos, la obra "${obraNombreRaw}" ya ha sido vendida o reservada.` 
-                };
+            if (!obra || obra.estatus.toLowerCase() !== 'disponible') {
+                console.log(`❌ [DEBUG COMPRA] Obra no disponible o inexistente: ${obra_id}`);
                 return res.redirect('/galeria');
             }
 
             const compradorId = req.session.usuario?.id;
-            if (!compradorId) {
-                console.log(`❌ [DEBUG COMPRA] No hay sesión de usuario activa al intentar reservar.`);
-                return res.redirect('/auth/login');
-            }
-
             const reservado = await ObraModel.reservarById(obra.id, compradorId);
             
             if (reservado) {
-                console.log(`🟢 [DEBUG COMPRA] Obra reservada con éxito en PostgreSQL. Ejecutando auditoría en Cassandra...`);
+                console.log(`🟢 [DEBUG COMPRA] Obra ${obra.id} reservada en SQL.`);
                 
-                // --- AUDITORÍA DE OBRA EN CASSANDRA ---
+                // --- SINCRONIZACIÓN A MONGODB ---
+                try {
+                    // Consultamos el estado actualizado tras el UPDATE
+                    const obraActualizada = await ObraModel.obtenerPorId(obra.id);
+                    await MongoSyncService.syncObra(obraActualizada, true);
+                    console.log("✅ [DEBUG COMPRA] MongoDB actualizado exitosamente.");
+                } catch (syncErr) {
+                    console.error("❌ [DEBUG COMPRA] Error sincronizando MongoDB:", syncErr.message);
+                }
+                
+                // --- AUDITORÍA Y NOTIFICACIÓN ---
                 await enviarAuditoria('/obras/historico', {
                     id_obra: obra.id,
                     estatus_anterior: 'Disponible',
                     estatus_nuevo: 'Reservada',
                     usuario_id: compradorId,
-                    ip_origen: req.ip || '127.0.0.1',
                     fecha_evento: new Date().toISOString()
                 });
 
-                // =================================================================
-                // 🚀 AQUÍ AGREGAMOS LA VERIFICACIÓN DEL ENVÍO DE EMAIL ASÍNCRONO
-                // =================================================================
-                console.log(`🔍 [DEBUG COMPRA] Extrayendo correo de la DB para el usuario ID: ${compradorId}...`);
                 const usuarioDB = await UsuarioModel.buscarPorId(compradorId);
-
                 if (usuarioDB && usuarioDB.gmail) {
-                    console.log(`🟢 [DEBUG COMPRA] Correo encontrado en DB: ${usuarioDB.gmail}. Disparando webhook de Pipedream...`);
-                    
-                    // Disparamos la función mailer con el código ingresado para notificar la compra
-                    sendSecurityCode(usuarioDB.gmail, codigoRaw)
-                        .then(() => {
-                            console.log(`✅ [DEBUG COMPRA] Petición Axios enviada con éxito a Pipedream para: ${usuarioDB.gmail}`);
-                        })
-                        .catch(mailError => {
-                            console.error("❌ [DEBUG COMPRA] Error en la petición Axios hacia Pipedream:", mailError.message);
-                        });
-                } else {
-                    console.error("❌ [DEBUG COMPRA] Error crítico: El usuario no tiene un campo 'gmail' válido en PostgreSQL.");
+                    sendSecurityCode(usuarioDB.gmail, codigoRaw).catch(console.error);
                 }
-                // =================================================================
 
-                req.session.flash = { type: 'success', message: '🖼️ ¡Reserva realizada! Un administrador la revisará pronto.' };
-                req.session.message = {
-                     type: 'success',
-                     text: `¡Felicidades! La obra "${obraNombreRaw}" ha sido reservada con éxito y está a la espera de la aprobación de un administrador.`
-                 };
-                 return res.redirect('/galeria');
+                req.session.message = { type: 'success', text: `La obra "${obra.nombre}" ha sido reservada con éxito.` };
+                return res.redirect('/galeria');
             } else {
-                req.session.flash = { type: 'error', message: 'La obra fue reservada por alguien más hace un momento.' };
-                req.session.message = { 
-                    type: 'error', 
-                    text: `La obra "${obraNombreRaw}" fue reservada por otra persona hace un instante.` 
-                };
                 return res.redirect('/galeria');
             }
 
         } catch (error) {
-            console.error('❌ [DEBUG COMPRA] Error interno atrapado en el catch:', error);
-            res.render('pagos/confirmar-reserva', {
-                message: 'Error del sistema: ' + error.message,
-                success: false,
-                form: formData
-            });
+            console.error('❌ [DEBUG COMPRA] Error:', error);
+            res.status(500).send('Error interno del servidor.');
         }
     },
     

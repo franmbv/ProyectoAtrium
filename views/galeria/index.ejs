@@ -252,6 +252,14 @@
         display: inline-block;
     }
     .btn-back-atrium:hover { color: white; border-color: white; background: rgba(255,255,255,0.03); }
+
+    /* SÍMBOLOS UNICODE ADAPTATIVOS */
+    .symbol-fix {
+        color: inherit !important;
+        font-family: 'Inter', sans-serif;
+        font-weight: inherit;
+        display: inline-block;
+    }
 </style>
 
 <div class="gallery-wrapper">
@@ -393,12 +401,12 @@
                 </aside>
             </div>
 
-            <!-- GRILLA DE OBRAS (Filtrado por defecto para mostrar SOLO OBRAS DISPONIBLES) -->
+            <!-- GRILLA DE OBRAS (Filtrado de Disponibilidad Estricta) -->
             <div class="col-lg-9">
                 <div class="row g-4" id="artGrid">
                     <% if (locals.obras && obras.length > 0) { %>
                         <% 
-                           // Lógica de Negocio: Mostrar estrictamente obras disponibles en el catálogo público
+                           // Lógica de Negocio: Filtrar preventivamente solo las obras que se encuentran Disponibles
                            const disponibles = obras.filter(o => String(o.estatus).toLowerCase() === 'disponible');
                            if (disponibles.length > 0) {
                                disponibles.forEach((obra, index) => { 
@@ -471,9 +479,9 @@
     </div>
 </div>
 
-<!-- BOTÓN FLOTANTE IA (ESTILO ATRIUM CON SOPORTE MODO CLARO) -->
+<!-- BOTÓN FLOTANTE IA (SOPORTE DE COLOR PRESERVADO EN MODO CLARO) -->
 <button type="button" class="btn shadow-lg" data-bs-toggle="modal" data-bs-target="#modalIA" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000; background: var(--at-orange); border-radius: 50px; padding: 15px 25px; color: white; font-weight: 800; border: none; transition: 0.3s; box-shadow: 0 0 15px var(--at-orange-glow) !important;">
-    ✨ BÚSQUEDA INTELIGENTE
+    <span class="preserve-color">✨</span> BÚSQUEDA INTELIGENTE
 </button>
 
 <!-- MODAL DEL BUSCADOR IA -->
@@ -481,7 +489,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background-color: #161b22; border: 1px solid var(--at-orange); border-radius: 20px;">
             <div class="modal-header border-0">
-                <h5 class="modal-title text-white">✨ Filtrado por IA (Llama-3.1)</h5>
+                <h5 class="modal-title text-white"><span class="preserve-color">✨</span> Filtrado por IA (Llama-3.1)</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">

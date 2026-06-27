@@ -709,11 +709,14 @@ const AdminController = {
             });
 
             await ObraModel.marcarComoVendida(obra_id);
+            console.log("🟢 [DEBUG] Obra marcada como vendida en SQL");
+
 
             // Operaciones asíncronas liberadas del hilo principal
             setImmediate(async () => {
                 const obraCompletaSync = await ObraModel.obtenerPorId(obra_id);
                 if (obraCompletaSync) MongoSyncService.syncObra(obraCompletaSync, true).catch(() => {});
+                 console.log("✅ [DEBUG] Sincronización exitosa con MongoDB.");
                 Neo4jSyncService.syncCompra(comprador_id, obra_id, total).catch(() => {});
 
                 enviarAuditoria('/obras/historico', {
