@@ -9,10 +9,6 @@ const bcrypt = require('bcryptjs');
 const UsuarioModel = require('../models/UsuarioModel');
 const { sendReservaAceptada } = require('../config/mailer');
 const { enviarAuditoria } = require('../config/auditoria');
-const puppeteer = require('puppeteer-core');
-const ejs = require('ejs');
-const path = require('path');
-const fs = require('fs');
 const { Parser } = require('json2csv');
 const axios = require('axios');
 
@@ -745,31 +741,11 @@ const AdminController = {
                     const compradorData = await UsuarioModel.buscarPorId(comprador_id);
 
                     if (compradorData && compradorData.gmail) {
-                        let fotoPDF = (facturaData.foto && facturaData.foto.startsWith('http')) ? facturaData.foto : '';
-                        const htmlFactura = await ejs.renderFile(
-                            path.join(__dirname, '../../views/admin/factura-detalle.ejs'), 
-                            { factura: facturaData, fotoPDF: fotoPDF }
-                        );
-
-                        const browser = await puppeteer.launch({
-                            headless: "new",
-                            executablePath: process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-                            args: ['--no-sandbox', '--disable-setuid-sandbox']
-                        });
-
-                        const page = await browser.newPage();
-                        await page.setContent(htmlFactura, { waitUntil: 'domcontentloaded', timeout: 30000 });
-                        const pdfBuffer = await page.pdf({
-                            format: 'A4',
-                            printBackground: true,
-                            margin: { top: '0.5cm', bottom: '0.5cm', left: '0.5cm', right: '0.5cm' }
-                        });
-
-                        await browser.close();
-                        await sendReservaAceptada(compradorData.gmail, facturaData.nombre_obra, codigo, pdfBuffer);
+                        await sendReservaAceptada(compradorData.gmail, facturaData, codigo);
+                        console.log("✅ [EMAIL] Factura enviada a:", compradorData.gmail);
                     }
-                } catch (errPdf) {
-                    console.error('❌ Error crítico en generación de PDF:', errPdf.message);
+                } catch (errEmail) {
+                    console.error('❌ Error enviando factura por email:', errEmail.message);
                 }
             });
 
