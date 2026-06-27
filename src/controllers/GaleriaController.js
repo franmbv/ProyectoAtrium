@@ -198,6 +198,7 @@ const GaleriaController = {
 
                     // Aplanar los detalles polimórficos de MongoDB directamente al objeto principal
                     // EJS busca obra.tecnica, obra.peso, etc.
+                    obra.detalles = obraMongo.detalles || {};
                     if (obraMongo.detalles) {
                         Object.keys(obraMongo.detalles).forEach(key => {
                             obra[key] = obraMongo.detalles[key];

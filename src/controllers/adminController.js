@@ -447,7 +447,7 @@ const AdminController = {
         try {
             const actualizado = await ObraModel.marcarComoDisponible(req.params.id);
             if (!actualizado) {
-                return res.status(404).send('Obra no encontrada o no reservada');
+                return res.redirect('/admin/reservas?error=La+obra+no+se+encuentra+reservada');
             }
 
             const obraCompleta = await ObraModel.obtenerPorId(req.params.id);
@@ -456,7 +456,7 @@ const AdminController = {
             res.redirect('/admin/reservas');
         } catch (error) {
             console.error(error);
-            res.status(500).send('Error al rechazar la reserva');
+            res.redirect('/admin/reservas?error=Error+al+rechazar+la+reserva');
         }
     },
 
@@ -745,7 +745,7 @@ const AdminController = {
                     const compradorData = await UsuarioModel.buscarPorId(comprador_id);
 
                     if (compradorData && compradorData.gmail) {
-                        let fotoPDF = "";
+                        let fotoPDF = (facturaData.foto && facturaData.foto.startsWith('http')) ? facturaData.foto : '';
                         const htmlFactura = await ejs.renderFile(
                             path.join(__dirname, '../../views/admin/factura-detalle.ejs'), 
                             { factura: facturaData, fotoPDF: fotoPDF }

@@ -260,7 +260,7 @@
                         <div class="art-carousel-item">
                             <div class="mini-obra-card shadow-lg">
                                 <div class="mini-img-box">
-                                    <img src="<%= o.foto ? ('/uploads/' + o.foto) : '/img/default_obra.jpg' %>" 
+                                    <img src="<%= (o.foto && o.foto.startsWith('http')) ? o.foto : ('/uploads/' + (o.foto || 'default_obra.jpg')) %>" 
                                          class="mini-img <%= o.estatus !== 'Disponible' ? 'art-unavailable' : '' %>" 
                                          alt="<%= o.nombre %>">
                                     
