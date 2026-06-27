@@ -84,6 +84,10 @@ module.exports = {
             // Caso estándar (SELECT, UPDATE, DELETE): Normalizamos todas las filas antes de retornarlas
             const result = await pool.query(postgresText, params);
             const rowsNormalizadas = normalizarClavesPostgres(result.rows);
+            // Para UPDATE/DELETE sin RETURNING: no hay filas, pero sí affectedRows
+            if (rowsNormalizadas.length === 0 && result.rowCount > 0) {
+                return [{ affectedRows: result.rowCount }, result.fields];
+            }
             return [rowsNormalizadas, result.fields];
         }
     }

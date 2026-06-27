@@ -4,7 +4,7 @@ const UsuarioModel = require('../models/UsuarioModel');
 const { sendSecurityCode } = require('../config/mailer');
 const bcrypt = require('bcryptjs');
 const { enviarAuditoria } = require('../config/auditoria');
-// Importa db arriba si vas a usar el log de debug
+const MongoSyncService = require('../services/MongoSyncService');
 const db = require('../config/db'); 
 
 
@@ -95,7 +95,6 @@ const PagoController = {
                 
                 // --- SINCRONIZACIÓN A MONGODB ---
                 try {
-                    // Consultamos el estado actualizado tras el UPDATE
                     const obraActualizada = await ObraModel.obtenerPorId(obra.id);
                     await MongoSyncService.syncObra(obraActualizada, true);
                     console.log("✅ [DEBUG COMPRA] MongoDB actualizado exitosamente.");
