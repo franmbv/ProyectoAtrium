@@ -160,11 +160,9 @@
                     <label class="form-label-mini">Género</label>
                     <select id="genreFilter" class="form-select input-custom">
                         <option value="">Todas</option>
-                        <option value="Pintura">Pintura</option>
-                        <option value="Escultura">Escultura</option>
-                        <option value="Fotografía">Fotografía</option>
-                        <option value="Cerámica">Cerámica</option>
-                        <option value="Orfebrería">Orfebrería</option>
+                        <% generos.forEach(g => { %>
+                            <option value="<%= g.nombre %>"><%= g.nombre %></option>
+                        <% }) %>
                     </select>
                 </div>
 

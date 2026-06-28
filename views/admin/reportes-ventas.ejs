@@ -297,7 +297,7 @@
                         return sortMode === 'profit-desc' ? valB - valA : valA - valB;
                     }
                 });
-                rows.forEach(row => tableBody.appendChild(row));
+                sortedRows.forEach(row => tableBody.appendChild(row));
             }
 
             if (visibleCount === 0 && rows.length > 0) {

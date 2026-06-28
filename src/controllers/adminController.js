@@ -431,8 +431,11 @@ const AdminController = {
 
     reservasObras: async (req, res) => {
         try {
-            const reservadas = await ObraModel.obtenerReservadas();
-            res.render('admin/reservas', { obras: reservadas || [] });
+            const [reservadas, generos] = await Promise.all([
+                ObraModel.obtenerReservadas(),
+                ObraModel.obtenerGeneros()
+            ]);
+            res.render('admin/reservas', { obras: reservadas || [], generos: generos || [] });
         } catch (error) {
             console.error(error);
             res.status(500).send('Error al cargar reservas');
@@ -778,10 +781,14 @@ const AdminController = {
     obrasVendidas: async (req, res) => {
         try {
             const { fechaInicio, fechaFin } = req.query;
-            const obrasVendidas = await VentaModel.obtenerObrasVendidasPorPeriodo(fechaInicio, fechaFin);
+            const [obrasVendidas, generos] = await Promise.all([
+                VentaModel.obtenerObrasVendidasPorPeriodo(fechaInicio, fechaFin),
+                ObraModel.obtenerGeneros()
+            ]);
 
             res.render('admin/obras-vendidas', {
                 obras: obrasVendidas || [],
+                generos: generos || [],
                 filtros: { fechaInicio: fechaInicio || '', fechaFin: fechaFin || '' }
             });
         } catch (error) {

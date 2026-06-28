@@ -89,7 +89,7 @@ class VentaModel {
             FROM venta v
             JOIN obra o ON v.obra_id = o.id
             JOIN artista a ON o.autor_id = a.id
-            JOIN generos g ON o.genero_id = g.id
+            JOIN genero g ON o.genero_id = g.id
         `;
 
         const params = [];

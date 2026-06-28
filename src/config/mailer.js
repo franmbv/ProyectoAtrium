@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { renderHtmlToPdf } = require('html2pdfsmith');
 
 async function getTransporter() {
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
@@ -69,7 +70,290 @@ async function sendSecurityCode(email, code) {
   return { info, previewUrl };
 }
 
-// Email factura profesional con HTML embebido
+// Generar PDF de factura con html2pdfsmith (sin Chromium)
+// Patrón autocore-invoice: <style> en head, tablas planas, sin anidar
+async function generarPdfFactura(facturaData, codigoFactura) {
+  const fmt = (v) => Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fotoURL = (facturaData.foto && facturaData.foto.startsWith('http'))
+    ? facturaData.foto
+    : 'https://via.placeholder.com/400x300?text=Sin+imagen';
+  const fecha = facturaData.fechaDeVenta
+    ? new Date(facturaData.fechaDeVenta).toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' })
+    : 'N/A';
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111827;
+    }
+    .container {
+      padding: 10px 20px;
+    }
+
+    /* HEADER */
+    .header {
+      width: 100%;
+      border-bottom: 3px solid #0f172a;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .header td {
+      vertical-align: bottom;
+    }
+    .brand {
+      font-size: 28px;
+      font-weight: 800;
+      color: #f97316;
+    }
+    .brand span {
+      color: #0f172a;
+      font-weight: 400;
+    }
+    .invoice-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #6b7280;
+      font-weight: 600;
+      text-align: right;
+    }
+    .invoice-no {
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    /* INFO TABLE */
+    .info-table {
+      width: 100%;
+      margin-bottom: 28px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    .info-table td {
+      vertical-align: top;
+    }
+    .meta-label {
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 9px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .meta-value {
+      font-weight: 500;
+      color: #111827;
+      margin-bottom: 12px;
+    }
+
+    /* SECCION LABEL */
+    .section-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #6b7280;
+      font-weight: 600;
+      text-align: left;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #d1d5db;
+    }
+
+    /* OBRA TABLE */
+    .obra-table {
+      width: 100%;
+      margin-top: 12px;
+      margin-bottom: 28px;
+      border-collapse: collapse;
+    }
+    .obra-table td {
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 12px;
+      vertical-align: top;
+    }
+    .obra-name {
+      font-weight: 600;
+      color: #111827;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .obra-artist {
+      color: #6b7280;
+      font-size: 12px;
+    }
+    .obra-genre {
+      color: #9ca3af;
+      font-size: 11px;
+    }
+
+    /* PAGO TABLE */
+    .pago-table {
+      width: 45%;
+      margin-left: auto;
+      margin-top: 12px;
+      margin-bottom: 28px;
+      border-collapse: collapse;
+    }
+    .pago-table td {
+      padding: 8px 0;
+      font-size: 12px;
+      color: #4b5563;
+    }
+    .pago-right {
+      text-align: right;
+    }
+    .pago-total td {
+      border-top: 2px solid #111827;
+      padding-top: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      color: #111827;
+    }
+
+    /* COMPRADOR */
+    .comprador-table {
+      width: 100%;
+      margin-top: 12px;
+      margin-bottom: 28px;
+      border-collapse: collapse;
+    }
+    .comprador-table td {
+      padding: 6px 0;
+      font-size: 12px;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+
+    /* FOOTER */
+    .footer {
+      text-align: center;
+      font-size: 10px;
+      color: #9ca3af;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- HEADER -->
+    <table class="header">
+      <tr>
+        <td>
+          <div class="brand">MUSEO <span>ATRIUM</span></div>
+        </td>
+        <td>
+          <div class="invoice-title">Factura de Compra</div>
+          <div class="invoice-no">${facturaData.codigoDeFactura || codigoFactura}</div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- META: fecha y estado -->
+    <table class="info-table">
+      <tr>
+        <td style="width: 50%;">
+          <div class="meta-label">Fecha de Emision</div>
+          <div class="meta-value">${fecha}</div>
+        </td>
+        <td style="width: 25%;">
+          <div class="meta-label">Estado</div>
+          <div class="meta-value">PAGADA</div>
+        </td>
+        <td style="width: 25%; text-align: right;">
+          <div class="meta-label">Total Pagado</div>
+          <div style="font-size: 22px; font-weight: 700; color: #111827;">$${fmt(facturaData.precioFinalVenta || 0)}</div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- DETALLE OBRA -->
+    <div class="section-label">Detalle de la Obra</div>
+    <table class="obra-table">
+      <colgroup>
+        <col style="width: 120px;">
+        <col>
+      </colgroup>
+      <tr>
+        <td>
+          <img src="${fotoURL}" width="110" height="80" style="border-radius: 4px; border: 0; display: block;" alt="${facturaData.nombre_obra || 'Obra'}">
+        </td>
+        <td style="padding-left: 16px;">
+          <div class="obra-name">${facturaData.nombre_obra || 'N/A'}</div>
+          <div class="obra-artist">por ${facturaData.nombre_artista || ''} ${facturaData.apellido_artista || ''}</div>
+          <div class="obra-genre">${facturaData.nombre_genero || ''}</div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- DESGLOSE PAGO -->
+    <div class="section-label">Desglose de Pago</div>
+    <table class="pago-table">
+      <tr>
+        <td>Precio Base</td>
+        <td class="pago-right">$${fmt(facturaData.precioObra || 0)}</td>
+      </tr>
+      <tr>
+        <td>IVA (16%)</td>
+        <td class="pago-right">$${fmt(facturaData.iva || 0)}</td>
+      </tr>
+      <tr>
+        <td>Comision Museo (${facturaData.gananciaMuseoPorcentaje || 0}%)</td>
+        <td class="pago-right">$${fmt(facturaData.gananciaMuseoDolares || 0)}</td>
+      </tr>
+      <tr class="pago-total">
+        <td>Total</td>
+        <td class="pago-right">$${fmt(facturaData.precioFinalVenta || 0)}</td>
+      </tr>
+    </table>
+
+    <!-- DATOS COMPRADOR -->
+    <div class="section-label">Datos del Comprador</div>
+    <table class="comprador-table">
+      <tr>
+        <td style="width: 50%; font-weight: 600; color: #111827;">${facturaData.nombre_comprador || ''} ${facturaData.apellido_comprador || ''}</td>
+        <td style="width: 50%;">C.I. ${facturaData.cedula || 'N/A'}</td>
+      </tr>
+      <tr>
+        <td>${facturaData.gmail || ''}</td>
+        <td>${facturaData.calle || ''}, ${facturaData.municipio || ''}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>${facturaData.ciudad || ''}, ${facturaData.estado || ''}, ${facturaData.pais || ''}</td>
+      </tr>
+    </table>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      Este documento es tu comprobante oficial de compra del Museo Atrium.<br>
+      2026 Proyecto Atrium - UNEG Ingenieria en Informatica
+    </div>
+
+  </div>
+</body>
+</html>`;
+
+  const pdf = await renderHtmlToPdf({
+    html,
+    hideHeader: true,
+    resourcePolicy: { allowHttp: true, allowFile: false, allowData: true }
+  });
+  return Buffer.from(pdf);
+}
+
+// Email factura profesional con HTML embebido + PDF adjunto
 async function sendReservaAceptada(email, facturaData, codigoFactura) {
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     throw new Error('Correo invalido para notificacion de reserva');
@@ -250,12 +534,27 @@ async function sendReservaAceptada(email, facturaData, codigoFactura) {
     </div>
   `;
 
+  // Generar PDF adjunto
+  const codigo = facturaData.codigoDeFactura || codigoFactura;
+  let pdfAttachment = null;
+  try {
+    const pdfBuffer = await generarPdfFactura(facturaData, codigo);
+    pdfAttachment = {
+      filename: `Factura-${codigo}.pdf`,
+      content: pdfBuffer,
+      contentType: 'application/pdf'
+    };
+  } catch (pdfErr) {
+    console.error('[MAILER] Error generando PDF:', pdfErr.message);
+  }
+
   const mailOptions = {
     from: `"Museo Atrium 🏛️" <${fromAddress}>`,
     to: email,
-    subject: `✅ Factura de Compra - ${facturaData.codigoDeFactura || codigoFactura}`,
-    text: `Tu compra de "${facturaData.nombre_obra}" ha sido procesada. Pago total: $${fmt(facturaData.precioFinalVenta || 0)}. Factura: ${facturaData.codigoDeFactura || codigoFactura}`,
-    html: html
+    subject: `✅ Factura de Compra - ${codigo}`,
+    text: `Tu compra de "${facturaData.nombre_obra}" ha sido procesada. Pago total: $${fmt(facturaData.precioFinalVenta || 0)}. Factura: ${codigo}`,
+    html: html,
+    attachments: pdfAttachment ? [pdfAttachment] : []
   };
 
   const info = await transporter.sendMail(mailOptions);
@@ -263,4 +562,4 @@ async function sendReservaAceptada(email, facturaData, codigoFactura) {
   return { info, previewUrl };
 }
 
-module.exports = { sendSecurityCode, sendReservaAceptada };
+module.exports = { sendSecurityCode, sendReservaAceptada, generarPdfFactura };
