@@ -275,6 +275,11 @@ const AdminController = {
             });
 
             // 4b. Sincronizar con Neo4j
+            await Neo4jSyncService.syncCategoria({
+                id_sql: nuevoId,
+                nombre_categoria: nombreNormalizado
+            }).catch(err => console.error("Error sincronizando categoría en Neo4j:", err.message));
+
             res.redirect('/admin/categorias?success=Categoría guardada con éxito');
         } catch (error) {
             console.error("Error al guardar categoría:", error);
@@ -322,6 +327,7 @@ const AdminController = {
                 
                 req.body.foto = fotoFinal;
                 await MongoSyncService.syncObra(req.body, true);
+                await Neo4jSyncService.syncObra(req.body, true).catch(err => console.error("Error actualizando obra en Neo4j:", err.message));
 
                 return res.redirect('/admin/inventario');
             } else {
@@ -505,6 +511,7 @@ const AdminController = {
             if (foto) req.body.foto = foto;
             else req.body.foto = req.body.foto_actual;
             await MongoSyncService.syncObra(req.body, true);
+            await Neo4jSyncService.syncObra(req.body, true).catch(err => console.error("Error actualizando obra en Neo4j:", err.message));
 
             res.redirect('/admin/inventario');
         } catch (error) {
@@ -521,6 +528,7 @@ const AdminController = {
             }
 
             await MongoSyncService.deleteObra(req.params.id);
+            await Neo4jSyncService.deleteObra(req.params.id).catch(err => console.error("Error eliminando obra de Neo4j:", err.message));
 
             res.redirect('/admin/inventario');
         } catch (error) {
@@ -597,6 +605,9 @@ const AdminController = {
             setImmediate(() => {
                 MongoSyncService.syncArtista(req.body, true).catch(err => {
                     console.error("❌ Falló la sincronización asíncrona de artista en MongoDB:", err.message);
+                });
+                Neo4jSyncService.syncArtista(req.body, true).catch(err => {
+                    console.error("❌ Falló la sincronización asíncrona de artista en Neo4j:", err.message);
                 });
             });
 
@@ -1088,7 +1099,7 @@ const AdminController = {
             });
         }
 
-        const NEO4J_API_URL = process.env.NEO4J_API_URL || 'http://localhost:8000';
+        const NEO4J_API_URL = process.env.NEO4J_API_URL || 'http://localhost:8002';
 
         try {
             const response = await axios.post(`${NEO4J_API_URL}/api/v1/graph/nlp-query`, { text });
@@ -1096,9 +1107,23 @@ const AdminController = {
 
             if (resultData && resultData.success) {
                 const data = resultData.data;
+                const rawResults = data.results || [];
+
+                // Enriquecer cada fila con la foto real de la obra consultando CoreSQL
+                const enrichedResults = await Promise.all(rawResults.map(async (row) => {
+                    const newRow = { ...row };
+                    if (newRow.id_sql) {
+                        const obraDB = await ObraModel.obtenerPorId(newRow.id_sql);
+                        if (obraDB) {
+                            newRow.foto = obraDB.foto || 'default.png';
+                        }
+                    }
+                    return newRow;
+                }));
+
                 res.render('admin/nlp-query', {
                     query: text,
-                    results: data.results,
+                    results: enrichedResults,
                     cypher: data.query,
                     intent: data.intent,
                     error: null
