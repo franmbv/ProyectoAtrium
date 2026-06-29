@@ -7,7 +7,7 @@ const Neo4jSyncService = {
     // ==========================================
     // 1. SINCRONIZACIÓN DE ARTISTAS
     // ==========================================
-    syncArtista: async (artistaSQL) => {
+    syncArtista: async (artistaSQL, esActualizacion = false) => {
         try {
             const payload = {
                 artista: {

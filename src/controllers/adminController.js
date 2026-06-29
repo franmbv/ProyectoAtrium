@@ -274,6 +274,7 @@ const AdminController = {
                 detalles: detallesDict
             });
 
+            // 4b. Sincronizar con Neo4j
             res.redirect('/admin/categorias?success=Categoría guardada con éxito');
         } catch (error) {
             console.error("Error al guardar categoría:", error);

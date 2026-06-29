@@ -220,7 +220,7 @@
                 <div class="table-responsive">
                     <table class="table table-atrium align-middle">
                         <% if (results && results.length > 0) { 
-                            const headers = Object.keys(results[0]);
+                            const headers = Object.keys(results[0]).filter(h => h !== 'id_sql');
                         %>
                             <thead>
                                 <tr>
@@ -234,7 +234,12 @@
                                     <tr>
                                         <% headers.forEach(h => { %>
                                             <td>
-                                                <% if (typeof row[h] === 'object' && row[h] !== null) { %>
+                                                <% if (h === 'foto') { %>
+                                                    <img src="<%= (row[h] && row[h].startsWith('http')) ? row[h] : ('/uploads/' + (row[h] || 'default_obra.jpg')) %>" 
+                                                         alt="Miniatura" 
+                                                         style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);"
+                                                         onerror="this.src='/img/default_obra.jpg'">
+                                                <% } else if (typeof row[h] === 'object' && row[h] !== null) { %>
                                                     <pre class="m-0 text-start text-white-50 font-monospace" style="font-size: 0.75rem;"><%= JSON.stringify(row[h], null, 2) %></pre>
                                                 <% } else if (row[h] === true || row[h] === false) { %>
                                                     <%= row[h] ? 'Sí' : 'No' %>

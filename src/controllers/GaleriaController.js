@@ -96,25 +96,37 @@ const GaleriaController = {
             // --- INTEGRACIÓN SPRINT 3: RECOMENDACIONES NEO4J ---
             let obrasRecomendadas = [];
             let populares = null;
-            const NEO4J_API_URL = process.env.NEO4J_API_URL || 'http://localhost:8000';
+            const NEO4J_API_URL = process.env.NEO4J_API_URL || 'http://localhost:8002';
             const usuarioLogueado = req.session?.usuario;
 
             if (usuarioLogueado && usuarioLogueado.rol === 2) {
                 try {
-                    const recResponse = await axios.get(`${NEO4J_API_URL}/api/v1/recommendations/obras/${usuarioLogueado.id}`);
+                    const recResponse = await axios.get(`${NEO4J_API_URL}/api/v1/recommendations/${usuarioLogueado.id}`);
                     if (recResponse.data && recResponse.data.success) {
-                        obrasRecomendadas = recResponse.data.data.map(rec => {
-                            const match = obrasMongo.find(o => o.id === rec.id_sql);
-                            return {
-                                id: rec.id_sql,
-                                nombre: rec.titulo,
-                                precioObra: rec.precio,
-                                nombre_artista: rec.artista,
-                                nombre_genero: rec.genero,
-                                foto: match ? match.foto : 'default.png',
-                                estatus: match ? match.estatus : 'Disponible'
-                            };
+                        const recPromesas = recResponse.data.data.map(async (rec) => {
+                            const obra = rec.obra || {};
+                            const artista = rec.artista || {};
+                            const genero = rec.genero || {};
+                            
+                            // Consultar base de datos relacional para obtener estado y foto actualizados y reales
+                            const obraDB = await ObraModel.obtenerPorId(obra.id_sql);
+                            if (obraDB) {
+                                return {
+                                    id: obraDB.id,
+                                    nombre: obraDB.nombre,
+                                    precioObra: obraDB.precioObra,
+                                    nombre_artista: `${obraDB.nombre_artista} ${obraDB.apellido_artista || ''}`.trim(),
+                                    nombre_genero: obraDB.nombre_genero || genero.nombre || 'Desconocido',
+                                    foto: obraDB.foto || 'default.png',
+                                    estatus: obraDB.estatus
+                                };
+                            }
+                            return null;
                         });
+                        
+                        const resolvedRecs = await Promise.all(recPromesas);
+                        // Filtrar sugerencias no válidas o que no estén disponibles
+                        obrasRecomendadas = resolvedRecs.filter(o => o !== null && String(o.estatus).toLowerCase() === 'disponible');
                     }
                 } catch (recError) {
                     console.log(`[Neo4j Recommendations] Sin recomendaciones personalizadas para usuario ${usuarioLogueado.id}:`, recError.response?.data?.detail || recError.message);
@@ -127,8 +139,20 @@ const GaleriaController = {
                             axios.get(`${NEO4J_API_URL}/api/v1/recommendations/generos/populares?limit=3`).catch(() => null)
                         ]);
                         populares = {
-                            artistas: artistsPop = artistasPop?.data?.success ? artistasPop.data.data : [],
-                            generos: generosPop?.data?.success ? generosPop.data.data : []
+                            artistas: artistasPop?.data?.success ? artistasPop.data.data.map(item => {
+                                const art = item.artista || {};
+                                return {
+                                    artista: art.nombre || 'Desconocido',
+                                    obras_vendidas: item.obras_vendidas || 0
+                                };
+                            }) : [],
+                            generos: generosPop?.data?.success ? generosPop.data.data.map(item => {
+                                const gen = item.genero || {};
+                                return {
+                                    genero: gen.nombre || 'Desconocido',
+                                    obras_vendidas: item.obras_vendidas || 0
+                                };
+                            }) : []
                         };
                     } catch (popError) {
                         console.error("[Neo4j Recommendations Error] Obteniendo populares:", popError.message);
